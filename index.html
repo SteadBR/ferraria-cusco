@@ -38,6 +38,12 @@
         .header-text h1 { margin: 0; text-transform: uppercase; letter-spacing: 2px; }
         .header-text small { color: var(--primary); font-weight: bold; text-transform: uppercase; }
 
+        /* Estilo do Logo e Assinatura dentro do Resumo */
+        .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
+        .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
+        .subtitle-cart { font-size: 0.75rem; color: #aaa; letter-spacing: 1px; margin-top: 2px; }
+
         .filter-container { grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; gap: 15px; border: 1px solid #333; }
         .filter-container label { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: var(--buy); }
         .category-select { background: #121212; color: white; border: 1px solid var(--buy); padding: 10px; border-radius: 5px; outline: none; flex: 1; cursor: pointer; }
@@ -59,8 +65,6 @@
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
 
         .cart-items { list-style: none; padding: 0; margin: 15px 0; border-top: 1px solid #444; padding-top: 15px; }
-        
-        /* Divisória de Categoria no Resumo */
         .cart-category-divider { background: rgba(16, 185, 129, 0.1); color: var(--buy); padding: 5px 10px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border-left: 3px solid var(--buy); margin: 10px 0 5px 0; }
 
         .cart-item { border-bottom: 1px solid #333; padding: 12px 0; display: flex; flex-direction: column; gap: 8px; }
@@ -107,11 +111,17 @@
     <div class="catalog" id="catalog"></div>
 
     <aside class="cart-panel" id="cart-capture">
+        <div class="cart-header-internal">
+            <img src="https://i.imgur.com/bQAy1gG.png" class="logo-cart">
+            <div class="title-cart" id="internal-title">FERRARIA CUSCO</div>
+            <div class="subtitle-cart">Yuno Schmutz - HY288</div>
+        </div>
+
         <h3 id="cart-title">📋 RESUMO</h3>
         
         <div class="client-info" id="info-contato">
             <div class="info-group"><label id="label-name">Nome do Cliente</label><input type="text" id="in-name" placeholder="NOME"><span id="out-name" class="display-data"></span></div>
-            <div class="info-group" id="tele-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="USUÁRIO"><span id="out-tele" class="display-data"></span></div>
+            <div class="info-group" id="tele-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="POMBO"><span id="out-tele" class="display-data"></span></div>
             <div class="info-group" id="disc-group"><label>Discord</label><input type="text" id="in-disc" placeholder="USUARIO#0000"><span id="out-disc" class="display-data"></span></div>
         </div>
 
@@ -176,9 +186,18 @@
         document.querySelector(`.btn-${mode}`).classList.add('active');
         
         const header = document.getElementById('main-header');
+        const internalTitle = document.getElementById('internal-title');
         header.className = '';
-        if(isProd) header.classList.add('header-producao');
-        if(isBuy) header.classList.add('header-compras');
+        
+        if(isProd) {
+            header.classList.add('header-producao');
+            internalTitle.style.color = "var(--secondary)";
+        } else if(isBuy) {
+            header.classList.add('header-compras');
+            internalTitle.style.color = "var(--buy)";
+        } else {
+            internalTitle.style.color = "var(--primary)";
+        }
 
         document.getElementById('filter-bar').style.display = isBuy ? "flex" : "none";
         document.getElementById('info-contato').style.display = (isProd || isBuy) ? "none" : "flex";
@@ -245,7 +264,6 @@
         const items = Object.values(cart);
 
         if (currentMode === 'compras') {
-            // Ordena por categoria para agrupar no resumo
             items.sort((a, b) => a.category.localeCompare(b.category));
         }
 
