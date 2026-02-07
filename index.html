@@ -39,7 +39,6 @@
         .header-text h1 { margin: 0; text-transform: uppercase; letter-spacing: 2px; }
         .header-text small { color: var(--primary); font-weight: bold; text-transform: uppercase; }
 
-        /* Estilo do Logo e Assinatura dentro do Resumo */
         .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
         .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
         .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
@@ -64,6 +63,17 @@
         .client-info { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
         .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; }
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
+
+        /* Pagamento */
+        .payment-area { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
+        .payment-area label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary); display: block; margin-bottom: 5px; }
+        .pay-select { width: 100%; padding: 8px; background: #121212; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 10px; }
+        .entry-group { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+        .entry-group input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .entry-input { width: 100%; margin-top: 5px; display: none; }
+
+        .parcel-info { font-size: 0.75rem; color: #aaa; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid var(--primary); }
+        .parcel-line { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
 
         .cart-items { list-style: none; padding: 0; margin: 15px 0; border-top: 1px solid #444; padding-top: 15px; }
         .cart-category-divider { background: rgba(16, 185, 129, 0.1); color: var(--buy); padding: 5px 10px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border-left: 3px solid var(--buy); margin: 10px 0 5px 0; }
@@ -122,8 +132,25 @@
         
         <div class="client-info" id="info-contato">
             <div class="info-group"><label id="label-name">Nome do Cliente</label><input type="text" id="in-name" placeholder="NOME"><span id="out-name" class="display-data"></span></div>
-            <div class="info-group" id="tele-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="POMBO"><span id="out-tele" class="display-data"></span></div>
+            <div class="info-group" id="tele-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="USUÁRIO"><span id="out-tele" class="display-data"></span></div>
             <div class="info-group" id="disc-group"><label>Discord</label><input type="text" id="in-disc" placeholder="USUARIO#0000"><span id="out-disc" class="display-data"></span></div>
+        </div>
+
+        <div class="payment-area" id="payment-box">
+            <label id="pay-label">Forma de Pagamento</label>
+            <select id="pay-method" class="pay-select" onchange="updateUI()">
+                <option value="1">À VISTA</option>
+                <option value="2">PARCELADO 2X</option>
+                <option value="3">PARCELADO 3X</option>
+            </select>
+            
+            <div class="entry-group">
+                <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
+                <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada?</label>
+            </div>
+            <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
+            
+            <div id="parcel-details" class="parcel-info" style="display:none"></div>
         </div>
 
         <div class="cart-items" id="cart-items"></div>
@@ -177,6 +204,13 @@
         { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png" }
     ];
 
+    function toggleEntryField() {
+        const checkbox = document.getElementById('has-entry');
+        document.getElementById('entry-val').style.display = checkbox.checked ? "block" : "none";
+        if(!checkbox.checked) document.getElementById('entry-val').value = "";
+        updateUI();
+    }
+
     function switchSystem(mode) {
         currentMode = mode;
         clearCart();
@@ -193,11 +227,16 @@
         if(isProd) {
             header.classList.add('header-producao');
             internalTitle.style.color = "var(--secondary)";
+            document.getElementById('payment-box').style.display = "none";
         } else if(isBuy) {
             header.classList.add('header-compras');
             internalTitle.style.color = "var(--buy)";
+            document.getElementById('payment-box').style.display = "block";
+            document.getElementById('pay-label').style.color = "var(--buy)";
         } else {
             internalTitle.style.color = "var(--primary)";
+            document.getElementById('payment-box').style.display = "block";
+            document.getElementById('pay-label').style.color = "var(--primary)";
         }
 
         document.getElementById('filter-bar').style.display = isBuy ? "flex" : "none";
@@ -240,10 +279,8 @@
         const prod = inv.find(i => i.id === id);
         const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
         if (qtyVal <= 0 || isNaN(qtyVal)) return;
-
         let finalPrice = prod.price || 0;
         if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
-
         if (cart[id]) {
             cart[id].quantity += qtyVal;
             if(currentMode === 'compras') cart[id].price = finalPrice;
@@ -254,43 +291,66 @@
     }
 
     function removeItem(id) { delete cart[id]; updateUI(); }
-    function clearCart() { cart = {}; updateUI(); }
+    function clearCart() { cart = {}; document.getElementById('has-entry').checked = false; document.getElementById('entry-val').value = ""; document.getElementById('entry-val').style.display = "none"; updateUI(); }
+
+    function formatDate(date) {
+        const d = date.getDate().toString().padStart(2, '0');
+        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+        return `${d}/${m}`;
+    }
 
     function updateUI() {
         const cartList = document.getElementById('cart-items');
-        let total = 0;
+        let totalRaw = 0;
         let lastCategory = "";
         let htmlContent = "";
-
         const items = Object.values(cart);
-
-        if (currentMode === 'compras') {
-            items.sort((a, b) => a.category.localeCompare(b.category));
-        }
+        if (currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
 
         items.forEach(item => {
             if (currentMode === 'compras' && item.category !== lastCategory) {
                 lastCategory = item.category;
                 htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`;
             }
-
             let infoHTML = "";
             let priceColHTML = "";
-
             if(currentMode === 'producao' && item.recipe) {
                 const numLotes = Math.ceil(item.quantity / item.recipe.yield);
                 infoHTML = `<div class="insumos-list"><b>LOTES:</b> ${numLotes} | <b>TOTAL:</b> ${numLotes * item.recipe.yield} UN.<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<span class="insumo-line">• ${m.q * numLotes}x ${m.n.toUpperCase()}</span>`).join('')}</div></div>`;
             } else {
                 const subTotal = item.price * item.quantity;
-                total += subTotal;
+                totalRaw += subTotal;
                 priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`;
             }
-
             htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()} (x${item.quantity})</span>${priceColHTML}<button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div>${infoHTML}</div>`;
         });
 
         cartList.innerHTML = htmlContent;
-        document.getElementById('total-val').innerText = total.toFixed(2);
+        
+        // Pagamento e Parcelas
+        const numParcelas = parseInt(document.getElementById('pay-method').value);
+        const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        const parcelBox = document.getElementById('parcel-details');
+        
+        if (numParcelas > 1 && totalRaw > 0) {
+            parcelBox.style.display = "block";
+            let parcelHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
+            if(entryVal > 0) parcelHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
+            
+            const valorParaParcelar = totalRaw - entryVal;
+            const valorParcela = valorParaParcelar / numParcelas;
+            
+            let dataBase = new Date();
+            for(let i=1; i<=numParcelas; i++) {
+                dataBase.setDate(dataBase.getDate() + 2);
+                parcelHTML += `<div class="parcel-line"><span>PARCELA ${i} (${formatDate(dataBase)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+            }
+            parcelBox.innerHTML = parcelHTML;
+        } else {
+            parcelBox.style.display = "none";
+        }
+
+        document.getElementById('total-val').innerText = totalRaw.toFixed(2);
     }
 
     async function generateImage() {
@@ -321,4 +381,3 @@
 </script>
 </body>
 </html>
-
