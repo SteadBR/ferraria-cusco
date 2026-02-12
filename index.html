@@ -61,7 +61,7 @@
 
         .cart-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: fit-content; position: sticky; top: 20px; }
         .client-info { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; }
+        .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; width: 100%; box-sizing: border-box; }
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
 
         .payment-area { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
@@ -87,7 +87,7 @@
         
         .total-box { border-top: 2px solid var(--primary); padding-top: 15px; display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
         .checkout-btn { background: #059669; color: white; border: none; width: 100%; padding: 15px; border-radius: 5px; font-weight: bold; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
-        .transfer-btn { background: var(--secondary); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
+        .transfer-btn { background: var(--secondary); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; display: none; }
         .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; width: 100%; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
     </style>
 </head>
@@ -131,9 +131,9 @@
         <h3 id="cart-title">📋 RESUMO</h3>
         
         <div class="client-info" id="info-contato">
-            <div class="info-group"><label id="label-name">Nome do Cliente</label><input type="text" id="in-name" placeholder="NOME"><span id="out-name" class="display-data"></span></div>
-            <div class="info-group" id="tele-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="USUÁRIO"><span id="out-tele" class="display-data"></span></div>
-            <div class="info-group" id="disc-group"><label>Discord</label><input type="text" id="in-disc" placeholder="USUARIO#0000"><span id="out-disc" class="display-data"></span></div>
+            <div class="info-group"><label>Nome do Cliente</label><input type="text" id="in-name" placeholder="NOME"><span id="out-name" class="display-data"></span></div>
+            <div class="info-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="USUÁRIO"><span id="out-tele" class="display-data"></span></div>
+            <div class="info-group"><label>Discord</label><input type="text" id="in-disc" placeholder="USUARIO#0000"><span id="out-disc" class="display-data"></span></div>
         </div>
 
         <div class="payment-area" id="payment-box">
@@ -160,7 +160,7 @@
 
         <div id="ui-buttons">
             <button id="main-action-btn" class="checkout-btn" onclick="generateImage()">SALVAR IMAGEM</button>
-            <button id="transfer-btn" class="transfer-btn" style="display:none" onclick="transferToCompras()">Transferir para Compras</button>
+            <button id="transfer-btn" class="transfer-btn" onclick="transferToCompras()">Transferir para Compras</button>
             <button class="clear-btn" onclick="clearCart()">LIMPAR ABA ATUAL</button>
         </div>
     </aside>
@@ -168,12 +168,7 @@
 
 <script>
     let currentMode = 'vendas';
-    
-    let carts = {
-        'vendas': {},
-        'producao': {},
-        'compras': {}
-    };
+    let carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
 
     const inventory = [
         { id: 1, name: "Cápsula de Munição", price: 0.86, img: "https://i.imgur.com/pYci4DW.png", recipe: { yield: 20, materials: [{n: "Lingote de Cobre", q: 3}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 2}] } },
@@ -217,25 +212,40 @@
 
     function switchSystem(mode) {
         currentMode = mode;
-        const isBuy = mode === 'compras', isProd = mode === 'producao';
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`.btn-${mode}`).classList.add('active');
-        const header = document.getElementById('main-header'), internalTitle = document.getElementById('internal-title');
+        
+        const isBuy = mode === 'compras';
+        const isProd = mode === 'producao';
+        const header = document.getElementById('main-header');
+        const internalTitle = document.getElementById('internal-title');
+        
         header.className = '';
-        
         document.getElementById('transfer-btn').style.display = isProd ? "block" : "none";
-
-        if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('payment-box').style.display = "none"; }
-        else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('payment-box').style.display = "block"; document.getElementById('pay-label').style.color = "var(--buy)"; }
-        else { internalTitle.style.color = "var(--primary)"; document.getElementById('payment-box').style.display = "block"; document.getElementById('pay-label').style.color = "var(--primary)"; }
-        
         document.getElementById('filter-bar').style.display = isBuy ? "flex" : "none";
         document.getElementById('info-contato').style.display = (isProd || isBuy) ? "none" : "flex";
-        document.getElementById('cart-title').innerText = isBuy ? "🛒 LISTA DE ENCOMENDA" : (isProd ? "📦 MATERIAIS PARA PRODUÇÃO" : "📋 RESUMO DO PEDIDO");
+        document.getElementById('payment-box').style.display = (isProd) ? "none" : "block";
         document.getElementById('total-val-box').style.display = isProd ? "none" : "block";
+
+        if(isProd) { 
+            header.classList.add('header-producao'); 
+            internalTitle.style.color = "var(--secondary)"; 
+            document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO";
+        } else if(isBuy) { 
+            header.classList.add('header-compras'); 
+            internalTitle.style.color = "var(--buy)"; 
+            document.getElementById('cart-title').innerText = "🛒 LISTA DE ENCOMENDA";
+            document.getElementById('pay-label').style.color = "var(--buy)";
+        } else { 
+            internalTitle.style.color = "var(--primary)"; 
+            document.getElementById('cart-title').innerText = "📋 RESUMO DO PEDIDO";
+            document.getElementById('pay-label').style.color = "var(--primary)";
+        }
+
         const borderColor = isBuy ? "var(--buy)" : (isProd ? "var(--secondary)" : "var(--primary)");
         document.getElementById('total-border').style.borderTopColor = borderColor;
         document.getElementById('total-border').style.color = borderColor;
+
         renderCatalog();
         updateUI(); 
     }
@@ -244,13 +254,17 @@
         const grid = document.getElementById('catalog');
         const accent = currentMode === 'compras' ? 'var(--buy)' : (currentMode === 'producao' ? 'var(--secondary)' : 'var(--primary)');
         let displayList = currentMode === 'compras' ? supplyInventory : inventory;
+        
         if (currentMode === 'compras') {
             const selectedCat = document.getElementById('category-select').value;
             if (selectedCat !== "TODOS") displayList = displayList.filter(i => i.category === selectedCat);
         }
+        
         grid.innerHTML = displayList.map(item => {
-            const inputs = currentMode === 'compras' ? `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>` : `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
-            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${currentMode === 'vendas' ? `<span class="item-price">$${item.price.toFixed(2)}</span>` : ''}${(currentMode === 'producao' && item.recipe) ? `<div class="recipe-info">1 Lote = ${item.recipe.yield} un.</div>` : ''}${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
+            const inputs = currentMode === 'compras' ? 
+                `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>` : 
+                `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
+            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${currentMode === 'vendas' ? `<span class="item-price">$${item.price.toFixed(2)}</span>` : ''}${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
         }).join('');
     }
 
@@ -259,11 +273,16 @@
         const prod = inv.find(i => i.id === id);
         const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
         if (qtyVal <= 0 || isNaN(qtyVal)) return;
+
         let finalPrice = prod.price || 0;
         if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
-        let cart = carts[currentMode];
-        if (cart[id]) { cart[id].quantity += qtyVal; if(currentMode === 'compras') cart[id].price = finalPrice; }
-        else { cart[id] = { ...prod, quantity: qtyVal, price: finalPrice }; }
+
+        if (carts[currentMode][id]) { 
+            carts[currentMode][id].quantity += qtyVal; 
+            if(currentMode === 'compras') carts[currentMode][id].price = finalPrice;
+        } else { 
+            carts[currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice }; 
+        }
         updateUI();
     }
 
@@ -271,7 +290,6 @@
         const prodCart = carts['producao'];
         if (Object.keys(prodCart).length === 0) return alert("A lista de produção está vazia!");
         
-        let transferredCount = 0;
         Object.values(prodCart).forEach(item => {
             if(item.recipe) {
                 const numLotes = Math.ceil(item.quantity / item.recipe.yield);
@@ -279,22 +297,13 @@
                     const supply = supplyInventory.find(s => s.name.toUpperCase() === mat.n.toUpperCase());
                     if(supply) {
                         const totalQty = mat.q * numLotes;
-                        if(carts['compras'][supply.id]) {
-                            carts['compras'][supply.id].quantity += totalQty;
-                        } else {
-                            carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice };
-                        }
-                        transferredCount++;
+                        if(carts['compras'][supply.id]) carts['compras'][supply.id].quantity += totalQty;
+                        else carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice };
                     }
                 });
             }
         });
-        
-        if(transferredCount > 0) {
-            alert("Insumos transferidos para a aba de compras com sucesso!");
-        } else {
-            alert("Nenhum insumo correspondente encontrado para transferir.");
-        }
+        alert("Insumos transferidos com sucesso!");
     }
 
     function removeItem(id) { delete carts[currentMode][id]; updateUI(); }
@@ -308,501 +317,87 @@
         updateUI(); 
     }
 
-    function formatDate(date) {
-        const d = date.getDate().toString().padStart(2, '0');
-        const m = (date.getMonth() + 1).toString().padStart(2, '0');
-        return `${d}/${m}`;
-    }
-
     function updateUI() {
         const cartList = document.getElementById('cart-items');
+        cartList.innerHTML = ""; // Limpa a lista antes de renderizar
+        
         let totalRaw = 0, lastCategory = "", htmlContent = "";
         const cart = carts[currentMode];
         const items = Object.values(cart);
+        
         if (currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
         
         items.forEach(item => {
-            if (currentMode === 'compras' && item.category !== lastCategory) { lastCategory = item.category; htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; }
-            let infoHTML = "", priceColHTML = "";
+            if (currentMode === 'compras' && item.category !== lastCategory) { 
+                lastCategory = item.category; 
+                htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; 
+            }
             
+            let infoHTML = "", priceColHTML = "";
             if(currentMode === 'producao' && item.recipe) {
                 const numLotes = Math.ceil(item.quantity / item.recipe.yield);
-                infoHTML = `
-                <div class="insumos-list">
-                    <b>LOTES:</b> ${numLotes} | <b>TOTAL:</b> ${numLotes * item.recipe.yield} UN.<br>
-                    <div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">
-                        ${item.recipe.materials.map(m => `
-                            <div class="insumo-line">
-                                <span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span>
-                                <input type="checkbox" class="prod-checkbox">
-                            </div>`).join('')}
-                    </div>
-                </div>`;
+                infoHTML = `<div class="insumos-list"><b>LOTES:</b> ${numLotes} | <b>TOTAL:</b> ${numLotes * item.recipe.yield} UN.<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<div class="insumo-line"><span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span><input type="checkbox" class="prod-checkbox"></div>`).join('')}</div></div>`;
                 priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
             } else { 
-                const subTotal = item.price * item.quantity; totalRaw += subTotal; priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`; 
+                const subTotal = item.price * item.quantity; 
+                totalRaw += subTotal; 
+                priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`; 
             }
 
-            htmlContent += `
-                <div class="cart-item">
-                    <div class="cart-item-header">
-                        <img src="${item.img}" class="cart-item-img">
-                        <div class="cart-item-info">
-                            <span>${item.name.toUpperCase()} (x${item.quantity})</span>
-                            <div style="display:flex; align-items:center; gap:10px">
-                                ${priceColHTML}
-                                <button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button>
-                            </div>
-                        </div>
-                    </div>
-                    ${infoHTML}
-                </div>`;
+            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()} (x${item.quantity})</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
         });
         
         cartList.innerHTML = htmlContent;
-        const numParcelas = parseInt(document.getElementById('pay-method').value), entryVal = parseFloat(document.getElementById('entry-val').value) || 0, parcelBox = document.getElementById('parcel-details');
+
+        // Parcelamento
+        const numParcelas = parseInt(document.getElementById('pay-method').value);
+        const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        const parcelBox = document.getElementById('parcel-details');
+        
         if (numParcelas > 1 && totalRaw > 0 && currentMode !== 'producao') {
             parcelBox.style.display = "block";
-            let parcelHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
-            if(entryVal > 0) parcelHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
-            const valorParaParcelar = totalRaw - entryVal, valorParcela = valorParaParcelar / numParcelas;
-            let dataBase = new Date();
-            for(let i=1; i<=numParcelas; i++) { dataBase.setDate(dataBase.getDate() + 2); parcelHTML += `<div class="parcel-line"><span>PARCELA ${i} (${formatDate(dataBase)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`; }
-            parcelBox.innerHTML = parcelHTML;
+            let pHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
+            if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
+            const valorParcela = (totalRaw - entryVal) / numParcelas;
+            let date = new Date();
+            for(let i=1; i<=numParcelas; i++) {
+                date.setDate(date.getDate() + 2);
+                pHTML += `<div class="parcel-line"><span>PARC ${i} (${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+            }
+            parcelBox.innerHTML = pHTML;
         } else { parcelBox.style.display = "none"; }
+        
         document.getElementById('total-val').innerText = totalRaw.toFixed(2);
     }
 
     async function generateImage() {
-        if(Object.keys(carts[currentMode]).length === 0) return alert("A lista desta aba está vazia!");
+        if(Object.keys(carts[currentMode]).length === 0) return alert("Lista vazia!");
         if(currentMode === 'vendas') {
-            const n = document.getElementById('in-name').value;
-            if(!n || !document.getElementById('in-disc').value || !document.getElementById('in-tele').value) return alert("Preencha todos os campos!");
-            document.getElementById('out-name').innerText = n.toUpperCase();
+            const name = document.getElementById('in-name').value;
+            if(!name || !document.getElementById('in-disc').value || !document.getElementById('in-tele').value) return alert("Preencha os dados do cliente!");
+            document.getElementById('out-name').innerText = name.toUpperCase();
             document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
             document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
             document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
             document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
         }
+        
         document.getElementById('ui-buttons').style.display = 'none';
         document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
         document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
+
         const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
         const link = document.createElement('a');
-        link.download = `${currentMode.toUpperCase()}_${new Date().getTime()}.png`;
+        link.download = `${currentMode}_${Date.now()}.png`;
         link.href = canvas.toDataURL(); link.click();
+        
         document.getElementById('ui-buttons').style.display = 'block';
         document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'inline');
         document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'inline-block');
-        if(currentMode === 'vendas') {
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
-        }
+        document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
+        document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
     }
-    switchSystem('vendas');
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ferraria Cusco - Gestão Integrada</title>
-    <link rel="icon" type="image/png" href="https://i.imgur.com/bQAy1gG.png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        :root {
-            --primary: #f59e0b;
-            --secondary: #3b82f6;
-            --buy: #10b981;
-            --bg: #121212;
-            --card: #1e1e1e;
-            --text: #ffffff;
-            --item-bg: #2a2a2a;
-        }
-
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        
-        .nav-tabs { width: 100%; max-width: 1200px; display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; color: white; opacity: 0.4; border: 1px solid rgba(255,255,255,0.1); }
-        .tab-btn.active { opacity: 1; border: 1px solid white; }
-        .btn-vendas { background: var(--primary); color: black; }
-        .btn-producao { background: var(--secondary); }
-        .btn-compras { background: var(--buy); }
-
-        .shop-container { width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 420px; gap: 20px; }
-        
-        header { 
-            grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 10px; 
-            border-left: 5px solid var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 20px; 
-        }
-        .header-producao { border-left-color: var(--secondary) !important; }
-        .header-compras { border-left-color: var(--buy) !important; }
-
-        .logo-ferraria { width: 80px; height: 80px; object-fit: contain; }
-        .header-text h1 { margin: 0; text-transform: uppercase; letter-spacing: 2px; }
-        .header-text small { color: var(--primary); font-weight: bold; text-transform: uppercase; }
-
-        .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
-        .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
-        .subtitle-cart { font-size: 0.75rem; color: #aaa; letter-spacing: 1px; margin-top: 2px; }
-
-        .filter-container { grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; gap: 15px; border: 1px solid #333; }
-        .filter-container label { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: var(--buy); }
-        .category-select { background: #121212; color: white; border: 1px solid var(--buy); padding: 10px; border-radius: 5px; outline: none; flex: 1; cursor: pointer; }
-
-        .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .item-card { background: var(--item-bg); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; transition: 0.2s; }
-        .product-img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; }
-        
-        .buy-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; }
-        .input-row { display: flex; justify-content: space-between; align-items: center; gap: 5px; }
-        .input-row label { font-size: 0.65rem; font-weight: bold; color: #999; }
-
-        .qty-input { width: 70px; background: #121212; border: 1px solid #444; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
-        .add-btn { border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; color: black; text-transform: uppercase; }
-
-        .cart-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: fit-content; position: sticky; top: 20px; }
-        .client-info { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
-        .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; }
-        .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
-
-        .payment-area { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
-        .payment-area label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary); display: block; margin-bottom: 5px; }
-        .pay-select { width: 100%; padding: 8px; background: #121212; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 10px; }
-        .entry-group { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
-        .entry-input { width: 100%; margin-top: 5px; display: none; }
-
-        .parcel-info { font-size: 0.75rem; color: #aaa; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid var(--primary); }
-        .parcel-line { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
-
-        .cart-items { list-style: none; padding: 0; margin: 15px 0; border-top: 1px solid #444; padding-top: 15px; }
-        .cart-category-divider { background: rgba(16, 185, 129, 0.1); color: var(--buy); padding: 5px 10px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border-left: 3px solid var(--buy); margin: 10px 0 5px 0; }
-
-        .cart-item { border-bottom: 1px solid #333; padding: 12px 0; display: flex; flex-direction: column; gap: 8px; }
-        .cart-item-header { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; font-weight: bold; }
-        .cart-item-img { width: 50px; height: 50px; object-fit: contain; background: transparent; border: none; }
-        .cart-item-info { flex: 1; display: flex; justify-content: space-between; align-items: center; }
-
-        .insumos-list { font-size: 0.8rem; color: #fbbf24; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; border-left: 3px solid var(--secondary); line-height: 1.8; }
-        .insumo-line { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
-        .prod-checkbox { width: 16px; height: 16px; cursor: pointer; margin-left: 10px; accent-color: var(--secondary); }
-        
-        .total-box { border-top: 2px solid var(--primary); padding-top: 15px; display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        .checkout-btn { background: #059669; color: white; border: none; width: 100%; padding: 15px; border-radius: 5px; font-weight: bold; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
-        .transfer-btn { background: var(--secondary); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
-        .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; width: 100%; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
-    </style>
-</head>
-<body>
-
-<div class="nav-tabs">
-    <button class="tab-btn btn-vendas active" onclick="switchSystem('vendas')">Vendas</button>
-    <button class="tab-btn btn-producao" onclick="switchSystem('producao')">Cálculo de Produção</button>
-    <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Encomenda de Insumos</button>
-</div>
-
-<div class="shop-container">
-    <header id="main-header">
-        <img src="https://i.imgur.com/bQAy1gG.png" alt="Logo Cusco" class="logo-ferraria">
-        <div class="header-text">
-            <h1 id="title-text">FERRARIA CUSCO</h1>
-            <small id="sub-text">REGISTRO DE PEDIDOS OFICIAL - 1905</small>
-        </div>
-    </header>
-
-    <div class="filter-container" id="filter-bar">
-        <label>Empresa:</label>
-        <select id="category-select" class="category-select" onchange="renderCatalog()">
-            <option value="TODOS">TODAS AS EMPRESAS</option>
-            <option value="Fazendas">FAZENDAS</option>
-            <option value="Mineradoras">MINERADORAS</option>
-            <option value="Artesanatos">ARTESANATOS</option>
-            <option value="Madeireiras">MADEIREIRAS</option>
-        </select>
-    </div>
-
-    <div class="catalog" id="catalog"></div>
-
-    <aside class="cart-panel" id="cart-capture">
-        <div class="cart-header-internal">
-            <img src="https://i.imgur.com/bQAy1gG.png" class="logo-cart">
-            <div class="title-cart" id="internal-title">FERRARIA CUSCO</div>
-            <div class="subtitle-cart">Yuno Schmutz - HY288</div>
-        </div>
-
-        <h3 id="cart-title">📋 RESUMO</h3>
-        
-        <div class="client-info" id="info-contato">
-            <div class="info-group"><label id="label-name">Nome do Cliente</label><input type="text" id="in-name" placeholder="NOME"><span id="out-name" class="display-data"></span></div>
-            <div class="info-group" id="tele-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="USUÁRIO"><span id="out-tele" class="display-data"></span></div>
-            <div class="info-group" id="disc-group"><label>Discord</label><input type="text" id="in-disc" placeholder="USUARIO#0000"><span id="out-disc" class="display-data"></span></div>
-        </div>
-
-        <div class="payment-area" id="payment-box">
-            <label id="pay-label">Forma de Pagamento</label>
-            <select id="pay-method" class="pay-select" onchange="updateUI()">
-                <option value="1">À VISTA</option>
-                <option value="2">PARCELADO 2X</option>
-                <option value="3">PARCELADO 3X</option>
-            </select>
-            <div class="entry-group">
-                <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
-                <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada?</label>
-            </div>
-            <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
-            <div id="parcel-details" class="parcel-info" style="display:none"></div>
-        </div>
-
-        <div class="cart-items" id="cart-items"></div>
-
-        <div class="total-box" id="total-border">
-            <span id="total-label">TOTAL:</span>
-            <span id="total-val-box">$<span id="total-val">0.00</span></span>
-        </div>
-
-        <div id="ui-buttons">
-            <button id="main-action-btn" class="checkout-btn" onclick="generateImage()">SALVAR IMAGEM</button>
-            <button id="transfer-btn" class="transfer-btn" style="display:none" onclick="transferToCompras()">Transferir para Compras</button>
-            <button class="clear-btn" onclick="clearCart()">LIMPAR ABA ATUAL</button>
-        </div>
-    </aside>
-</div>
-
-<script>
-    let currentMode = 'vendas';
     
-    let carts = {
-        'vendas': {},
-        'producao': {},
-        'compras': {}
-    };
-
-    const inventory = [
-        { id: 1, name: "Cápsula de Munição", price: 0.86, img: "https://i.imgur.com/pYci4DW.png", recipe: { yield: 20, materials: [{n: "Lingote de Cobre", q: 3}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 2}] } },
-        { id: 2, name: "Cutelo", price: 3.12, img: "https://i.imgur.com/v4fRfq2.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
-        { id: 3, name: "Faca Comum", price: 7.80, img: "https://i.imgur.com/c7VZQFm.png", recipe: { yield: 7, materials: [{n: "Madeira Cilíndrica", q: 4}, {n: "Lingote de Aço", q: 3}] } },
-        { id: 4, name: "Faca de Arremesso", price: 11.70, img: "https://i.imgur.com/tAnQ019.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
-        { id: 5, name: "Lingote de Aço", price: 3.67, img: "https://i.imgur.com/k84v8UK.png", recipe: { yield: 3, materials: [{n: "Pepita de Prata", q: 4}, {n: "Pepita de Cobre", q: 5}, {n: "Carvão Vegetal", q: 5}] } },
-        { id: 6, name: "Lingote de Cobre", price: 3.35, img: "https://i.imgur.com/3e9Rtrv.png", recipe: { yield: 2, materials: [{n: "Pepita de Cobre", q: 4}, {n: "Carvão", q: 6}] } },
-        { id: 7, name: "Lingote de Ferro", price: 2.57, img: "https://i.imgur.com/FLBxUU9.png", recipe: { yield: 7, materials: [{n: "Pepita de Ferro", q: 9}, {n: "Carvão Bruto", q: 10}] } },
-        { id: 8, name: "Lingote de Ouro", price: 3.98, img: "https://i.imgur.com/W09uKgt.png", recipe: { yield: 3, materials: [{n: "Pepita de Ouro", q: 7}, {n: "Carvão", q: 5}] } },
-        { id: 9, name: "Lingote de Prata", price: 3.04, img: "https://i.imgur.com/OP2T9Xk.png", recipe: { yield: 2, materials: [{n: "Pepita de Prata", q: 5}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 10, name: "Machado Avançado", price: 11.70, img: "https://i.imgur.com/4O83Srs.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}] } },
-        { id: 11, name: "Moedor", price: 0.59, img: "https://i.imgur.com/hJnt1RN.png", recipe: { yield: 10, materials: [{n: "Madeira Cilíndrica", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 12, name: "Picareta Avançada", price: 11.70, img: "https://i.imgur.com/MhMdBQL.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 13, name: "Prego", price: 0.55, img: "https://i.imgur.com/KzcO0kY.png", recipe: { yield: 7, materials: [{n: "Pepita de Chumbo", q: 4}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 14, name: "Rastelo", price: 2.34, img: "https://i.imgur.com/ptqDSbJ.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 3}, {n: "Lingote de Aço", q: 1}] } },
-        { id: 15, name: "Seringa de Vidro", price: 1.17, img: "https://i.imgur.com/YdoqXpy.png", recipe: { yield: 12, materials: [{n: "Garrafa de Álcool", q: 7}, {n: "Pepita de Quartzo", q: 10}] } }
-    ];
-
-    const supplyInventory = [
-        { id: 101, category: "Fazendas", name: "Garrafa de Álcool", img: "https://i.imgur.com/VlBbvqI.png", defaultPrice: 0.40 },
-        { id: 201, category: "Mineradoras", name: "Carvão Mineral Bruto", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.15 },
-        { id: 202, category: "Mineradoras", name: "Pepita de Chumbo", img: "https://i.imgur.com/xb2QWoD.png", defaultPrice: 0.12 },
-        { id: 203, category: "Mineradoras", name: "Pepita de Cobre", img: "https://i.imgur.com/G2gWC2r.png", defaultPrice: 0.54 },
-        { id: 204, category: "Mineradoras", name: "Pepita de Ferro", img: "https://i.imgur.com/GDB3nyr.png", defaultPrice: 0.60 },
-        { id: 205, category: "Mineradoras", name: "Pepita de Ouro", img: "https://i.imgur.com/lOiB6RO.png", defaultPrice: 0.69 },
-        { id: 206, category: "Mineradoras", name: "Pepita de Prata", img: "https://i.imgur.com/au2hezv.png", defaultPrice: 0.66 },
-        { id: 207, category: "Mineradoras", name: "Pepita de Quartzo", img: "https://i.imgur.com/D7w2HiZ.png", defaultPrice: 0.30 },
-        { id: 301, category: "Artesanatos", name: "Verniz", img: "https://i.imgur.com/61jHucx.png", defaultPrice: 0.76 },
-        { id: 401, category: "Madeireiras", name: "Carvão Vegetal", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.31 },
-        { id: 402, category: "Madeireiras", name: "Madeira Cilíndrica", img: "https://i.imgur.com/H0Xwc7K.png", defaultPrice: 0.47 },
-        { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png", defaultPrice: 0.43 }
-    ];
-
-    function toggleEntryField() {
-        const checkbox = document.getElementById('has-entry');
-        document.getElementById('entry-val').style.display = checkbox.checked ? "block" : "none";
-        if(!checkbox.checked) document.getElementById('entry-val').value = "";
-        updateUI();
-    }
-
-    function switchSystem(mode) {
-        currentMode = mode;
-        const isBuy = mode === 'compras', isProd = mode === 'producao';
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.btn-${mode}`).classList.add('active');
-        const header = document.getElementById('main-header'), internalTitle = document.getElementById('internal-title');
-        header.className = '';
-        
-        document.getElementById('transfer-btn').style.display = isProd ? "block" : "none";
-
-        if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('payment-box').style.display = "none"; }
-        else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('payment-box').style.display = "block"; document.getElementById('pay-label').style.color = "var(--buy)"; }
-        else { internalTitle.style.color = "var(--primary)"; document.getElementById('payment-box').style.display = "block"; document.getElementById('pay-label').style.color = "var(--primary)"; }
-        
-        document.getElementById('filter-bar').style.display = isBuy ? "flex" : "none";
-        document.getElementById('info-contato').style.display = (isProd || isBuy) ? "none" : "flex";
-        document.getElementById('cart-title').innerText = isBuy ? "🛒 LISTA DE ENCOMENDA" : (isProd ? "📦 MATERIAIS PARA PRODUÇÃO" : "📋 RESUMO DO PEDIDO");
-        document.getElementById('total-val-box').style.display = isProd ? "none" : "block";
-        const borderColor = isBuy ? "var(--buy)" : (isProd ? "var(--secondary)" : "var(--primary)");
-        document.getElementById('total-border').style.borderTopColor = borderColor;
-        document.getElementById('total-border').style.color = borderColor;
-        renderCatalog();
-        updateUI(); 
-    }
-
-    function renderCatalog() {
-        const grid = document.getElementById('catalog');
-        const accent = currentMode === 'compras' ? 'var(--buy)' : (currentMode === 'producao' ? 'var(--secondary)' : 'var(--primary)');
-        let displayList = currentMode === 'compras' ? supplyInventory : inventory;
-        if (currentMode === 'compras') {
-            const selectedCat = document.getElementById('category-select').value;
-            if (selectedCat !== "TODOS") displayList = displayList.filter(i => i.category === selectedCat);
-        }
-        grid.innerHTML = displayList.map(item => {
-            const inputs = currentMode === 'compras' ? `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>` : `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
-            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${currentMode === 'vendas' ? `<span class="item-price">$${item.price.toFixed(2)}</span>` : ''}${(currentMode === 'producao' && item.recipe) ? `<div class="recipe-info">1 Lote = ${item.recipe.yield} un.</div>` : ''}${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
-        }).join('');
-    }
-
-    function addToCart(id) {
-        const inv = currentMode === 'compras' ? supplyInventory : inventory;
-        const prod = inv.find(i => i.id === id);
-        const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
-        if (qtyVal <= 0 || isNaN(qtyVal)) return;
-        let finalPrice = prod.price || 0;
-        if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
-        let cart = carts[currentMode];
-        if (cart[id]) { cart[id].quantity += qtyVal; if(currentMode === 'compras') cart[id].price = finalPrice; }
-        else { cart[id] = { ...prod, quantity: qtyVal, price: finalPrice }; }
-        updateUI();
-    }
-
-    function transferToCompras() {
-        const prodCart = carts['producao'];
-        if (Object.keys(prodCart).length === 0) return alert("A lista de produção está vazia!");
-        
-        let transferredCount = 0;
-        Object.values(prodCart).forEach(item => {
-            if(item.recipe) {
-                const numLotes = Math.ceil(item.quantity / item.recipe.yield);
-                item.recipe.materials.forEach(mat => {
-                    const supply = supplyInventory.find(s => s.name.toUpperCase() === mat.n.toUpperCase());
-                    if(supply) {
-                        const totalQty = mat.q * numLotes;
-                        if(carts['compras'][supply.id]) {
-                            carts['compras'][supply.id].quantity += totalQty;
-                        } else {
-                            carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice };
-                        }
-                        transferredCount++;
-                    }
-                });
-            }
-        });
-        
-        if(transferredCount > 0) {
-            alert("Insumos transferidos para a aba de compras com sucesso!");
-        } else {
-            alert("Nenhum insumo correspondente encontrado para transferir.");
-        }
-    }
-
-    function removeItem(id) { delete carts[currentMode][id]; updateUI(); }
-    
-    function clearCart() { 
-        carts[currentMode] = {}; 
-        if(currentMode === 'vendas') {
-            document.getElementById('in-name').value = ""; document.getElementById('in-tele').value = ""; document.getElementById('in-disc').value = "";
-            document.getElementById('has-entry').checked = false; document.getElementById('entry-val').value = ""; document.getElementById('entry-val').style.display = "none"; 
-        }
-        updateUI(); 
-    }
-
-    function formatDate(date) {
-        const d = date.getDate().toString().padStart(2, '0');
-        const m = (date.getMonth() + 1).toString().padStart(2, '0');
-        return `${d}/${m}`;
-    }
-
-    function updateUI() {
-        const cartList = document.getElementById('cart-items');
-        let totalRaw = 0, lastCategory = "", htmlContent = "";
-        const cart = carts[currentMode];
-        const items = Object.values(cart);
-        if (currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
-        
-        items.forEach(item => {
-            if (currentMode === 'compras' && item.category !== lastCategory) { lastCategory = item.category; htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; }
-            let infoHTML = "", priceColHTML = "";
-            
-            if(currentMode === 'producao' && item.recipe) {
-                const numLotes = Math.ceil(item.quantity / item.recipe.yield);
-                infoHTML = `
-                <div class="insumos-list">
-                    <b>LOTES:</b> ${numLotes} | <b>TOTAL:</b> ${numLotes * item.recipe.yield} UN.<br>
-                    <div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">
-                        ${item.recipe.materials.map(m => `
-                            <div class="insumo-line">
-                                <span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span>
-                                <input type="checkbox" class="prod-checkbox">
-                            </div>`).join('')}
-                    </div>
-                </div>`;
-                priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
-            } else { 
-                const subTotal = item.price * item.quantity; totalRaw += subTotal; priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`; 
-            }
-
-            htmlContent += `
-                <div class="cart-item">
-                    <div class="cart-item-header">
-                        <img src="${item.img}" class="cart-item-img">
-                        <div class="cart-item-info">
-                            <span>${item.name.toUpperCase()} (x${item.quantity})</span>
-                            <div style="display:flex; align-items:center; gap:10px">
-                                ${priceColHTML}
-                                <button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button>
-                            </div>
-                        </div>
-                    </div>
-                    ${infoHTML}
-                </div>`;
-        });
-        
-        cartList.innerHTML = htmlContent;
-        const numParcelas = parseInt(document.getElementById('pay-method').value), entryVal = parseFloat(document.getElementById('entry-val').value) || 0, parcelBox = document.getElementById('parcel-details');
-        if (numParcelas > 1 && totalRaw > 0 && currentMode !== 'producao') {
-            parcelBox.style.display = "block";
-            let parcelHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
-            if(entryVal > 0) parcelHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
-            const valorParaParcelar = totalRaw - entryVal, valorParcela = valorParaParcelar / numParcelas;
-            let dataBase = new Date();
-            for(let i=1; i<=numParcelas; i++) { dataBase.setDate(dataBase.getDate() + 2); parcelHTML += `<div class="parcel-line"><span>PARCELA ${i} (${formatDate(dataBase)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`; }
-            parcelBox.innerHTML = parcelHTML;
-        } else { parcelBox.style.display = "none"; }
-        document.getElementById('total-val').innerText = totalRaw.toFixed(2);
-    }
-
-    async function generateImage() {
-        if(Object.keys(carts[currentMode]).length === 0) return alert("A lista desta aba está vazia!");
-        if(currentMode === 'vendas') {
-            const n = document.getElementById('in-name').value;
-            if(!n || !document.getElementById('in-disc').value || !document.getElementById('in-tele').value) return alert("Preencha todos os campos!");
-            document.getElementById('out-name').innerText = n.toUpperCase();
-            document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
-            document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
-        }
-        document.getElementById('ui-buttons').style.display = 'none';
-        document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
-        document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
-        const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
-        const link = document.createElement('a');
-        link.download = `${currentMode.toUpperCase()}_${new Date().getTime()}.png`;
-        link.href = canvas.toDataURL(); link.click();
-        document.getElementById('ui-buttons').style.display = 'block';
-        document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'inline');
-        document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'inline-block');
-        if(currentMode === 'vendas') {
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
-        }
-    }
     switchSystem('vendas');
 </script>
 </body>
