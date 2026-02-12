@@ -64,12 +64,10 @@
         .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; }
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
 
-        /* Pagamento */
         .payment-area { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
         .payment-area label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary); display: block; margin-bottom: 5px; }
         .pay-select { width: 100%; padding: 8px; background: #121212; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 10px; }
         .entry-group { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
-        .entry-group input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
         .entry-input { width: 100%; margin-top: 5px; display: none; }
 
         .parcel-info { font-size: 0.75rem; color: #aaa; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid var(--primary); }
@@ -143,13 +141,11 @@
                 <option value="2">PARCELADO 2X</option>
                 <option value="3">PARCELADO 3X</option>
             </select>
-            
             <div class="entry-group">
                 <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
                 <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada?</label>
             </div>
             <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
-            
             <div id="parcel-details" class="parcel-info" style="display:none"></div>
         </div>
 
@@ -185,23 +181,23 @@
         { id: 11, name: "Moedor", price: 0.59, img: "https://i.imgur.com/hJnt1RN.png", recipe: { yield: 10, materials: [{n: "Madeira Cilíndrica", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
         { id: 12, name: "Picareta Avançada", price: 11.70, img: "https://i.imgur.com/MhMdBQL.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
         { id: 13, name: "Prego", price: 0.55, img: "https://i.imgur.com/KzcO0kY.png", recipe: { yield: 7, materials: [{n: "Pepita de Chumbo", q: 4}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 14, name: "Rastelo", price: 2.34, img: "https://i.imgur.com/ptqDSbJ.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 3}, {n: "Lingote de Aço", q: 1}] } },
+        { id: 14, name: "Rastelo", price: 2.34, img: "https://i.imgur.com/ptqDSbJ.png", recipe: { yield: 10, materials: [{n: "Tábua de Madeira", q: 3}, {n: "Lingote de Aço", q: 1}] } },
         { id: 15, name: "Seringa de Vidro", price: 1.17, img: "https://i.imgur.com/YdoqXpy.png", recipe: { yield: 12, materials: [{n: "Garrafa de Álcool", q: 7}, {n: "Pepita de Quartzo", q: 10}] } }
     ];
 
     const supplyInventory = [
-        { id: 101, category: "Fazendas", name: "Garrafa de Álcool", img: "https://i.imgur.com/VlBbvqI.png" },
-        { id: 201, category: "Mineradoras", name: "Carvão Mineral Bruto", img: "https://i.imgur.com/PNhL30T.png" },
-        { id: 202, category: "Mineradoras", name: "Pepita de Chumbo", img: "https://i.imgur.com/xb2QWoD.png" },
-        { id: 203, category: "Mineradoras", name: "Pepita de Cobre", img: "https://i.imgur.com/G2gWC2r.png" },
-        { id: 204, category: "Mineradoras", name: "Pepita de Ferro", img: "https://i.imgur.com/GDB3nyr.png" },
-        { id: 205, category: "Mineradoras", name: "Pepita de Ouro", img: "https://i.imgur.com/lOiB6RO.png" },
-        { id: 206, category: "Mineradoras", name: "Pepita de Prata", img: "https://i.imgur.com/au2hezv.png" },
-        { id: 207, category: "Mineradoras", name: "Pepita de Quartzo", img: "https://i.imgur.com/D7w2HiZ.png" },
-        { id: 301, category: "Artesanatos", name: "Verniz", img: "https://i.imgur.com/61jHucx.png" },
-        { id: 401, category: "Madeireiras", name: "Carvão Vegetal", img: "https://i.imgur.com/PNhL30T.png" },
-        { id: 402, category: "Madeireiras", name: "Madeira Cilíndrica", img: "https://i.imgur.com/H0Xwc7K.png" },
-        { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png" }
+        { id: 101, category: "Fazendas", name: "Garrafa de Álcool", img: "https://i.imgur.com/VlBbvqI.png", defaultPrice: 0.76 },
+        { id: 201, category: "Mineradoras", name: "Carvão Mineral Bruto", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.15 },
+        { id: 202, category: "Mineradoras", name: "Pepita de Chumbo", img: "https://i.imgur.com/xb2QWoD.png", defaultPrice: 0.12 },
+        { id: 203, category: "Mineradoras", name: "Pepita de Cobre", img: "https://i.imgur.com/G2gWC2r.png", defaultPrice: 0.54 },
+        { id: 204, category: "Mineradoras", name: "Pepita de Ferro", img: "https://i.imgur.com/GDB3nyr.png", defaultPrice: 0.60 },
+        { id: 205, category: "Mineradoras", name: "Pepita de Ouro", img: "https://i.imgur.com/lOiB6RO.png", defaultPrice: 0.69 },
+        { id: 206, category: "Mineradoras", name: "Pepita de Prata", img: "https://i.imgur.com/au2hezv.png", defaultPrice: 0.66 },
+        { id: 207, category: "Mineradoras", name: "Pepita de Quartzo", img: "https://i.imgur.com/D7w2HiZ.png", defaultPrice: 0.30 },
+        { id: 301, category: "Artesanatos", name: "Verniz", img: "https://i.imgur.com/61jHucx.png", defaultPrice: 0.76 },
+        { id: 401, category: "Madeireiras", name: "Carvão Vegetal", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.31 },
+        { id: 402, category: "Madeireiras", name: "Madeira Cilíndrica", img: "https://i.imgur.com/H0Xwc7K.png", defaultPrice: 0.47 },
+        { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png", defaultPrice: 0.43 }
     ];
 
     function toggleEntryField() {
@@ -212,44 +208,22 @@
     }
 
     function switchSystem(mode) {
-        currentMode = mode;
-        clearCart();
-        const isBuy = mode === 'compras';
-        const isProd = mode === 'producao';
-        
+        currentMode = mode; clearCart();
+        const isBuy = mode === 'compras', isProd = mode === 'producao';
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`.btn-${mode}`).classList.add('active');
-        
-        const header = document.getElementById('main-header');
-        const internalTitle = document.getElementById('internal-title');
+        const header = document.getElementById('main-header'), internalTitle = document.getElementById('internal-title');
         header.className = '';
-        
-        if(isProd) {
-            header.classList.add('header-producao');
-            internalTitle.style.color = "var(--secondary)";
-            document.getElementById('payment-box').style.display = "none";
-        } else if(isBuy) {
-            header.classList.add('header-compras');
-            internalTitle.style.color = "var(--buy)";
-            document.getElementById('payment-box').style.display = "block";
-            document.getElementById('pay-label').style.color = "var(--buy)";
-        } else {
-            internalTitle.style.color = "var(--primary)";
-            document.getElementById('payment-box').style.display = "block";
-            document.getElementById('pay-label').style.color = "var(--primary)";
-        }
-
+        if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('payment-box').style.display = "none"; }
+        else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('payment-box').style.display = "block"; document.getElementById('pay-label').style.color = "var(--buy)"; }
+        else { internalTitle.style.color = "var(--primary)"; document.getElementById('payment-box').style.display = "block"; document.getElementById('pay-label').style.color = "var(--primary)"; }
         document.getElementById('filter-bar').style.display = isBuy ? "flex" : "none";
         document.getElementById('info-contato').style.display = (isProd || isBuy) ? "none" : "flex";
-        
         document.getElementById('cart-title').innerText = isBuy ? "🛒 LISTA DE ENCOMENDA" : (isProd ? "📦 MATERIAIS PARA PRODUÇÃO" : "📋 RESUMO DO PEDIDO");
-        document.getElementById('total-label').innerText = "TOTAL:";
         document.getElementById('total-val-box').style.display = isProd ? "none" : "block";
-        
         const borderColor = isBuy ? "var(--buy)" : (isProd ? "var(--secondary)" : "var(--primary)");
         document.getElementById('total-border').style.borderTopColor = borderColor;
         document.getElementById('total-border').style.color = borderColor;
-        
         renderCatalog();
     }
 
@@ -267,7 +241,7 @@
             const inputs = currentMode === 'compras' ? `
                 <div class="buy-inputs">
                     <div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>
-                    <div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="0.00" step="0.01"></div>
+                    <div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div>
                 </div>` : `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
 
             return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${currentMode === 'vendas' ? `<span class="item-price">$${item.price.toFixed(2)}</span>` : ''}${(currentMode === 'producao' && item.recipe) ? `<div class="recipe-info">1 Lote = ${item.recipe.yield} un.</div>` : ''}${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
@@ -279,8 +253,10 @@
         const prod = inv.find(i => i.id === id);
         const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
         if (qtyVal <= 0 || isNaN(qtyVal)) return;
+
         let finalPrice = prod.price || 0;
         if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
+
         if (cart[id]) {
             cart[id].quantity += qtyVal;
             if(currentMode === 'compras') cart[id].price = finalPrice;
@@ -301,19 +277,23 @@
 
     function updateUI() {
         const cartList = document.getElementById('cart-items');
-        let totalRaw = 0;
-        let lastCategory = "";
-        let htmlContent = "";
+        let totalRaw = 0, lastCategory = "", htmlContent = "";
+
         const items = Object.values(cart);
-        if (currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
+
+        if (currentMode === 'compras') {
+            items.sort((a, b) => a.category.localeCompare(b.category));
+        }
 
         items.forEach(item => {
             if (currentMode === 'compras' && item.category !== lastCategory) {
                 lastCategory = item.category;
                 htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`;
             }
+
             let infoHTML = "";
             let priceColHTML = "";
+
             if(currentMode === 'producao' && item.recipe) {
                 const numLotes = Math.ceil(item.quantity / item.recipe.yield);
                 infoHTML = `<div class="insumos-list"><b>LOTES:</b> ${numLotes} | <b>TOTAL:</b> ${numLotes * item.recipe.yield} UN.<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<span class="insumo-line">• ${m.q * numLotes}x ${m.n.toUpperCase()}</span>`).join('')}</div></div>`;
@@ -322,34 +302,23 @@
                 totalRaw += subTotal;
                 priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`;
             }
+
             htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()} (x${item.quantity})</span>${priceColHTML}<button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div>${infoHTML}</div>`;
         });
 
         cartList.innerHTML = htmlContent;
-        
-        // Pagamento e Parcelas
-        const numParcelas = parseInt(document.getElementById('pay-method').value);
-        const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
-        const parcelBox = document.getElementById('parcel-details');
+        const numParcelas = parseInt(document.getElementById('pay-method').value), entryVal = parseFloat(document.getElementById('entry-val').value) || 0, parcelBox = document.getElementById('parcel-details');
         
         if (numParcelas > 1 && totalRaw > 0) {
             parcelBox.style.display = "block";
             let parcelHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
             if(entryVal > 0) parcelHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
-            
-            const valorParaParcelar = totalRaw - entryVal;
-            const valorParcela = valorParaParcelar / numParcelas;
-            
+            const valorParaParcelar = totalRaw - entryVal, valorParcela = valorParaParcelar / numParcelas;
             let dataBase = new Date();
-            for(let i=1; i<=numParcelas; i++) {
-                dataBase.setDate(dataBase.getDate() + 2);
-                parcelHTML += `<div class="parcel-line"><span>PARCELA ${i} (${formatDate(dataBase)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
-            }
+            for(let i=1; i<=numParcelas; i++) { dataBase.setDate(dataBase.getDate() + 2); parcelHTML += `<div class="parcel-line"><span>PARCELA ${i} (${formatDate(dataBase)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`; }
             parcelBox.innerHTML = parcelHTML;
-        } else {
-            parcelBox.style.display = "none";
-        }
-
+        } else { parcelBox.style.display = "none"; }
+        
         document.getElementById('total-val').innerText = totalRaw.toFixed(2);
     }
 
