@@ -54,7 +54,7 @@
         
         .buy-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; }
         .input-row { display: flex; justify-content: space-between; align-items: center; gap: 5px; }
-        .input-row label { font-size: 0.65rem; font-weight: bold; color: #999; }
+        .input-row label { font-size: 0.65rem; font-weight: bold; color: #999; text-transform: uppercase; }
 
         .qty-input { width: 70px; background: #121212; border: 1px solid #444; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
         .add-btn { border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; color: black; text-transform: uppercase; }
@@ -261,9 +261,15 @@
         }
         
         grid.innerHTML = displayList.map(item => {
-            const inputs = currentMode === 'compras' ? 
-                `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>` : 
-                `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
+            let inputs = "";
+            if(currentMode === 'compras') {
+                inputs = `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>`;
+            } else if(currentMode === 'producao') {
+                inputs = `<div class="buy-inputs"><div class="input-row"><label>DESEJADO:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>ESTOQUE:</label><input type="number" id="stock-${item.id}" class="qty-input" value="0" min="0"></div></div>`;
+            } else {
+                inputs = `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
+            }
+            
             return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${currentMode === 'vendas' ? `<span class="item-price">$${item.price.toFixed(2)}</span>` : ''}${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
         }).join('');
     }
@@ -276,12 +282,16 @@
 
         let finalPrice = prod.price || 0;
         if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
+        
+        let stockVal = 0;
+        if(currentMode === 'producao') stockVal = parseInt(document.getElementById(`stock-${id}`).value) || 0;
 
         if (carts[currentMode][id]) { 
             carts[currentMode][id].quantity += qtyVal; 
+            carts[currentMode][id].stock = stockVal;
             if(currentMode === 'compras') carts[currentMode][id].price = finalPrice;
         } else { 
-            carts[currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice }; 
+            carts[currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice, stock: stockVal }; 
         }
         updateUI();
     }
@@ -292,18 +302,21 @@
         
         Object.values(prodCart).forEach(item => {
             if(item.recipe) {
-                const numLotes = Math.ceil(item.quantity / item.recipe.yield);
-                item.recipe.materials.forEach(mat => {
-                    const supply = supplyInventory.find(s => s.name.toUpperCase() === mat.n.toUpperCase());
-                    if(supply) {
-                        const totalQty = mat.q * numLotes;
-                        if(carts['compras'][supply.id]) carts['compras'][supply.id].quantity += totalQty;
-                        else carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice };
-                    }
-                });
+                const needs = item.quantity - item.stock;
+                if(needs > 0) {
+                    const numLotes = Math.ceil(needs / item.recipe.yield);
+                    item.recipe.materials.forEach(mat => {
+                        const supply = supplyInventory.find(s => s.name.toUpperCase() === mat.n.toUpperCase());
+                        if(supply) {
+                            const totalQty = mat.q * numLotes;
+                            if(carts['compras'][supply.id]) carts['compras'][supply.id].quantity += totalQty;
+                            else carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice };
+                        }
+                    });
+                }
             }
         });
-        alert("Insumos transferidos com sucesso!");
+        alert("Insumos necessários transferidos com sucesso!");
     }
 
     function removeItem(id) { delete carts[currentMode][id]; updateUI(); }
@@ -319,7 +332,7 @@
 
     function updateUI() {
         const cartList = document.getElementById('cart-items');
-        cartList.innerHTML = ""; // Limpa a lista antes de renderizar
+        cartList.innerHTML = ""; 
         
         let totalRaw = 0, lastCategory = "", htmlContent = "";
         const cart = carts[currentMode];
@@ -335,8 +348,13 @@
             
             let infoHTML = "", priceColHTML = "";
             if(currentMode === 'producao' && item.recipe) {
-                const numLotes = Math.ceil(item.quantity / item.recipe.yield);
-                infoHTML = `<div class="insumos-list"><b>LOTES:</b> ${numLotes} | <b>TOTAL:</b> ${numLotes * item.recipe.yield} UN.<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<div class="insumo-line"><span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span><input type="checkbox" class="prod-checkbox"></div>`).join('')}</div></div>`;
+                const needs = item.quantity - item.stock;
+                if(needs <= 0) {
+                    infoHTML = `<div class="insumos-list" style="border-left-color:#10b981; color:#10b981"><b>ESTOQUE OK:</b> NADA A PRODUZIR</div>`;
+                } else {
+                    const numLotes = Math.ceil(needs / item.recipe.yield);
+                    infoHTML = `<div class="insumos-list"><b>A PRODUZIR:</b> ${needs} un. | <b>LOTES:</b> ${numLotes}<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<div class="insumo-line"><span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span><input type="checkbox" class="prod-checkbox"></div>`).join('')}</div></div>`;
+                }
                 priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
             } else { 
                 const subTotal = item.price * item.quantity; 
@@ -349,7 +367,6 @@
         
         cartList.innerHTML = htmlContent;
 
-        // Parcelamento
         const numParcelas = parseInt(document.getElementById('pay-method').value);
         const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
         const parcelBox = document.getElementById('parcel-details');
