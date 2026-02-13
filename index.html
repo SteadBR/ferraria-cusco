@@ -85,8 +85,11 @@
         .insumo-line { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
         .prod-checkbox { width: 16px; height: 16px; cursor: pointer; margin-left: 10px; accent-color: var(--secondary); }
         
+        .resumo-stock-input { width: 50px; background: #121212; border: 1px solid #555; color: #10b981; font-weight: bold; padding: 2px; border-radius: 3px; font-size: 0.75rem; text-align: center; }
+
         .total-box { border-top: 2px solid var(--primary); padding-top: 15px; display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
         .checkout-btn { background: #059669; color: white; border: none; width: 100%; padding: 15px; border-radius: 5px; font-weight: bold; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
+        .refresh-btn { background: #3b82f6; color: white; border: none; width: 100%; padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; }
         .transfer-btn { background: var(--secondary); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; display: none; }
         .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; width: 100%; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
     </style>
@@ -153,6 +156,8 @@
 
         <div class="cart-items" id="cart-items"></div>
 
+        <button id="refresh-btn" class="refresh-btn" onclick="updateUI()">Atualizar Pedido</button>
+
         <div class="total-box" id="total-border">
             <span id="total-label">TOTAL:</span>
             <span id="total-val-box">$<span id="total-val">0.00</span></span>
@@ -177,7 +182,7 @@
         { id: 4, name: "Faca de Arremesso", price: 11.70, img: "https://i.imgur.com/tAnQ019.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
         { id: 5, name: "Lingote de Aço", price: 3.67, img: "https://i.imgur.com/k84v8UK.png", recipe: { yield: 3, materials: [{n: "Pepita de Prata", q: 4}, {n: "Pepita de Cobre", q: 5}, {n: "Carvão Vegetal", q: 5}] } },
         { id: 6, name: "Lingote de Cobre", price: 3.35, img: "https://i.imgur.com/3e9Rtrv.png", recipe: { yield: 2, materials: [{n: "Pepita de Cobre", q: 4}, {n: "Carvão Vegetal", q: 6}] } },
-        { id: 7, name: "Lingote de Ferro", price: 2.57, img: "https://i.imgur.com/FLBxUU9.png", recipe: { yield: 7, materials: [{n: "Pepita de Ferro", q: 9}, {n: "Carvão Bruto", q: 10}] } },
+        { id: 7, name: "Lingote de Ferro", price: 2.57, img: "https://i.imgur.com/FLBxUU9.png", recipe: { yield: 7, materials: [{n: "Pepita de Ferro", q: 9}, {n: "Carvão Mineral Bruto", q: 10}] } },
         { id: 8, name: "Lingote de Ouro", price: 3.98, img: "https://i.imgur.com/W09uKgt.png", recipe: { yield: 3, materials: [{n: "Pepita de Ouro", q: 7}, {n: "Carvão Vegetal", q: 5}] } },
         { id: 9, name: "Lingote de Prata", price: 3.04, img: "https://i.imgur.com/OP2T9Xk.png", recipe: { yield: 2, materials: [{n: "Pepita de Prata", q: 5}, {n: "Carvão Vegetal", q: 1}] } },
         { id: 10, name: "Machado Avançado", price: 11.70, img: "https://i.imgur.com/4O83Srs.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}] } },
@@ -226,6 +231,7 @@
         document.getElementById('info-contato').style.display = (isProd || isBuy) ? "none" : "flex";
         document.getElementById('payment-box').style.display = (isProd) ? "none" : "block";
         document.getElementById('total-val-box').style.display = isProd ? "none" : "block";
+        document.getElementById('refresh-btn').style.display = (isProd || isBuy) ? "block" : "none";
 
         if(isProd) { 
             header.classList.add('header-producao'); 
@@ -263,9 +269,9 @@
         grid.innerHTML = displayList.map(item => {
             let inputs = "";
             if(currentMode === 'compras') {
-                inputs = `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>`;
+                inputs = `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>ESTOQUE:</label><input type="number" id="stock-${item.id}" class="qty-input" value="0" min="0"></div><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.defaultPrice.toFixed(2)}" step="0.01"></div></div>`;
             } else if(currentMode === 'producao') {
-                inputs = `<div class="buy-inputs"><div class="input-row"><label>DESEJADO:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>ESTOQUE:</label><input type="number" id="stock-${item.id}" class="qty-input" value="0" min="0"></div></div>`;
+                inputs = `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>ESTOQUE:</label><input type="number" id="stock-${item.id}" class="qty-input" value="0" min="0"></div></div>`;
             } else {
                 inputs = `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
             }
@@ -284,7 +290,7 @@
         if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
         
         let stockVal = 0;
-        if(currentMode === 'producao') stockVal = parseInt(document.getElementById(`stock-${id}`).value) || 0;
+        if(currentMode === 'producao' || currentMode === 'compras') stockVal = parseInt(document.getElementById(`stock-${id}`).value) || 0;
 
         if (carts[currentMode][id]) { 
             carts[currentMode][id].quantity += qtyVal; 
@@ -310,7 +316,7 @@
                         if(supply) {
                             const totalQty = mat.q * numLotes;
                             if(carts['compras'][supply.id]) carts['compras'][supply.id].quantity += totalQty;
-                            else carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice };
+                            else carts['compras'][supply.id] = { ...supply, quantity: totalQty, price: supply.defaultPrice, stock: 0 };
                         }
                     });
                 }
@@ -330,6 +336,13 @@
         updateUI(); 
     }
 
+    function updateStockFromResumo(id, value) {
+        if(carts[currentMode][id]) {
+            carts[currentMode][id].stock = parseInt(value) || 0;
+            // A atualização visual do preço e texto acontece ao clicar no botão "Atualizar Pedido" (updateUI)
+        }
+    }
+
     function updateUI() {
         const cartList = document.getElementById('cart-items');
         cartList.innerHTML = ""; 
@@ -347,22 +360,43 @@
             }
             
             let infoHTML = "", priceColHTML = "";
+            let qtyFinalLabel = "";
+
             if(currentMode === 'producao' && item.recipe) {
                 const needs = item.quantity - item.stock;
                 if(needs <= 0) {
                     infoHTML = `<div class="insumos-list" style="border-left-color:#10b981; color:#10b981"><b>ESTOQUE OK:</b> NADA A PRODUZIR</div>`;
+                    qtyFinalLabel = `<small style="color:#10b981">(Estoque suficiente)</small>`;
                 } else {
                     const numLotes = Math.ceil(needs / item.recipe.yield);
                     infoHTML = `<div class="insumos-list"><b>A PRODUZIR:</b> ${needs} un. | <b>LOTES:</b> ${numLotes}<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<div class="insumo-line"><span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span><input type="checkbox" class="prod-checkbox"></div>`).join('')}</div></div>`;
+                    qtyFinalLabel = `<small style="color:#aaa">Faltam: ${needs} un.</small>`;
                 }
                 priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
+            } else if(currentMode === 'compras') {
+                const needsToBuy = item.quantity - item.stock;
+                const stockInputHTML = `<div class="client-info-static" style="margin-top:5px">
+                    <label style="font-size:0.6rem; color:#999">ESTOQUE:</label>
+                    <input type="number" class="resumo-stock-input" value="${item.stock}" onchange="updateStockFromResumo(${item.id}, this.value)">
+                </div>`;
+                
+                if(needsToBuy <= 0) {
+                    priceColHTML = `<div style="text-align:right"><span>ESTOQUE OK</span>${stockInputHTML}</div>`;
+                    qtyFinalLabel = `<small style="color:#10b981">Disponível</small>`;
+                } else {
+                    const subTotal = item.price * needsToBuy;
+                    totalRaw += subTotal;
+                    priceColHTML = `<div style="text-align:right"><span>$${subTotal.toFixed(2)}</span>${stockInputHTML}</div>`;
+                    qtyFinalLabel = `<small style="color:#aaa">Comprar: ${needsToBuy} un.</small>`;
+                }
             } else { 
                 const subTotal = item.price * item.quantity; 
                 totalRaw += subTotal; 
-                priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`; 
+                priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`;
+                qtyFinalLabel = `<small style="color:#aaa">Total: ${item.quantity} un.</small>`;
             }
 
-            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()} (x${item.quantity})</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
+            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()}<br>${qtyFinalLabel}</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
         });
         
         cartList.innerHTML = htmlContent;
@@ -400,8 +434,11 @@
         }
         
         document.getElementById('ui-buttons').style.display = 'none';
+        document.getElementById('refresh-btn').style.display = 'none';
         document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
         document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'none');
+        document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'none');
 
         const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
         const link = document.createElement('a');
@@ -409,14 +446,19 @@
         link.href = canvas.toDataURL(); link.click();
         
         document.getElementById('ui-buttons').style.display = 'block';
+        document.getElementById('refresh-btn').style.display = currentMode === 'vendas' ? 'none' : 'block';
         document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'inline');
         document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'inline-block');
-        document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
-        document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'inline-block');
+        document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'block');
+
+        if(currentMode === 'vendas') {
+            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
+            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
+        }
     }
     
     switchSystem('vendas');
 </script>
 </body>
 </html>
-
