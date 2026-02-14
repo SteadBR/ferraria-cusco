@@ -145,6 +145,8 @@
                 <option value="1">À VISTA</option>
                 <option value="2">PARCELADO 2X</option>
                 <option value="3">PARCELADO 3X</option>
+                <option value="4">PARCELADO 4X</option>
+                <option value="5">PARCELADO 5X</option>
             </select>
             <div class="entry-group">
                 <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
@@ -339,8 +341,13 @@
     function updateStockFromResumo(id, value) {
         if(carts[currentMode][id]) {
             carts[currentMode][id].stock = parseInt(value) || 0;
-            // A atualização visual do preço e texto acontece ao clicar no botão "Atualizar Pedido" (updateUI)
         }
+    }
+
+    function formatDate(date) {
+        const d = date.getDate().toString().padStart(2, '0');
+        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+        return `${d}/${m}`;
     }
 
     function updateUI() {
@@ -410,10 +417,11 @@
             let pHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
             if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
             const valorParcela = (totalRaw - entryVal) / numParcelas;
-            let date = new Date();
+            
             for(let i=1; i<=numParcelas; i++) {
-                date.setDate(date.getDate() + 2);
-                pHTML += `<div class="parcel-line"><span>PARC ${i} (${date.getDate().toString().padStart(2,'0')}/${(date.getMonth()+1).toString().padStart(2,'0')}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+                let date = new Date();
+                date.setDate(date.getDate() + (i * 2));
+                pHTML += `<div class="parcel-line"><span>PARC ${i} (${formatDate(date)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
         } else { parcelBox.style.display = "none"; }
