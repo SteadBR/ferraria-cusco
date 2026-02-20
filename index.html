@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ferraria Cusco - Gestão Integrada</title>
+    <title>Ferraria Cusco - Sistema Interno</title>
     <link rel="icon" type="image/png" href="https://i.imgur.com/bQAy1gG.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
@@ -11,71 +11,103 @@
             --primary: #f59e0b;
             --secondary: #3b82f6;
             --buy: #10b981;
+            --clientes: #8b5cf6;
+            --crediario: #14b8a6;
+            --admin: #ef4444;
             --bg: #121212;
             --card: #1e1e1e;
             --text: #ffffff;
             --item-bg: #2a2a2a;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh;}
         
-        .nav-tabs { width: 100%; max-width: 1200px; display: flex; gap: 10px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; color: white; opacity: 0.4; border: 1px solid rgba(255,255,255,0.1); }
+        /* TELA DE LOGIN E REGISTRO */
+        #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18,18,18,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px); }
+        .auth-box { background: var(--card); padding: 40px; border-radius: 12px; border-top: 5px solid var(--primary); width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        .auth-logo { width: 100px; margin-bottom: 10px; }
+        .auth-box input { width: 100%; padding: 12px; margin: 8px 0; background: #121212; border: 1px solid #444; color: white; border-radius: 5px; box-sizing: border-box; text-align: center; font-size: 1rem;}
+        .auth-btn-main { background: var(--primary); color: black; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 15px; transition: 0.2s;}
+        .auth-btn-main:hover { background: #d97706; }
+        .auth-link { color: #aaa; font-size: 0.8rem; margin-top: 15px; cursor: pointer; text-decoration: underline; }
+        
+        /* SISTEMA PRINCIPAL */
+        #main-app { width: 100%; max-width: 1200px; display: none; flex-direction: column; align-items: center; }
+
+        .nav-tabs { width: 100%; display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; color: white; opacity: 0.4; border: 1px solid rgba(255,255,255,0.1); min-width: 130px; }
         .tab-btn.active { opacity: 1; border: 1px solid white; }
         .btn-vendas { background: var(--primary); color: black; }
         .btn-producao { background: var(--secondary); }
         .btn-compras { background: var(--buy); }
+        .btn-clientes { background: var(--clientes); }
+        .btn-crediario { background: var(--crediario); color: black; }
+        .btn-admin { background: var(--admin); display: none; }
 
-        .shop-container { width: 100%; max-width: 1200px; display: grid; grid-template-columns: 1fr 420px; gap: 20px; }
+        .shop-container { width: 100%; display: grid; grid-template-columns: 1fr 420px; gap: 20px; }
         
-        header { 
-            grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 10px; 
-            border-left: 5px solid var(--primary); margin-bottom: 10px; display: flex; align-items: center; gap: 20px; 
-        }
+        header { grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+        .header-left { display: flex; align-items: center; gap: 20px; }
         .header-producao { border-left-color: var(--secondary) !important; }
         .header-compras { border-left-color: var(--buy) !important; }
+        .header-clientes { border-left-color: var(--clientes) !important; }
+        .header-crediario { border-left-color: var(--crediario) !important; }
+        .header-admin { border-left-color: var(--admin) !important; }
 
         .logo-ferraria { width: 80px; height: 80px; object-fit: contain; }
         .header-text h1 { margin: 0; text-transform: uppercase; letter-spacing: 2px; }
         .header-text small { color: var(--primary); font-weight: bold; text-transform: uppercase; }
+        .user-badge { background: #333; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 10px; border: 1px solid #555;}
+        .logout-btn { background: #ef4444; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;}
 
-        .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
-        .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
-        .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
-        .subtitle-cart { font-size: 0.75rem; color: #aaa; letter-spacing: 1px; margin-top: 2px; }
+        /* Telas Principais */
+        .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .admin-panel { display: none; grid-column: 1 / -1; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        
+        .item-card { background: var(--item-bg); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; transition: 0.2s; }
+        .product-img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; }
+        .buy-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; }
+        .input-row { display: flex; justify-content: space-between; align-items: center; gap: 5px; }
+        .input-row label { font-size: 0.65rem; font-weight: bold; color: #999; text-transform: uppercase; }
+        .qty-input { width: 70px; background: #121212; border: 1px solid #444; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
+        .add-btn { border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; color: black; text-transform: uppercase; }
 
         .filter-container { grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; gap: 15px; border: 1px solid #333; }
         .filter-container label { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: var(--buy); }
         .category-select { background: #121212; color: white; border: 1px solid var(--buy); padding: 10px; border-radius: 5px; outline: none; flex: 1; cursor: pointer; }
 
-        .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .item-card { background: var(--item-bg); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; transition: 0.2s; }
-        .product-img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; }
-        
-        .buy-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; }
-        .input-row { display: flex; justify-content: space-between; align-items: center; gap: 5px; }
-        .input-row label { font-size: 0.65rem; font-weight: bold; color: #999; text-transform: uppercase; }
-
-        .qty-input { width: 70px; background: #121212; border: 1px solid #444; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
-        .add-btn { border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; color: black; text-transform: uppercase; }
-
+        /* Painel Lateral */
         .cart-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: fit-content; position: sticky; top: 20px; }
+        .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
+        .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
+        .subtitle-cart { font-size: 0.75rem; color: #aaa; letter-spacing: 1px; margin-top: 2px; }
+
         .client-info { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
         .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; width: 100%; box-sizing: border-box; }
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
+        .info-group label { font-size: 0.75rem; color: #ccc; margin-bottom: 3px; display: block; font-weight: bold;}
+
+        /* Estatísticas */
+        .client-stats { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; border-left: 3px solid var(--clientes); display: none; margin-top: 5px; }
+        .stat-line { font-size: 0.8rem; color: #aaa; margin-bottom: 6px; display: flex; justify-content: space-between; }
+        .stat-val { color: white; font-weight: bold; }
+        .stat-credit { color: var(--buy); font-size: 1.1rem; }
+        .stat-credit.negative { color: #ef4444; }
 
         .payment-area { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
         .payment-area label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary); display: block; margin-bottom: 5px; }
-        .pay-select { width: 100%; padding: 8px; background: #121212; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 10px; }
+        .pay-select { width: 100%; padding: 10px; background: #121212; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 10px; font-size: 0.8rem; }
+        .display-pay { display: none; text-transform: uppercase; font-weight: bold; color: white; padding: 5px 0; font-size: 0.9rem; }
+        
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
         .entry-group { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
         .entry-input { width: 100%; margin-top: 5px; display: none; }
-
         .parcel-info { font-size: 0.75rem; color: #aaa; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid var(--primary); }
         .parcel-line { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
 
         .cart-items { list-style: none; padding: 0; margin: 15px 0; border-top: 1px solid #444; padding-top: 15px; }
         .cart-category-divider { background: rgba(16, 185, 129, 0.1); color: var(--buy); padding: 5px 10px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border-left: 3px solid var(--buy); margin: 10px 0 5px 0; }
-
         .cart-item { border-bottom: 1px solid #333; padding: 12px 0; display: flex; flex-direction: column; gap: 8px; }
         .cart-item-header { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; font-weight: bold; }
         .cart-item-img { width: 50px; height: 50px; object-fit: contain; background: transparent; border: none; }
@@ -85,97 +117,298 @@
         .insumo-line { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
         .prod-checkbox { width: 16px; height: 16px; cursor: pointer; margin-left: 10px; accent-color: var(--secondary); }
         
-        .resumo-stock-input { width: 50px; background: #121212; border: 1px solid #555; color: #10b981; font-weight: bold; padding: 2px; border-radius: 3px; font-size: 0.75rem; text-align: center; }
-
         .total-box { border-top: 2px solid var(--primary); padding-top: 15px; display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        .checkout-btn { background: #059669; color: white; border: none; width: 100%; padding: 15px; border-radius: 5px; font-weight: bold; margin-top: 15px; cursor: pointer; text-transform: uppercase; }
-        .refresh-btn { background: #3b82f6; color: white; border: none; width: 100%; padding: 10px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; width: 100%; }
-        .transfer-btn { background: var(--secondary); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; margin-top: 10px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; display: none; }
-        .clear-btn { background: transparent; color: #ef4444; border: 1px solid #ef4444; width: 100%; padding: 8px; border-radius: 5px; margin-top: 10px; cursor: pointer; text-transform: uppercase; }
+        
+        .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .btn-solid { color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;}
+        .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
+
+        /* Lista de Crediário e Admin */
+        .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
+        .crediario-filters label { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--crediario); display: block; margin-bottom: 8px; }
+        .crediario-list { display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
+        
+        .fatura-card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 15px; }
+        .fatura-header { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
+        .fatura-id { color: var(--crediario); font-weight: bold; font-size: 0.9rem; }
+        .fatura-date { color: #aaa; font-size: 0.75rem; }
+        .fatura-parcela { display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 8px; margin-bottom: 5px; border-radius: 4px; font-size: 0.8rem; }
+        .fatura-parcela.pago { border-left: 3px solid var(--buy); opacity: 0.6; }
+        .fatura-parcela.pendente { border-left: 3px solid var(--primary); }
+        .btn-pay { background: var(--buy); color: black; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        .admin-table th { color: var(--admin); font-size: 0.8rem; text-transform: uppercase; }
+        .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-pendente { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+        .badge-aprovado { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
     </style>
+	<style>
+        /* Impede de selecionar/grifar texto na tela (exceto em inputs para não quebrar a digitação) */
+        body {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10 and IE 11 */
+            user-select: none; /* Standard syntax */
+        }
+        input, select, textarea {
+            -webkit-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+    </style>
+    <script>
+        // Bloqueia o botão direito do mouse
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // Bloqueia atalhos de teclado (F12, Ctrl+U, Ctrl+Shift+I, Ctrl+S, etc)
+        document.onkeydown = function(e) {
+            if(e.keyCode === 123) { return false; } // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 73) { return false; } // Ctrl+Shift+I
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 74) { return false; } // Ctrl+Shift+J
+            if(e.ctrlKey && e.keyCode === 85) { return false; } // Ctrl+U
+            if(e.ctrlKey && e.keyCode === 83) { return false; } // Ctrl+S
+        };
+    </script>
 </head>
 <body>
 
-<div class="nav-tabs">
-    <button class="tab-btn btn-vendas active" onclick="switchSystem('vendas')">Vendas</button>
-    <button class="tab-btn btn-producao" onclick="switchSystem('producao')">Cálculo de Produção</button>
-    <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Encomenda de Insumos</button>
+<div id="auth-overlay">
+    <div class="auth-box" id="login-box">
+        <img src="https://i.imgur.com/bQAy1gG.png" class="auth-logo">
+        <h2 style="margin:0 0 5px 0; color: var(--primary);">ACESSO RESTRITO</h2>
+        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 20px;">Ferraria Cusco - Oficial</p>
+        
+        <input type="text" id="login-user" placeholder="Nome de Usuário">
+        <input type="password" id="login-pass" placeholder="Senha">
+        <button class="auth-btn-main" onclick="authLogin()">ENTRAR NO SISTEMA</button>
+        
+        <div class="auth-link" onclick="toggleAuthMode()">Não tem cadastro? Solicitar acesso.</div>
+    </div>
+    
+    <div class="auth-box" id="register-box" style="display: none;">
+        <img src="https://i.imgur.com/bQAy1gG.png" class="auth-logo" style="width: 70px;">
+        <h2 style="margin:0 0 5px 0; color: var(--secondary);">NOVO VENDEDOR</h2>
+        <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 20px;">O 1º a se cadastrar será o Administrador.</p>
+        
+        <input type="text" id="reg-user" placeholder="Crie um Usuário">
+        <input type="password" id="reg-pass" placeholder="Crie uma Senha">
+        <button class="auth-btn-main" style="background: var(--secondary);" onclick="authRegister()">ENVIAR SOLICITAÇÃO</button>
+        
+        <div class="auth-link" onclick="toggleAuthMode()">Já tem conta? Fazer Login.</div>
+    </div>
 </div>
 
-<div class="shop-container">
-    <header id="main-header">
-        <img src="https://i.imgur.com/bQAy1gG.png" alt="Logo Cusco" class="logo-ferraria">
-        <div class="header-text">
-            <h1 id="title-text">FERRARIA CUSCO</h1>
-            <small id="sub-text">REGISTRO DE PEDIDOS OFICIAL - 1905</small>
-        </div>
-    </header>
-
-    <div class="filter-container" id="filter-bar">
-        <label>Empresa:</label>
-        <select id="category-select" class="category-select" onchange="renderCatalog()">
-            <option value="TODOS">TODAS AS EMPRESAS</option>
-            <option value="Fazendas">FAZENDAS</option>
-            <option value="Mineradoras">MINERADORAS</option>
-            <option value="Artesanatos">ARTESANATOS</option>
-            <option value="Madeireiras">MADEIREIRAS</option>
-        </select>
+<div id="main-app">
+    <div class="nav-tabs">
+        <button class="tab-btn btn-vendas active" onclick="switchSystem('vendas')">Vendas</button>
+        <button class="tab-btn btn-producao" onclick="switchSystem('producao')">Cálculo de Produção</button>
+        <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Encomenda de Insumos</button>
+        <button class="tab-btn btn-clientes" onclick="switchSystem('clientes')">Clientes</button>
+        <button class="tab-btn btn-crediario" onclick="switchSystem('crediario')">Crediário</button>
+        <button class="tab-btn btn-admin" id="tab-admin" onclick="switchSystem('gerenciamento')">Gerenciamento</button>
     </div>
 
-    <div class="catalog" id="catalog"></div>
-
-    <aside class="cart-panel" id="cart-capture">
-        <div class="cart-header-internal">
-            <img src="https://i.imgur.com/bQAy1gG.png" class="logo-cart">
-            <div class="title-cart" id="internal-title">FERRARIA CUSCO</div>
-            <div class="subtitle-cart">Yuno Schmutz - HY288</div>
-        </div>
-
-        <h3 id="cart-title">📋 RESUMO</h3>
-        
-        <div class="client-info" id="info-contato">
-            <div class="info-group"><label>Nome do Cliente</label><input type="text" id="in-name" placeholder="NOME"><span id="out-name" class="display-data"></span></div>
-            <div class="info-group"><label>Telegrama</label><input type="text" id="in-tele" placeholder="USUÁRIO"><span id="out-tele" class="display-data"></span></div>
-            <div class="info-group"><label>Discord</label><input type="text" id="in-disc" placeholder="USUARIO#0000"><span id="out-disc" class="display-data"></span></div>
-        </div>
-
-        <div class="payment-area" id="payment-box">
-            <label id="pay-label">Forma de Pagamento</label>
-            <select id="pay-method" class="pay-select" onchange="updateUI()">
-                <option value="1">À VISTA</option>
-                <option value="2">PARCELADO 2X</option>
-                <option value="3">PARCELADO 3X</option>
-                <option value="4">PARCELADO 4X</option>
-                <option value="5">PARCELADO 5X</option>
-            </select>
-            <div class="entry-group">
-                <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
-                <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada?</label>
+    <div class="shop-container">
+        <header id="main-header">
+            <div class="header-left">
+                <img src="https://i.imgur.com/bQAy1gG.png" alt="Logo Cusco" class="logo-ferraria">
+                <div class="header-text">
+                    <h1 id="title-text">FERRARIA CUSCO</h1>
+                    <small id="sub-text">REGISTRO DE PEDIDOS OFICIAL - 1905</small>
+                </div>
             </div>
-            <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
-            <div id="parcel-details" class="parcel-info" style="display:none"></div>
+            <div class="user-badge">
+                👤 <span id="logged-username">Usuario</span> 
+                <button class="logout-btn" onclick="authLogout()">SAIR</button>
+            </div>
+        </header>
+
+        <div class="filter-container" id="filter-bar">
+            <label>Empresa:</label>
+            <select id="category-select" class="category-select" onchange="renderCatalog()">
+                <option value="TODOS">TODAS AS EMPRESAS</option>
+                <option value="Fazendas">FAZENDAS</option>
+                <option value="Mineradoras">MINERADORAS</option>
+                <option value="Artesanatos">ARTESANATOS</option>
+                <option value="Madeireiras">MADEIREIRAS</option>
+            </select>
         </div>
 
-        <div class="cart-items" id="cart-items"></div>
-
-        <button id="refresh-btn" class="refresh-btn" onclick="updateUI()">Atualizar Pedido</button>
-
-        <div class="total-box" id="total-border">
-            <span id="total-label">TOTAL:</span>
-            <span id="total-val-box">$<span id="total-val">0.00</span></span>
+        <div class="admin-panel" id="admin-panel">
+            <h2 style="color: var(--admin); margin-top: 0;">Painel de Controle de Usuários</h2>
+            <p style="color: #aaa; font-size: 0.9rem;">Aprove novos vendedores ou revogue acessos ao sistema da Ferraria.</p>
+            <table class="admin-table">
+                <thead><tr><th>Usuário</th><th>Cargo</th><th>Status</th><th>Ações</th></tr></thead>
+                <tbody id="admin-user-list"></tbody>
+            </table>
         </div>
 
-        <div id="ui-buttons">
-            <button id="main-action-btn" class="checkout-btn" onclick="generateImage()">SALVAR IMAGEM</button>
-            <button id="transfer-btn" class="transfer-btn" onclick="transferToCompras()">Transferir para Compras</button>
-            <button class="clear-btn" onclick="clearCart()">LIMPAR ABA ATUAL</button>
-        </div>
-    </aside>
+        <div class="catalog" id="catalog"></div>
+
+        <aside class="cart-panel" id="cart-capture">
+            <div class="cart-header-internal">
+                <img src="https://i.imgur.com/bQAy1gG.png" class="logo-cart">
+                <div class="title-cart" id="internal-title">FERRARIA CUSCO</div>
+                <div class="subtitle-cart">Atendente: <span id="print-username"></span></div>
+            </div>
+
+            <h3 id="cart-title">📋 RESUMO</h3>
+            
+            <div class="crediario-filters" id="crediario-filters">
+                <label>Modo de Visualização (Filtro)</label>
+                <select id="crediario-filter-select" class="category-select" style="border-color: var(--crediario); margin-bottom: 5px;" onchange="aplicarFiltroCrediario()">
+                    <option value="CLIENT_ONLY">Por Cliente Específico (Buscar Abaixo)</option>
+                    <option value="ALL_LATE">🚨 ALERTAS: Parcelas Atrasadas</option>
+                    <option value="NEGATIVE_CREDIT">🚨 ALERTAS: Clientes com Limite Negativo</option>
+                    <option value="ALL_PENDING">📊 GERAL: Todas as Parcelas a Receber</option>
+                </select>
+                <div id="sub-filter-crediario" style="display:none; margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px;">
+                    <label style="color: #aaa;">Quais pedidos exibir no extrato?</label>
+                    <select id="crediario-extrato-filter" class="category-select" onchange="aplicarFiltroCrediario()">
+                        <option value="OPEN">Somente Pedidos em Aberto</option>
+                        <option value="ALL">Todos os Pedidos (Histórico Completo)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="client-info" id="info-contato">
+                <div class="info-group">
+                    <label>Pesquisar Cliente (Nome ou ID)</label>
+                    <div style="display: flex; gap: 5px; width: 100%; position: relative;">
+                        <input type="text" id="in-name" placeholder="NOME DO CLIENTE" style="flex: 1;">
+                        <button id="search-client-btn" onclick="buscarClienteFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar Cliente">🔍</button>
+                        <div id="search-results-box" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; z-index: 1000; max-height: 180px; overflow-y: auto; margin-top: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"></div>
+                    </div>
+                    <span id="out-name" class="display-data"></span>
+                </div>
+                
+                <div class="info-group" id="group-id">
+                    <label>ID do Cliente</label>
+                    <div style="display: flex; gap: 5px; width: 100%;">
+                        <input type="text" id="in-id" placeholder="Ex: 1234" style="flex: 1;">
+                        <button id="search-id-btn" onclick="buscarClienteFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar por ID">🔍</button>
+                    </div>
+                    <span id="out-id" class="display-data"></span>
+                </div>
+
+                <div class="info-group">
+                    <label>Telegrama</label>
+                    <input type="text" id="in-tele" placeholder="USUÁRIO">
+                    <span id="out-tele" class="display-data"></span>
+                </div>
+                <div class="info-group">
+                    <label>Discord</label>
+                    <input type="text" id="in-disc" placeholder="USUARIO#0000">
+                    <span id="out-disc" class="display-data"></span>
+                </div>
+                
+                <div class="info-group" id="group-nivel" style="display: none;">
+                    <label style="color: var(--clientes)">Nível do Cliente</label>
+                    <select id="in-nivel" class="pay-select" style="margin-bottom: 5px; border-color: var(--clientes);">
+                        <option value="FERRO">FERRO ($1.000)</option>
+                        <option value="COBRE">COBRE ($2.000)</option>
+                        <option value="AÇO">AÇO ($4.000)</option>
+                        <option value="BRONZE">BRONZE ($8.000)</option>
+                        <option value="PRATA">PRATA ($10.000)</option>
+                        <option value="OURO">OURO ($15.000)</option>
+                        <option value="PLATINA">PLATINA ($20.000)</option>
+                        <option value="DIAMANTE">DIAMANTE ($50.000)</option>
+                    </select>
+                    <span id="out-nivel" class="display-data" style="color: var(--clientes)"></span>
+                </div>
+                
+                <div class="info-group" id="group-bonus" style="display: none;">
+                    <label style="color: var(--clientes)">Bônus de Crédito ($)</label>
+                    <input type="number" id="in-bonus" placeholder="Ex: 500.00" step="0.01" value="0">
+                    <span id="out-bonus" class="display-data" style="color: var(--clientes)"></span>
+                </div>
+
+                <div class="client-stats" id="client-stats">
+                    <div class="stat-line"><span>Número do Cliente:</span> <span class="stat-val" id="stat-numcli" style="color:var(--primary)">--</span></div>
+                    <div class="stat-line"><span>Cliente desde:</span> <span class="stat-val" id="stat-desde">--/--/----</span></div>
+                    <div class="stat-line"><span>Última compra:</span> <span class="stat-val" id="stat-ultima">--/--/----</span></div>
+                    <div class="stat-line"><span>Total comprado:</span> <span class="stat-val" style="color:var(--buy)">$<span id="stat-totalcompras">0.00</span></span></div>
+                    <div style="border-top: 1px dashed #555; margin: 8px 0;"></div>
+                    <div class="stat-line"><span>Nível:</span> <span class="stat-val" id="stat-nivel" style="color: var(--clientes)">FERRO</span></div>
+                    <div class="stat-line"><span>Bônus:</span> <span class="stat-val">$<span id="stat-bonus">0.00</span></span></div>
+                    <div class="stat-line" style="font-size: 0.7rem; margin-top:5px;"><span>Limite Total:</span> <span>$<span id="stat-limite">1000.00</span></span></div>
+                    <div class="stat-line" style="margin-top: 5px;">Crédito Disponível:</div>
+                    <div class="stat-val stat-credit" id="stat-credito">$1000.00</div>
+                </div>
+            </div>
+
+            <div class="payment-area" id="payment-box">
+                <label id="pay-label">Forma de Pagamento</label>
+                <select id="pay-method" class="pay-select" onchange="updateUI()">
+                    <option value="1">À VISTA</option>
+                    <option value="2">PARCELADO 2X</option>
+                    <option value="3">PARCELADO 3X</option>
+                    <option value="4">PARCELADO 4X</option>
+                    <option value="5">PARCELADO 5X</option>
+                </select>
+                <span id="out-pay" class="display-pay"></span>
+
+                <div id="date-group" style="margin-bottom: 10px; display:none;">
+                    <label id="date-label" style="font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary);">Data da 1ª Parcela</label>
+                    <input type="date" id="first-payment-date" class="qty-input" style="width: 100%; margin-top: 5px; text-align: left;" onchange="updateUI()">
+                </div>
+
+                <div class="entry-group" id="entry-checkbox-group">
+                    <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
+                    <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada?</label>
+                </div>
+                <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
+                <div id="parcel-details" class="parcel-info" style="display:none"></div>
+            </div>
+
+            <div class="cart-items" id="cart-items"></div>
+            <div class="crediario-list" id="crediario-list"></div>
+
+            <div class="total-box" id="total-border">
+                <span id="total-label">TOTAL:</span>
+                <span id="total-val-box">$<span id="total-val">0.00</span></span>
+            </div>
+
+            <div class="action-btns" id="ui-buttons">
+                <button id="btn-refresh" class="btn-outline" style="color: var(--secondary); border-color: var(--secondary);" onclick="updateUI()">ATUALIZAR PEDIDO</button>
+                <button id="btn-transfer" class="btn-solid" style="background: var(--secondary); display: none;" onclick="transferToCompras()">TRANSFERIR PARA COMPRAS</button>
+
+                <button id="btn-save-venda" class="btn-solid" style="background: #059669;" onclick="finalizarVenda()">FINALIZAR E SALVAR VENDA</button>
+                
+                <button id="btn-db-create" class="btn-solid" style="background: var(--clientes); display: none;" onclick="salvarClienteFirebase()">CADASTRAR NOVO CLIENTE</button>
+                <button id="btn-db-update" class="btn-solid" style="background: var(--secondary); display: none;" onclick="atualizarClienteFirebase()">ATUALIZAR CLIENTE</button>
+                <button id="btn-db-delete" class="btn-solid" style="background: #ef4444; display: none;" onclick="deletarClienteFirebase()">EXCLUIR CLIENTE</button>
+
+                <button id="btn-img-only" class="btn-outline" style="color: white; border-color: white;" onclick="generateImage()">SALVAR IMAGEM / EXTRATO</button>
+                <button id="btn-clear" class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="clearCart()">LIMPAR ABA ATUAL</button>
+            </div>
+        </aside>
+    </div>
 </div>
 
 <script>
+    // =====================================
+    // UI DO SISTEMA
+    // =====================================
     let currentMode = 'vendas';
     let carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
+    window.clienteSelecionado = null; 
+    
+    function toggleAuthMode() {
+        const login = document.getElementById('login-box');
+        const reg = document.getElementById('register-box');
+        if (login.style.display === 'none') {
+            login.style.display = 'block'; reg.style.display = 'none';
+        } else {
+            login.style.display = 'none'; reg.style.display = 'block';
+        }
+    }
+
+    const tierCredits = {
+        'FERRO': 1000, 'COBRE': 2000, 'AÇO': 4000, 'BRONZE': 8000,
+        'PRATA': 10000, 'OURO': 15000, 'PLATINA': 20000, 'DIAMANTE': 50000
+    };
 
     const inventory = [
         { id: 1, name: "Cápsula de Munição", price: 0.86, img: "https://i.imgur.com/pYci4DW.png", recipe: { yield: 20, materials: [{n: "Lingote de Cobre", q: 3}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 2}] } },
@@ -220,42 +453,139 @@
     function switchSystem(mode) {
         currentMode = mode;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector(`.btn-${mode}`).classList.add('active');
+        
+        const tabBtn = document.querySelector(`.btn-${mode}`);
+        if(tabBtn) tabBtn.classList.add('active');
         
         const isBuy = mode === 'compras';
         const isProd = mode === 'producao';
+        const isCli = mode === 'clientes'; 
+        const isCred = mode === 'crediario';
+        const isVend = mode === 'vendas';
+        const isAdm = mode === 'gerenciamento';
+        
         const header = document.getElementById('main-header');
         const internalTitle = document.getElementById('internal-title');
-        
         header.className = '';
-        document.getElementById('transfer-btn').style.display = isProd ? "block" : "none";
-        document.getElementById('filter-bar').style.display = isBuy ? "flex" : "none";
-        document.getElementById('info-contato').style.display = (isProd || isBuy) ? "none" : "flex";
-        document.getElementById('payment-box').style.display = (isProd) ? "none" : "block";
-        document.getElementById('total-val-box').style.display = isProd ? "none" : "block";
-        document.getElementById('refresh-btn').style.display = (isProd || isBuy) ? "block" : "none";
+        
+        // Reset Base Displays
+        document.getElementById('catalog').style.display = "none";
+        document.getElementById('filter-bar').style.display = "none";
+        document.getElementById('crediario-filters').style.display = "none";
+        document.getElementById('payment-box').style.display = "none";
+        document.getElementById('cart-items').style.display = "none";
+        document.getElementById('crediario-list').style.display = "none";
+        document.getElementById('total-border').style.display = "none";
+        document.getElementById('group-nivel').style.display = "none";
+        document.getElementById('group-bonus').style.display = "none";
+        document.getElementById('info-contato').style.display = "none";
+        document.getElementById('admin-panel').style.display = "none";
+        document.getElementById('cart-capture').style.display = "block";
+        
+        document.getElementById('btn-refresh').style.display = "none";
+        document.getElementById('btn-transfer').style.display = "none";
+        document.getElementById('btn-save-venda').style.display = "none";
+        document.getElementById('btn-img-only').style.display = "none";
+        document.getElementById('btn-db-create').style.display = "none";
+        document.getElementById('btn-db-update').style.display = "none";
+        document.getElementById('btn-db-delete').style.display = "none";
 
+        // Aplica regras
+        if (isVend || isProd || isBuy) {
+            document.getElementById('catalog').style.display = "grid";
+            document.getElementById('cart-items').style.display = "block";
+            if (isVend) {
+                document.getElementById('payment-box').style.display = "block";
+                document.getElementById('info-contato').style.display = "flex";
+                document.getElementById('total-border').style.display = "flex";
+                document.getElementById('btn-refresh').style.display = "block";
+                document.getElementById('btn-save-venda').style.display = "block";
+                document.getElementById('btn-img-only').style.display = "block";
+                document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+                document.getElementById('in-id').disabled = false;
+            }
+            if (isProd) {
+                document.getElementById('btn-refresh').style.display = "block";
+                document.getElementById('btn-transfer').style.display = "block";
+                document.getElementById('btn-img-only').style.display = "block";
+                document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+            }
+            if (isBuy) {
+                document.getElementById('filter-bar').style.display = "flex";
+                document.getElementById('total-border').style.display = "flex";
+                document.getElementById('btn-refresh').style.display = "block";
+                document.getElementById('btn-img-only').style.display = "block";
+                document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+            }
+        }
+        else if (isCli) {
+            document.getElementById('info-contato').style.display = "flex";
+            document.getElementById('group-nivel').style.display = "block";
+            document.getElementById('group-bonus').style.display = "block";
+            document.getElementById('btn-img-only').style.display = "block";
+            document.getElementById('btn-img-only').innerText = "SALVAR FICHA";
+            document.getElementById('in-id').disabled = window.clienteSelecionado ? true : false;
+            
+            if (window.clienteSelecionado) { 
+                document.getElementById('btn-db-update').style.display = "block";
+                document.getElementById('btn-db-delete').style.display = "block";
+            } else { 
+                document.getElementById('in-nivel').value = "FERRO";
+                document.getElementById('in-bonus').value = "0";
+                document.getElementById('btn-db-create').style.display = "block";
+            }
+        }
+        else if (isCred) {
+            document.getElementById('crediario-filters').style.display = "block";
+            document.getElementById('crediario-list').style.display = "flex";
+            if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
+                document.getElementById('info-contato').style.display = "flex";
+                if (window.clienteSelecionado) {
+                    document.getElementById('btn-img-only').style.display = "block";
+                    document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
+                }
+            }
+        }
+        else if (isAdm) {
+            document.getElementById('admin-panel').style.display = "block";
+            document.getElementById('cart-capture').style.display = "none";
+            if(typeof window.carregarUsuariosAdmin === 'function') window.carregarUsuariosAdmin();
+        }
+
+        // Cabeçalhos e Cores
         if(isProd) { 
-            header.classList.add('header-producao'); 
-            internalTitle.style.color = "var(--secondary)"; 
+            header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; 
             document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO";
         } else if(isBuy) { 
-            header.classList.add('header-compras'); 
-            internalTitle.style.color = "var(--buy)"; 
+            header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; 
             document.getElementById('cart-title').innerText = "🛒 LISTA DE ENCOMENDA";
-            document.getElementById('pay-label').style.color = "var(--buy)";
+        } else if(isCli) {
+            header.classList.add('header-clientes'); internalTitle.style.color = "var(--clientes)"; 
+            document.getElementById('cart-title').innerText = "👥 FICHA DO CLIENTE";
+        } else if(isCred) {
+            header.classList.add('header-crediario'); internalTitle.style.color = "var(--crediario)"; 
+            document.getElementById('cart-title').innerText = "💳 CONTROLE DE CREDIÁRIO";
+        } else if(isAdm) {
+            header.classList.add('header-admin'); 
         } else { 
             internalTitle.style.color = "var(--primary)"; 
             document.getElementById('cart-title').innerText = "📋 RESUMO DO PEDIDO";
             document.getElementById('pay-label').style.color = "var(--primary)";
+            document.getElementById('date-label').style.color = "var(--primary)";
         }
 
-        const borderColor = isBuy ? "var(--buy)" : (isProd ? "var(--secondary)" : "var(--primary)");
+        let borderColor = "var(--primary)";
+        if(isBuy) borderColor = "var(--buy)";
+        if(isProd) borderColor = "var(--secondary)";
+        if(isCli) borderColor = "var(--clientes)";
+        if(isCred) borderColor = "var(--crediario)";
+        
         document.getElementById('total-border').style.borderTopColor = borderColor;
         document.getElementById('total-border').style.color = borderColor;
 
-        renderCatalog();
-        updateUI(); 
+        if(!isCli && !isCred && !isAdm) renderCatalog();
+        if(isVend || isBuy || isProd) updateUI(); 
+        if(isCred && typeof window.aplicarFiltroCrediario === 'function') window.aplicarFiltroCrediario();
     }
 
     function renderCatalog() {
@@ -275,10 +605,12 @@
             } else if(currentMode === 'producao') {
                 inputs = `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>ESTOQUE:</label><input type="number" id="stock-${item.id}" class="qty-input" value="0" min="0"></div></div>`;
             } else {
-                inputs = `<div style="display:flex; gap:5px; justify-content:center; align-items:center; margin-top:10px;"><span style="font-size:0.7rem">QTD:</span><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>`;
+                inputs = `<div class="buy-inputs">
+                    <div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.price.toFixed(2)}" min="${item.price.toFixed(2)}" step="0.01"></div>
+                    <div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>
+                </div>`;
             }
-            
-            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${currentMode === 'vendas' ? `<span class="item-price">$${item.price.toFixed(2)}</span>` : ''}${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
+            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
         }).join('');
     }
 
@@ -289,7 +621,17 @@
         if (qtyVal <= 0 || isNaN(qtyVal)) return;
 
         let finalPrice = prod.price || 0;
-        if(currentMode === 'compras') finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
+        
+        if(currentMode === 'compras') {
+            finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
+        } else if (currentMode === 'vendas') {
+            finalPrice = parseFloat(document.getElementById(`price-${id}`).value);
+            if (isNaN(finalPrice) || finalPrice < prod.price) {
+                alert(`AVISO: O valor mínimo permitido para ${prod.name.toUpperCase()} é $${prod.price.toFixed(2)}.`);
+                document.getElementById(`price-${id}`).value = prod.price.toFixed(2); 
+                return; 
+            }
+        }
         
         let stockVal = 0;
         if(currentMode === 'producao' || currentMode === 'compras') stockVal = parseInt(document.getElementById(`stock-${id}`).value) || 0;
@@ -297,7 +639,7 @@
         if (carts[currentMode][id]) { 
             carts[currentMode][id].quantity += qtyVal; 
             carts[currentMode][id].stock = stockVal;
-            if(currentMode === 'compras') carts[currentMode][id].price = finalPrice;
+            if(currentMode === 'compras' || currentMode === 'vendas') carts[currentMode][id].price = finalPrice;
         } else { 
             carts[currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice, stock: stockVal }; 
         }
@@ -324,38 +666,59 @@
                 }
             }
         });
-        alert("Insumos necessários transferidos com sucesso!");
+        alert("Insumos transferidos para aba Compras!");
     }
 
     function removeItem(id) { delete carts[currentMode][id]; updateUI(); }
     
     function clearCart() { 
-        carts[currentMode] = {}; 
-        if(currentMode === 'vendas') {
-            document.getElementById('in-name').value = ""; document.getElementById('in-tele').value = ""; document.getElementById('in-disc').value = "";
-            document.getElementById('has-entry').checked = false; document.getElementById('entry-val').value = ""; document.getElementById('entry-val').style.display = "none"; 
+        if(carts[currentMode]) carts[currentMode] = {}; 
+        
+        document.getElementById('pay-method').value = "1";
+        document.getElementById('first-payment-date').value = "";
+        
+        document.getElementById('in-name').value = ""; 
+        document.getElementById('in-id').value = ""; 
+        document.getElementById('in-tele').value = ""; 
+        document.getElementById('in-disc').value = "";
+        
+        if (currentMode === 'clientes') {
+            document.getElementById('in-nivel').value = "FERRO";
+            document.getElementById('in-bonus').value = "0";
+            document.getElementById('in-id').disabled = false;
         }
-        updateUI(); 
+        
+        document.getElementById('has-entry').checked = false; 
+        document.getElementById('entry-val').value = ""; 
+        document.getElementById('entry-val').style.display = "none"; 
+        
+        document.getElementById('search-results-box').style.display = "none";
+        document.getElementById('client-stats').style.display = "none";
+        document.getElementById('crediario-list').innerHTML = "";
+        
+        window.clienteSelecionado = null;
+        switchSystem(currentMode);
     }
 
     function updateStockFromResumo(id, value) {
-        if(carts[currentMode][id]) {
-            carts[currentMode][id].stock = parseInt(value) || 0;
-        }
+        if(carts[currentMode][id]) carts[currentMode][id].stock = parseInt(value) || 0;
     }
 
     function formatDate(date) {
         const d = date.getDate().toString().padStart(2, '0');
         const m = (date.getMonth() + 1).toString().padStart(2, '0');
-        return `${d}/${m}`;
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
     }
 
     function updateUI() {
+        if(currentMode === 'clientes' || currentMode === 'crediario' || currentMode === 'gerenciamento') return;
+
         const cartList = document.getElementById('cart-items');
         cartList.innerHTML = ""; 
         
         let totalRaw = 0, lastCategory = "", htmlContent = "";
-        const cart = carts[currentMode];
+        const cart = carts[currentMode] || {};
         const items = Object.values(cart);
         
         if (currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
@@ -366,8 +729,7 @@
                 htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; 
             }
             
-            let infoHTML = "", priceColHTML = "";
-            let qtyFinalLabel = "";
+            let infoHTML = "", priceColHTML = "", qtyFinalLabel = "";
 
             if(currentMode === 'producao' && item.recipe) {
                 const needs = item.quantity - item.stock;
@@ -382,11 +744,7 @@
                 priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
             } else if(currentMode === 'compras') {
                 const needsToBuy = item.quantity - item.stock;
-                const stockInputHTML = `<div class="client-info-static" style="margin-top:5px">
-                    <label style="font-size:0.6rem; color:#999">ESTOQUE:</label>
-                    <input type="number" class="resumo-stock-input" value="${item.stock}" onchange="updateStockFromResumo(${item.id}, this.value)">
-                </div>`;
-                
+                const stockInputHTML = `<div class="client-info-static" style="margin-top:5px"><label style="font-size:0.6rem; color:#999">ESTOQUE:</label><input type="number" class="resumo-stock-input" value="${item.stock}" onchange="updateStockFromResumo(${item.id}, this.value)"></div>`;
                 if(needsToBuy <= 0) {
                     priceColHTML = `<div style="text-align:right"><span>ESTOQUE OK</span>${stockInputHTML}</div>`;
                     qtyFinalLabel = `<small style="color:#10b981">Disponível</small>`;
@@ -400,7 +758,7 @@
                 const subTotal = item.price * item.quantity; 
                 totalRaw += subTotal; 
                 priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`;
-                qtyFinalLabel = `<small style="color:#aaa">Total: ${item.quantity} un.</small>`;
+                qtyFinalLabel = `<small style="color:#aaa">Qtd: ${item.quantity} un. | Unit: $${item.price.toFixed(2)}</small>`;
             }
 
             htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()}<br>${qtyFinalLabel}</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="removeItem(${item.id})" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
@@ -411,17 +769,21 @@
         const numParcelas = parseInt(document.getElementById('pay-method').value);
         const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
         const parcelBox = document.getElementById('parcel-details');
+        const firstDateInput = document.getElementById('first-payment-date').value;
+        const dateGroup = document.getElementById('date-group');
         
-        if (numParcelas > 1 && totalRaw > 0 && currentMode !== 'producao') {
+        dateGroup.style.display = (numParcelas > 1 && currentMode === 'vendas') ? "block" : "none";
+
+        if (numParcelas > 1 && totalRaw > 0 && currentMode === 'vendas') {
             parcelBox.style.display = "block";
             let pHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
             if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
             const valorParcela = (totalRaw - entryVal) / numParcelas;
-            
-            for(let i=1; i<=numParcelas; i++) {
-                let date = new Date();
-                date.setDate(date.getDate() + (i * 2));
-                pHTML += `<div class="parcel-line"><span>PARC ${i} (${formatDate(date)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+            let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
+            for(let i=0; i < numParcelas; i++) {
+                let nextDate = new Date(baseDate);
+                nextDate.setDate(baseDate.getDate() + (i * 2));
+                pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
         } else { parcelBox.style.display = "none"; }
@@ -430,43 +792,635 @@
     }
 
     async function generateImage() {
-        if(Object.keys(carts[currentMode]).length === 0) return alert("Lista vazia!");
-        if(currentMode === 'vendas') {
-            const name = document.getElementById('in-name').value;
-            if(!name || !document.getElementById('in-disc').value || !document.getElementById('in-tele').value) return alert("Preencha os dados do cliente!");
-            document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
-            document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
+        if((currentMode === 'vendas' || currentMode === 'compras' || currentMode === 'producao') && Object.keys(carts[currentMode]).length === 0) {
+            return alert("A lista de itens está vazia!");
         }
         
+        if(currentMode === 'vendas' || currentMode === 'clientes' || currentMode === 'crediario') {
+            const name = document.getElementById('in-name').value;
+            const idCli = document.getElementById('in-id').value;
+            
+            if(!name || !idCli) return alert("Preencha Nome e ID para gerar a imagem!");
+            
+            document.getElementById('out-name').innerText = name.toUpperCase();
+            document.getElementById('out-id').innerText = idCli.toUpperCase();
+            document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
+            document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
+            
+            if (currentMode === 'clientes') {
+                const selectNivel = document.getElementById('in-nivel');
+                document.getElementById('out-nivel').innerText = selectNivel.options[selectNivel.selectedIndex].text;
+                document.getElementById('out-bonus').innerText = "$" + parseFloat(document.getElementById('in-bonus').value || 0).toFixed(2);
+            }
+
+            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
+            document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'none');
+            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
+        }
+
+        const paySelect = document.getElementById('pay-method');
+        const payDisplay = document.getElementById('out-pay');
+        payDisplay.innerText = paySelect.options[paySelect.selectedIndex].text;
+        paySelect.style.display = 'none';
+        payDisplay.style.display = 'block';
+        
+        // Esconder UI
         document.getElementById('ui-buttons').style.display = 'none';
-        document.getElementById('refresh-btn').style.display = 'none';
+        document.getElementById('date-group').style.display = 'none';
+        document.getElementById('entry-checkbox-group').style.display = 'none';
+        document.getElementById('entry-val').style.display = 'none';
+        document.getElementById('search-client-btn').style.display = 'none';
+        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'none';
+        document.getElementById('search-results-box').style.display = 'none';
+        
+        // Esconder Botões do Crediário no Print
+        if (currentMode === 'crediario') {
+            document.getElementById('crediario-filters').style.display = 'none';
+            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
+        }
+        
         document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
         document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
         document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'none');
         document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'none');
 
+        // Capturar
         const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
         const link = document.createElement('a');
-        link.download = `${currentMode}_${Date.now()}.png`;
+        link.download = `CUSCO_${currentMode.toUpperCase()}_${Date.now()}.png`;
         link.href = canvas.toDataURL(); link.click();
         
-        document.getElementById('ui-buttons').style.display = 'block';
-        document.getElementById('refresh-btn').style.display = currentMode === 'vendas' ? 'none' : 'block';
-        document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'inline');
-        document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'inline-block');
-        document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'inline-block');
-        document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'block');
+        // Restaurar UI
+        paySelect.style.display = 'block';
+        payDisplay.style.display = 'none';
+        document.getElementById('ui-buttons').style.display = 'flex';
+        document.getElementById('entry-checkbox-group').style.display = 'flex';
+        document.getElementById('search-client-btn').style.display = 'block';
+        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'block';
+        if(document.getElementById('has-entry').checked) document.getElementById('entry-val').style.display = 'block';
+        
+        if (currentMode === 'crediario') {
+            document.getElementById('crediario-filters').style.display = 'block';
+            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'inline-block');
+        }
 
-        if(currentMode === 'vendas') {
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
+        document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
+        document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'block');
+        document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
+        
+        switchSystem(currentMode); 
+    }
+</script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+          apiKey: "AIzaSyBoX_SoV36u9DHTxRxrdnNceZe9J-EbCWM",
+          authDomain: "ferrariacusco.firebaseapp.com",
+          projectId: "ferrariacusco",
+          storageBucket: "ferrariacusco.firebasestorage.app",
+          messagingSenderId: "510224310237",
+          appId: "1:510224310237:web:88a3a7dba3ec79784ae034"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // =====================================
+    // 0. AUTENTICAÇÃO E GERENCIAMENTO
+    // =====================================
+    window.usuarioLogado = null;
+
+    window.authLogin = async function() {
+        const user = document.getElementById('login-user').value.trim();
+        const pass = document.getElementById('login-pass').value.trim();
+        if(!user || !pass) return alert("Preencha Usuário e Senha!");
+
+        let userData = null;
+        let userId = null;
+
+        try {
+            const q = query(collection(db, "vendedores"), where("username", "==", user), where("password", "==", pass));
+            const snap = await getDocs(q);
+            if (snap.empty) return alert("Usuário ou senha incorretos!");
+            
+            userData = snap.docs[0].data();
+            userId = snap.docs[0].id;
+        } catch (error) { 
+            console.log(error); 
+            return alert("Erro ao conectar com o banco de dados!"); 
+        }
+
+        if (userData.status === 'pendente') {
+            return alert("Seu cadastro está PENDENTE! Aguarde a aprovação do Administrador.");
+        }
+
+        // Login Aprovado
+        window.usuarioLogado = { ...userData, id: userId };
+        
+        try {
+            document.getElementById('logged-username').innerText = userData.username.toUpperCase();
+            document.getElementById('print-username').innerText = userData.username.toUpperCase();
+            document.getElementById('auth-overlay').style.display = "none";
+            document.getElementById('main-app').style.display = "flex";
+
+            if (userData.role === 'admin') {
+                document.querySelector('.btn-admin').style.display = "block";
+            } else {
+                document.querySelector('.btn-admin').style.display = "none";
+            }
+            switchSystem('vendas'); 
+        } catch (uiError) {
+            console.error("Erro na interface após login:", uiError);
+        }
+    };
+
+    window.authRegister = async function() {
+        const user = document.getElementById('reg-user').value.trim();
+        const pass = document.getElementById('reg-pass').value.trim();
+        if(!user || !pass) return alert("Preencha todos os campos!");
+
+        try {
+            const qCheck = query(collection(db, "vendedores"), where("username", "==", user));
+            const snapCheck = await getDocs(qCheck);
+            if (!snapCheck.empty) return alert("Nome de usuário já em uso!");
+
+            const snapAll = await getDocs(collection(db, "vendedores"));
+            const isFirstUser = snapAll.empty;
+            
+            await addDoc(collection(db, "vendedores"), {
+                username: user, password: pass, 
+                role: isFirstUser ? 'admin' : 'vendedor',
+                status: isFirstUser ? 'aprovado' : 'pendente',
+                data_registro: new Date().toLocaleDateString('pt-BR')
+            });
+
+            if (isFirstUser) alert("✨ Parabéns! Como você é o primeiro a se registrar, você foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login agora.");
+            else alert("Solicitação enviada! Aguarde o Administrador aprovar.");
+            
+            toggleAuthMode();
+        } catch (error) { console.error(error); alert("Erro ao registrar no banco."); }
+    };
+
+    window.authLogout = function() {
+        window.usuarioLogado = null;
+        document.getElementById('auth-overlay').style.display = "flex";
+        document.getElementById('main-app').style.display = "none";
+        document.getElementById('login-user').value = "";
+        document.getElementById('login-pass').value = "";
+    };
+
+    window.carregarUsuariosAdmin = async function() {
+        const tbody = document.getElementById('admin-user-list');
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Carregando...</td></tr>";
+
+        try {
+            const snap = await getDocs(collection(db, "vendedores"));
+            let html = "";
+            snap.forEach(docSnap => {
+                const u = docSnap.data();
+                const uId = docSnap.id;
+                if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
+
+                const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
+                let acoes = u.status === 'pendente' 
+                    ? `<button style="background:var(--buy); color:black; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold;" onclick="aprovarVendedor('${uId}')">Aprovar</button>
+                       <button style="background:var(--admin); color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold;" onclick="excluirVendedor('${uId}')">Recusar</button>`
+                    : `<button style="background:var(--admin); color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold;" onclick="excluirVendedor('${uId}')">Revogar Acesso</button>`;
+
+                html += `<tr><td style="color:white; font-weight:bold;">${u.username}</td><td style="color:#aaa;">${u.role.toUpperCase()}</td><td><span class="badge-status ${badgeClass}">${u.status.toUpperCase()}</span></td><td>${acoes}</td></tr>`;
+            });
+            tbody.innerHTML = html || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhum outro usuário.</td></tr>";
+        } catch(e) { tbody.innerHTML = "<tr><td colspan='4' style='color:red;'>Erro ao carregar lista.</td></tr>"; }
+    };
+
+    window.aprovarVendedor = async function(docId) {
+        if(!confirm("Deseja APROVAR este vendedor?")) return;
+        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado' }); window.carregarUsuariosAdmin(); } 
+        catch(e) { alert("Erro."); }
+    };
+
+    window.excluirVendedor = async function(docId) {
+        if(!confirm("Deseja EXCLUIR este usuário permanentemente?")) return;
+        try { await deleteDoc(doc(db, "vendedores", docId)); window.carregarUsuariosAdmin(); } 
+        catch(e) { alert("Erro."); }
+    };
+
+    // =====================================
+    // 1. BUSCA DE CLIENTES E FATURAS
+    // =====================================
+    window.resultadosBuscaFirebase = [];
+
+    async function getNextSequence(counterName) {
+        const counterRef = doc(db, "counters", counterName);
+        const counterSnap = await getDoc(counterRef);
+        let nextNum = 1;
+        if (counterSnap.exists()) {
+            nextNum = (counterSnap.data().seq || 0) + 1;
+            await updateDoc(counterRef, { seq: nextNum });
+        } else {
+            await setDoc(counterRef, { seq: nextNum });
+        }
+        return nextNum;
+    }
+
+    window.buscarClienteFirebase = async function() {
+        const nomeInput = document.getElementById('in-name').value.trim().toUpperCase();
+        const idInput = document.getElementById('in-id').value.trim().toUpperCase();
+        const resultsBox = document.getElementById('search-results-box');
+        
+        if (!nomeInput && !idInput) return alert("Preencha o NOME ou ID para buscar!");
+
+        resultsBox.innerHTML = "<div style='padding: 10px; color: #aaa; text-align: center;'>Buscando no banco...</div>";
+        resultsBox.style.display = "block";
+        window.resultadosBuscaFirebase = []; 
+        window.clienteSelecionado = null; 
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "clientes"));
+            let htmlList = "";
+            
+            querySnapshot.forEach((documento) => {
+                const dados = documento.data();
+                dados.firebase_doc_id = documento.id; 
+                
+                const dbNome = (dados.nome || "").toUpperCase();
+                const dbId = (dados.id_cliente || "").toUpperCase();
+                
+                let matchNome = true; let matchId = true;
+                if (nomeInput && !dbNome.includes(nomeInput)) matchNome = false;
+                if (idInput && !dbId.includes(idInput)) matchId = false;
+
+                if (matchNome && matchId) {
+                    window.resultadosBuscaFirebase.push(dados);
+                    const index = window.resultadosBuscaFirebase.length - 1;
+                    htmlList += `<div onclick="selecionarClienteNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
+                        <strong style="color: var(--primary)">${dados.nome}</strong><br>
+                        <small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | Nível: ${dados.nivel || 'FERRO'}</small>
+                    </div>`;
+                }
+            });
+            
+            if (window.resultadosBuscaFirebase.length > 0) {
+                htmlList += `<div onclick="document.getElementById('search-results-box').style.display='none'" style="padding: 8px; text-align: center; color: #ef4444; cursor: pointer; font-size: 0.8rem; background: #121212;">FECHAR ✕</div>`;
+                resultsBox.innerHTML = htmlList;
+            } else {
+                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado encontrado.</div>";
+                setTimeout(() => resultsBox.style.display = "none", 3000);
+            }
+        } catch (error) {
+            resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Erro ao conectar com o banco.</div>";
+            setTimeout(() => resultsBox.style.display = "none", 3000);
+        }
+    };
+
+    window.selecionarClienteNaLista = function(index) {
+        const dados = window.resultadosBuscaFirebase[index];
+        if(!dados) return;
+        
+        window.clienteSelecionado = dados; 
+        
+        document.getElementById('in-name').value = dados.nome;
+        document.getElementById('in-id').value = dados.id_cliente || '';
+        document.getElementById('in-tele').value = dados.telegrama;
+        document.getElementById('in-disc').value = dados.discord;
+        
+        if (currentMode === 'clientes') {
+            document.getElementById('in-nivel').value = dados.nivel || 'FERRO';
+            document.getElementById('in-bonus').value = dados.bonus || 0;
+            document.getElementById('in-id').disabled = true; 
+        }
+        
+        document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I");
+        document.getElementById('stat-desde').innerText = dados.data_cadastro || "N/I";
+        document.getElementById('stat-ultima').innerText = dados.ultima_compra || "Nenhuma compra";
+        document.getElementById('stat-totalcompras').innerText = parseFloat(dados.total_compras || 0).toFixed(2);
+        document.getElementById('stat-nivel').innerText = dados.nivel || "FERRO";
+        document.getElementById('stat-bonus').innerText = parseFloat(dados.bonus || 0).toFixed(2);
+        
+        const limTotal = parseFloat(dados.limite_credito || tierCredits['FERRO']);
+        const credDisp = parseFloat(dados.credito_disponivel !== undefined ? dados.credito_disponivel : limTotal);
+        
+        document.getElementById('stat-limite').innerText = limTotal.toFixed(2);
+        const elDisp = document.getElementById('stat-credito');
+        elDisp.innerText = `$${credDisp.toFixed(2)}`;
+        if(credDisp < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+        
+        document.getElementById('client-stats').style.display = "block";
+        document.getElementById('search-results-box').style.display = "none";
+        
+        const ev = new Event('change');
+        if (currentMode === 'crediario') {
+            document.getElementById('crediario-filter-select').value = "CLIENT_ONLY";
+            document.getElementById('crediario-filter-select').dispatchEvent(ev);
+        } else {
+            switchSystem(currentMode); 
         }
     }
-    
-    switchSystem('vendas');
+
+    window.salvarClienteFirebase = async function() {
+        const nome = document.getElementById('in-name').value.trim();
+        const id_cliente = document.getElementById('in-id').value.trim(); 
+        const telegrama = document.getElementById('in-tele').value.trim();
+        const discord = document.getElementById('in-disc').value.trim();
+        
+        if(!nome || !id_cliente) return alert("Preencha Nome e ID MANUAL para cadastrar!");
+
+        try {
+            const q = query(collection(db, "clientes"), where("id_cliente", "==", id_cliente.toUpperCase()));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                return alert(`ERRO: Já existe um cliente utilizando o ID "${id_cliente.toUpperCase()}"! Não foi possível salvar.`);
+            }
+            
+            const nivelPadrao = 'FERRO';
+            const bonusPadrao = 0;
+            const limiteTotal = tierCredits[nivelPadrao] + bonusPadrao;
+
+            await addDoc(collection(db, "clientes"), {
+                nome: nome.toUpperCase(),
+                id_cliente: id_cliente.toUpperCase(),
+                telegrama: telegrama.toUpperCase(),
+                discord: discord.toUpperCase(),
+                nivel: nivelPadrao,
+                bonus: bonusPadrao,
+                limite_credito: limiteTotal,
+                credito_disponivel: limiteTotal, 
+                total_compras: 0,
+                ultima_compra: "Nunca",
+                data_cadastro: new Date().toLocaleDateString('pt-BR'),
+                hora_cadastro: new Date().toLocaleTimeString('pt-BR')
+            });
+            
+            alert(`Sucesso! Cliente cadastrado com ID #${id_cliente.toUpperCase()}`);
+            clearCart();
+        } catch (error) { alert("Erro ao salvar! Verifique sua conexão."); console.log(error); }
+    };
+
+    window.atualizarClienteFirebase = async function() {
+        if (!window.clienteSelecionado) return alert("Nenhum cliente selecionado.");
+        
+        const nome = document.getElementById('in-name').value.trim();
+        const id_cliente = document.getElementById('in-id').value.trim();
+        const nivel = document.getElementById('in-nivel').value;
+        const bonus = parseFloat(document.getElementById('in-bonus').value) || 0;
+        
+        if(!nome || !id_cliente) return alert("Nome e ID não podem ficar em branco!");
+
+        try {
+            const q = query(collection(db, "clientes"), where("id_cliente", "==", id_cliente.toUpperCase()));
+            const querySnapshot = await getDocs(q);
+            let idEmUsoPorOutro = false;
+            querySnapshot.forEach((documento) => {
+                if (documento.id !== window.clienteSelecionado.firebase_doc_id) idEmUsoPorOutro = true;
+            });
+
+            if (idEmUsoPorOutro) return alert(`ERRO: O ID "${id_cliente.toUpperCase()}" já pertence a outro cliente.`);
+
+            const limiteAntigo = parseFloat(window.clienteSelecionado.limite_credito || tierCredits['FERRO']);
+            const novoLimiteTotal = tierCredits[nivel] + bonus;
+            const diffLimite = novoLimiteTotal - limiteAntigo;
+            const novoDisponivel = parseFloat(window.clienteSelecionado.credito_disponivel || 0) + diffLimite;
+
+            await updateDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id), {
+                nome: nome.toUpperCase(),
+                id_cliente: id_cliente.toUpperCase(),
+                telegrama: document.getElementById('in-tele').value.trim().toUpperCase(),
+                discord: document.getElementById('in-disc').value.trim().toUpperCase(),
+                nivel: nivel,
+                bonus: bonus,
+                limite_credito: novoLimiteTotal,
+                credito_disponivel: novoDisponivel
+            });
+            alert("Ficha ATUALIZADA com sucesso! O limite de crédito foi reajustado."); clearCart();
+        } catch (error) { alert("Ocorreu um erro ao atualizar."); }
+    };
+
+    window.deletarClienteFirebase = async function() {
+        if (!window.clienteSelecionado) return;
+        if (confirm(`⚠️ ATENÇÃO!\n\nDeseja APAGAR PERMANENTEMENTE o cliente "${window.clienteSelecionado.nome}" do banco?`)) {
+            try {
+                await deleteDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id));
+                alert("Cliente excluído!"); clearCart(); 
+            } catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
+        }
+    };
+
+    window.finalizarVenda = async function() {
+        const totalVendaRaw = document.getElementById('total-val').innerText;
+        const totalVenda = parseFloat(totalVendaRaw);
+        
+        if (totalVenda <= 0) return alert("O carrinho está vazio!");
+        if (!window.clienteSelecionado) return alert("Para vender, você deve BUSCAR e SELECIONAR o cliente na Lupa 🔍 primeiro!");
+
+        const paySelect = document.getElementById('pay-method');
+        const numParcelas = parseInt(paySelect.value);
+        const formaPagamento = paySelect.options[paySelect.selectedIndex].text;
+        const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        const valorFinanciado = totalVenda - entryVal;
+
+        let creditoDisponivel = parseFloat(window.clienteSelecionado.credito_disponivel || 0);
+        
+        if (numParcelas > 1 && valorFinanciado > 0) {
+            if (valorFinanciado > creditoDisponivel) {
+                const conf = confirm(`⚠️ ALERTA DE CRÉDITO ⚠️\n\nO cliente possui apenas $${creditoDisponivel.toFixed(2)} de limite.\nO valor a parcelar é $${valorFinanciado.toFixed(2)}.\n\nDeseja confiar e liberar o saldo negativo?`);
+                if (!conf) return; 
+            }
+        }
+
+        const itensComprados = Object.values(carts['vendas']).map(item => ({
+            nome_produto: item.name, quantidade: item.quantity, valor_unitario: item.price, subtotal: (item.quantity * item.price).toFixed(2)
+        }));
+
+        try {
+            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            const anoAtual = new Date().getFullYear();
+            
+            const seqFatura = await getNextSequence(`faturas_${anoAtual}`);
+            const numPedido = `Fatura ${String(seqFatura).padStart(5, '0')}/${anoAtual}`;
+
+            let parcelasArray = [];
+            if (numParcelas > 1 && valorFinanciado > 0) {
+                const valorDaParcela = valorFinanciado / numParcelas;
+                const dataBaseInput = document.getElementById('first-payment-date').value;
+                let baseDate = dataBaseInput ? new Date(dataBaseInput + "T00:00:00") : new Date();
+                
+                for(let i=0; i < numParcelas; i++) {
+                    let nextDate = new Date(baseDate);
+                    nextDate.setDate(baseDate.getDate() + (i * 2));
+                    parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: formatDate(nextDate), status: 'pendente' });
+                }
+            }
+
+            await addDoc(collection(db, "vendas"), {
+                numero_pedido: numPedido,
+                vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
+                cliente_doc_id: window.clienteSelecionado.firebase_doc_id,
+                cliente_nome: window.clienteSelecionado.nome,
+                pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
+                parcelas: parcelasArray,
+                data: dataHoje,
+                hora: new Date().toLocaleTimeString('pt-BR')
+            });
+            
+            const oldTotalCompras = parseFloat(window.clienteSelecionado.total_compras || 0);
+            let updateCli = { total_compras: oldTotalCompras + totalVenda, ultima_compra: dataHoje };
+            
+            if (numParcelas > 1 && valorFinanciado > 0) updateCli.credito_disponivel = creditoDisponivel - valorFinanciado;
+            await updateDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id), updateCli);
+            
+            alert(`✅ Venda confirmada!\nNúmero: ${numPedido}\nA imagem será gerada agora.`);
+            await generateImage();
+            clearCart();
+        } catch (error) { console.log(error); alert("Erro ao finalizar a venda!"); }
+    };
+
+    function isAtrasada(dataStr) {
+        if(!dataStr) return false;
+        const parts = dataStr.split('/');
+        if(parts.length !== 3) return false;
+        const vencimento = new Date(parts[2], parts[1] - 1, parts[0]);
+        const hoje = new Date();
+        hoje.setHours(0,0,0,0);
+        return vencimento < hoje;
+    }
+
+    window.aplicarFiltroCrediario = async function() {
+        const filtro = document.getElementById('crediario-filter-select').value;
+        const subFiltro = document.getElementById('crediario-extrato-filter').value;
+        const listContainer = document.getElementById('crediario-list');
+        
+        listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Buscando no servidor...</div>";
+        listContainer.style.display = "flex";
+
+        if(filtro === 'CLIENT_ONLY') {
+            document.getElementById('info-contato').style.display = "flex";
+            document.getElementById('sub-filter-crediario').style.display = "block";
+            if(!window.clienteSelecionado) {
+                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Busque e selecione um cliente na lupa acima.</div>";
+                document.getElementById('btn-img-only').style.display = "none";
+                return;
+            }
+            document.getElementById('btn-img-only').style.display = "block";
+        } else {
+            document.getElementById('info-contato').style.display = "none";
+            document.getElementById('sub-filter-crediario').style.display = "none";
+            document.getElementById('btn-img-only').style.display = "none";
+        }
+
+        try {
+            if (filtro === 'NEGATIVE_CREDIT') {
+                const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0));
+                const snap = await getDocs(q);
+                let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>";
+                let count = 0;
+                snap.forEach(doc => {
+                    const c = doc.data();
+                    html += `<div class="fatura-card" style="border-color: #ef4444;">
+                        <strong style="color: var(--primary)">${c.nome}</strong> (ID: ${c.id_cliente})<br>
+                        <div style="color: #ef4444; font-weight: bold; margin-top:5px;">Crédito: $${parseFloat(c.credito_disponivel).toFixed(2)}</div>
+                    </div>`;
+                    count++;
+                });
+                if(count === 0) html = "<div style='color: var(--buy); text-align:center;'>Todos os clientes estão com saldo positivo! 🎉</div>";
+                listContainer.innerHTML = html;
+                return;
+            }
+
+            let q = collection(db, "vendas");
+            if (filtro === 'CLIENT_ONLY') q = query(collection(db, "vendas"), where("cliente_doc_id", "==", window.clienteSelecionado.firebase_doc_id));
+            
+            const snap = await getDocs(q);
+            let htmlList = "";
+            let temFatura = false;
+            
+            let vendasData = [];
+            snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
+            
+            vendasData.forEach(venda => {
+                if (venda.parcelas && venda.parcelas.length > 0) {
+                    if (filtro === 'CLIENT_ONLY') {
+                        let temPendente = false;
+                        venda.parcelas.forEach(p => { if (p.status !== 'pago') temPendente = true; });
+                        if (subFiltro === 'OPEN' && !temPendente) return; 
+                    }
+
+                    let parcelasFiltradas = [];
+                    venda.parcelas.forEach((p, index) => {
+                        const isLate = isAtrasada(p.vencimento);
+                        if (filtro === 'CLIENT_ONLY') {
+                            parcelasFiltradas.push({p, index, isLate});
+                        } else if (p.status !== 'pago') {
+                            if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
+                            if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
+                        }
+                    });
+
+                    if(parcelasFiltradas.length > 0) {
+                        temFatura = true;
+                        htmlList += `<div class="fatura-card">
+                            <div class="fatura-header">
+                                <span class="fatura-id">📄 ${venda.numero_pedido} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome}</span>` : ''}</span>
+                                <span class="fatura-date">${venda.data}</span>
+                            </div>`;
+                        
+                        parcelasFiltradas.forEach(obj => {
+                            const p = obj.p; const idx = obj.index;
+                            const isPago = p.status === 'pago';
+                            let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : 'border-left: 3px solid var(--primary);';
+                            if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
+                            
+                            const badge = isPago ? `<span style="color:var(--buy); font-weight:bold;">PAGO</span>` : `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">RECEBER</button>`;
+                            const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
+                            
+                            htmlList += `<div class="fatura-parcela" style="${corCss}">
+                                <span>Parc ${p.numero} - ${p.vencimento} - <b>$${p.valor.toFixed(2)}</b> ${labelLate}</span>
+                                ${badge}
+                            </div>`;
+                        });
+                        htmlList += `</div>`;
+                    }
+                }
+            });
+
+            if(temFatura) listContainer.innerHTML = htmlList;
+            else listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>";
+
+        } catch(e) { listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados.</div>"; }
+    };
+
+    window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
+        if (!confirm(`Deseja confirmar o recebimento desta parcela de $${valorParcela.toFixed(2)}?`)) return;
+
+        try {
+            const vendaRef = doc(db, "vendas", vendaDocId);
+            const vendaSnap = await getDoc(vendaRef);
+            if(!vendaSnap.exists()) return alert("Erro: Venda não encontrada!");
+            
+            let dadosVenda = vendaSnap.data();
+            dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
+            await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
+
+            const clienteRef = doc(db, "clientes", clienteDocId);
+            const clienteSnap = await getDoc(clienteRef);
+            if(clienteSnap.exists()) {
+                const dadosCli = clienteSnap.data();
+                const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
+                await updateDoc(clienteRef, { credito_disponivel: credAtual + parseFloat(valorParcela) });
+                
+                if(window.clienteSelecionado && window.clienteSelecionado.firebase_doc_id === clienteDocId) {
+                    window.clienteSelecionado.credito_disponivel = credAtual + parseFloat(valorParcela);
+                    const elDisp = document.getElementById('stat-credito');
+                    elDisp.innerText = `$${window.clienteSelecionado.credito_disponivel.toFixed(2)}`;
+                    if(window.clienteSelecionado.credito_disponivel < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+                }
+            }
+            alert("Parcela Paga! Crédito restaurado.");
+            aplicarFiltroCrediario(); 
+        } catch (error) { alert("Falha ao registrar pagamento."); }
+    };
 </script>
 </body>
 </html>
