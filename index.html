@@ -22,6 +22,10 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh;}
         
+        /* BLOQUEIOS ANTI-CÓPIA */
+        body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
+        input, select, textarea { -webkit-user-select: text; -ms-user-select: text; user-select: text; }
+
         /* TELA DE LOGIN E REGISTRO */
         #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18,18,18,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px); }
         .auth-box { background: var(--card); padding: 40px; border-radius: 12px; border-top: 5px solid var(--primary); width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
@@ -44,9 +48,12 @@
         .btn-crediario { background: var(--crediario); color: black; }
         .btn-admin { background: var(--admin); display: none; }
 
-        .shop-container { width: 100%; display: grid; grid-template-columns: 1fr 420px; gap: 20px; }
+        /* Container Dinâmico e Focus Mode */
+        .shop-container { width: 100%; display: grid; grid-template-columns: 1fr 420px; gap: 20px; transition: 0.3s; }
+        .centered-mode { display: flex !important; flex-direction: column; align-items: center; }
+        .centered-mode .cart-panel { width: 100%; max-width: 700px; }
         
-        header { grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+        header { width: 100%; box-sizing: border-box; background: var(--card); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
         .header-left { display: flex; align-items: center; gap: 20px; }
         .header-producao { border-left-color: var(--secondary) !important; }
         .header-compras { border-left-color: var(--buy) !important; }
@@ -61,8 +68,7 @@
         .logout-btn { background: #ef4444; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;}
 
         /* Telas Principais */
-        .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
-        .admin-panel { display: none; grid-column: 1 / -1; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; }
+        .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; width: 100%; }
         
         .item-card { background: var(--item-bg); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; transition: 0.2s; }
         .product-img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; }
@@ -72,12 +78,12 @@
         .qty-input { width: 70px; background: #121212; border: 1px solid #444; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
         .add-btn { border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; color: black; text-transform: uppercase; }
 
-        .filter-container { grid-column: 1 / -1; background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; gap: 15px; border: 1px solid #333; }
+        .filter-container { grid-column: 1 / -1; width: 100%; box-sizing: border-box; background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; gap: 15px; border: 1px solid #333; }
         .filter-container label { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: var(--buy); }
         .category-select { background: #121212; color: white; border: 1px solid var(--buy); padding: 10px; border-radius: 5px; outline: none; flex: 1; cursor: pointer; }
 
-        /* Painel Lateral */
-        .cart-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: fit-content; position: sticky; top: 20px; }
+        /* Painel Lateral (Cart/Ficha) */
+        .cart-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: fit-content; position: sticky; top: 20px; width: 100%; box-sizing: border-box; }
         .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
         .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
         .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
@@ -88,13 +94,17 @@
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
         .info-group label { font-size: 0.75rem; color: #ccc; margin-bottom: 3px; display: block; font-weight: bold;}
 
-        /* Estatísticas */
         .client-stats { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; border-left: 3px solid var(--clientes); display: none; margin-top: 5px; }
         .stat-line { font-size: 0.8rem; color: #aaa; margin-bottom: 6px; display: flex; justify-content: space-between; }
         .stat-val { color: white; font-weight: bold; }
         .stat-credit { color: var(--buy); font-size: 1.1rem; }
         .stat-credit.negative { color: #ef4444; }
 
+        /* Lista de Clientes (Paginação) */
+        .all-clients-panel { margin-top: 25px; border-top: 2px solid #444; padding-top: 20px; display: none; flex-direction: column; gap: 10px; }
+        .client-list-item { background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 10px 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;}
+        .client-list-item:hover { background: rgba(0,0,0,0.6); border-color: var(--clientes); }
+        
         .payment-area { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #444; }
         .payment-area label { font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary); display: block; margin-bottom: 5px; }
         .pay-select { width: 100%; padding: 10px; background: #121212; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 10px; font-size: 0.8rem; }
@@ -122,13 +132,14 @@
         .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-solid { color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;}
         .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
+        .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
 
         /* Lista de Crediário e Admin */
         .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
         .crediario-filters label { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--crediario); display: block; margin-bottom: 8px; }
         .crediario-list { display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
         
-        .fatura-card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 15px; }
+        .fatura-card { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 15px; position: relative; }
         .fatura-header { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 10px; }
         .fatura-id { color: var(--crediario); font-weight: bold; font-size: 0.9rem; }
         .fatura-date { color: #aaa; font-size: 0.75rem; }
@@ -136,39 +147,39 @@
         .fatura-parcela.pago { border-left: 3px solid var(--buy); opacity: 0.6; }
         .fatura-parcela.pendente { border-left: 3px solid var(--primary); }
         .btn-pay { background: var(--buy); color: black; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+        
+        /* Cabeçalho exclusivo para print da fatura */
+        .print-header { display: none; flex-direction: column; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; }
 
+        /* ABA GERENCIAMENTO (Admin) */
+        .admin-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; }
+        .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        @media(max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+        
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
-        .admin-table th { color: var(--admin); font-size: 0.8rem; text-transform: uppercase; }
+        .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #333; font-size: 0.85rem;}
+        .admin-table th { color: var(--admin); text-transform: uppercase; }
         .badge-status { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .badge-pendente { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
         .badge-aprovado { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid #10b981; }
-    </style>
-	<style>
-        /* Impede de selecionar/grifar texto na tela (exceto em inputs para não quebrar a digitação) */
-        body {
-            -webkit-user-select: none; /* Safari */
-            -ms-user-select: none; /* IE 10 and IE 11 */
-            user-select: none; /* Standard syntax */
-        }
-        input, select, textarea {
-            -webkit-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
-        }
+        
+        .role-box { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; border: 1px solid #444; }
+        .role-check-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
+        .role-check-group label { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc;}
+        .role-title { color: var(--secondary); font-size: 0.9rem; border-bottom: 1px dashed #555; padding-bottom: 5px; margin: 15px 0 10px 0; text-transform: uppercase;}
     </style>
     <script>
-        // Bloqueia o botão direito do mouse
+        // Trava F12 / Context Menu
         document.addEventListener('contextmenu', event => event.preventDefault());
-
-        // Bloqueia atalhos de teclado (F12, Ctrl+U, Ctrl+Shift+I, Ctrl+S, etc)
         document.onkeydown = function(e) {
-            if(e.keyCode === 123) { return false; } // F12
-            if(e.ctrlKey && e.shiftKey && e.keyCode === 73) { return false; } // Ctrl+Shift+I
-            if(e.ctrlKey && e.shiftKey && e.keyCode === 74) { return false; } // Ctrl+Shift+J
-            if(e.ctrlKey && e.keyCode === 85) { return false; } // Ctrl+U
-            if(e.ctrlKey && e.keyCode === 83) { return false; } // Ctrl+S
+            if(e.keyCode === 123) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 73) { return false; } 
+            if(e.ctrlKey && e.shiftKey && e.keyCode === 74) { return false; } 
+            if(e.ctrlKey && e.keyCode === 85) { return false; } 
+            if(e.ctrlKey && e.keyCode === 83) { return false; } 
         };
+        // Inicializa a função hasPerm globalmente para evitar quebras se o Firebase demorar
+        window.hasPerm = window.hasPerm || function() { return false; };
     </script>
 </head>
 <body>
@@ -209,21 +220,64 @@
         <button class="tab-btn btn-admin" id="tab-admin" onclick="switchSystem('gerenciamento')">Gerenciamento</button>
     </div>
 
-    <div class="shop-container">
-        <header id="main-header">
-            <div class="header-left">
-                <img src="https://i.imgur.com/bQAy1gG.png" alt="Logo Cusco" class="logo-ferraria">
-                <div class="header-text">
-                    <h1 id="title-text">FERRARIA CUSCO</h1>
-                    <small id="sub-text">REGISTRO DE PEDIDOS OFICIAL - 1905</small>
-                </div>
+    <header id="main-header" style="max-width: 1200px; width:100%;">
+        <div class="header-left">
+            <img src="https://i.imgur.com/bQAy1gG.png" alt="Logo Cusco" class="logo-ferraria">
+            <div class="header-text">
+                <h1 id="title-text">FERRARIA CUSCO</h1>
+                <small id="sub-text">REGISTRO DE PEDIDOS OFICIAL - 1905</small>
             </div>
-            <div class="user-badge">
-                👤 <span id="logged-username">Usuario</span> 
-                <button class="logout-btn" onclick="authLogout()">SAIR</button>
-            </div>
-        </header>
+        </div>
+        <div class="user-badge">
+            👤 <span id="logged-username">Usuario</span> 
+            <button class="logout-btn" onclick="authLogout()">SAIR</button>
+        </div>
+    </header>
 
+    <div class="admin-panel" id="admin-panel">
+        <h2 style="color: var(--admin); margin-top: 0; margin-bottom: 5px;">Painel de Controle Empresarial</h2>
+        <p style="color: #aaa; font-size: 0.9rem; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">Gerencie acessos e crie cargos com permissões customizadas para a equipe.</p>
+        
+        <div class="admin-grid">
+            <div>
+                <h3 style="color: var(--secondary); margin-top: 0;">Equipe (Aprovações)</h3>
+                <table class="admin-table">
+                    <thead><tr><th>Usuário</th><th>Cargo</th><th>Status</th><th>Ações</th></tr></thead>
+                    <tbody id="admin-user-list"></tbody>
+                </table>
+            </div>
+
+            <div class="role-box">
+                <h3 style="color: var(--buy); margin-top: 0;">Criar / Editar Cargos (Níveis)</h3>
+                <input type="text" id="role-name-input" placeholder="Nome do Cargo (Ex: Gerente)" class="pay-select" style="width: 100%;">
+                
+                <div class="role-title">Gerenciamento de Clientes</div>
+                <div class="role-check-group">
+                    <label><input type="checkbox" id="perm_cli_add"> Cadastro de Clientes</label>
+                    <label><input type="checkbox" id="perm_cli_edit"> Edição de Clientes</label>
+                    <label><input type="checkbox" id="perm_cli_del"> Exclusão de Clientes</label>
+                </div>
+
+                <div class="role-title">Gerenciamento de Faturas</div>
+                <div class="role-check-group">
+                    <label><input type="checkbox" id="perm_fat_pay"> Receber parcela</label>
+                    <label><input type="checkbox" id="perm_fat_del"> Apagar fatura inteira</label>
+                </div>
+
+                <div class="role-title">Gerenciamento de Pessoal</div>
+                <div class="role-check-group">
+                    <label><input type="checkbox" id="perm_user_approve"> Aprovação de usuário</label>
+                    <label><input type="checkbox" id="perm_user_edit"> Alteração de usuário</label>
+                    <label><input type="checkbox" id="perm_user_del"> Demissão de usuário</label>
+                </div>
+
+                <button class="btn-solid" style="background: var(--buy); margin-top: 10px;" onclick="salvarNovoCargo()">SALVAR CARGO</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="shop-container" id="shop-container">
+        
         <div class="filter-container" id="filter-bar">
             <label>Empresa:</label>
             <select id="category-select" class="category-select" onchange="renderCatalog()">
@@ -233,15 +287,6 @@
                 <option value="Artesanatos">ARTESANATOS</option>
                 <option value="Madeireiras">MADEIREIRAS</option>
             </select>
-        </div>
-
-        <div class="admin-panel" id="admin-panel">
-            <h2 style="color: var(--admin); margin-top: 0;">Painel de Controle de Usuários</h2>
-            <p style="color: #aaa; font-size: 0.9rem;">Aprove novos vendedores ou revogue acessos ao sistema da Ferraria.</p>
-            <table class="admin-table">
-                <thead><tr><th>Usuário</th><th>Cargo</th><th>Status</th><th>Ações</th></tr></thead>
-                <tbody id="admin-user-list"></tbody>
-            </table>
         </div>
 
         <div class="catalog" id="catalog"></div>
@@ -264,10 +309,10 @@
                     <option value="ALL_PENDING">📊 GERAL: Todas as Parcelas a Receber</option>
                 </select>
                 <div id="sub-filter-crediario" style="display:none; margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px;">
-                    <label style="color: #aaa;">Quais pedidos exibir no extrato?</label>
+                    <label style="color: #aaa;">Quais faturas exibir no extrato?</label>
                     <select id="crediario-extrato-filter" class="category-select" onchange="aplicarFiltroCrediario()">
-                        <option value="OPEN">Somente Pedidos em Aberto</option>
-                        <option value="ALL">Todos os Pedidos (Histórico Completo)</option>
+                        <option value="OPEN">Somente Faturas em Aberto</option>
+                        <option value="ALL">Todas as Faturas (Histórico Completo)</option>
                     </select>
                 </div>
             </div>
@@ -294,7 +339,7 @@
 
                 <div class="info-group">
                     <label>Telegrama</label>
-                    <input type="text" id="in-tele" placeholder="USUÁRIO">
+                    <input type="text" id="in-tele" placeholder="POMBO">
                     <span id="out-tele" class="display-data"></span>
                 </div>
                 <div class="info-group">
@@ -363,6 +408,18 @@
             </div>
 
             <div class="cart-items" id="cart-items"></div>
+            
+            <div id="crediario-placar" style="display:none; background:rgba(20, 184, 166, 0.1); border: 1px solid var(--crediario); padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span style="color:#aaa; font-size:0.85rem;">Total a Receber:</span>
+                    <span style="color:var(--crediario); font-weight:bold; font-size:1.1rem;" id="placar-receber">$0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="color:#aaa; font-size:0.85rem;">Em Atraso:</span>
+                    <span style="color:#ef4444; font-weight:bold; font-size:1.1rem;" id="placar-atraso">$0.00</span>
+                </div>
+            </div>
+            
             <div class="crediario-list" id="crediario-list"></div>
 
             <div class="total-box" id="total-border">
@@ -383,17 +440,56 @@
                 <button id="btn-img-only" class="btn-outline" style="color: white; border-color: white;" onclick="generateImage()">SALVAR IMAGEM / EXTRATO</button>
                 <button id="btn-clear" class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="clearCart()">LIMPAR ABA ATUAL</button>
             </div>
+
+            <div class="all-clients-panel" id="all-clients-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="color: var(--clientes); margin: 0;">Todos os Clientes</h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-size: 0.75rem; color: #aaa;">Mostrar:</label>
+                        <select id="client-per-page" class="pay-select" style="margin: 0; padding: 5px; width: auto;" onchange="changeItemsPerPage()">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="all">Todos</option>
+                        </select>
+                    </div>
+                </div>
+                <select id="client-sort" class="pay-select" onchange="loadAllClients()">
+                    <option value="data">Ordenar por Data de Registro</option>
+                    <option value="nome">Ordenar por Ordem Alfabética</option>
+                    <option value="credito">Ordenar por Maior Limite</option>
+                    <option value="id">Ordenar por ID</option>
+                </select>
+                <div id="full-client-list-render" style="display:flex; flex-direction:column; gap:8px;"></div>
+                
+                <div id="client-pagination" style="display: none; justify-content: center; gap: 15px; margin-top: 15px; align-items: center;">
+                    <button id="btn-prev-page" class="btn-outline" style="width: auto; padding: 5px 15px;" onclick="changePage(-1)">Anterior</button>
+                    <span id="page-indicator" style="font-size: 0.8rem; color: #aaa;">Página 1</span>
+                    <button id="btn-next-page" class="btn-outline" style="width: auto; padding: 5px 15px;" onclick="changePage(1)">Próxima</button>
+                </div>
+            </div>
         </aside>
     </div>
 </div>
 
 <script>
     // =====================================
-    // UI DO SISTEMA
+    // UI DO SISTEMA (NÃO-FIREBASE)
     // =====================================
     let currentMode = 'vendas';
     let carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
     window.clienteSelecionado = null; 
+    
+    // Variáveis de Paginação
+    window.allClientsData = [];
+    window.currentPage = 1;
+    window.itemsPerPage = 10;
+
+    function uiHasPerm(permKey) {
+        if(typeof window.hasPerm === 'function') return window.hasPerm(permKey);
+        return false;
+    }
     
     function toggleAuthMode() {
         const login = document.getElementById('login-box');
@@ -453,7 +549,6 @@
     function switchSystem(mode) {
         currentMode = mode;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
         const tabBtn = document.querySelector(`.btn-${mode}`);
         if(tabBtn) tabBtn.classList.add('active');
         
@@ -468,19 +563,21 @@
         const internalTitle = document.getElementById('internal-title');
         header.className = '';
         
-        // Reset Base Displays
+        // Reset Displays Full
         document.getElementById('catalog').style.display = "none";
         document.getElementById('filter-bar').style.display = "none";
         document.getElementById('crediario-filters').style.display = "none";
         document.getElementById('payment-box').style.display = "none";
         document.getElementById('cart-items').style.display = "none";
         document.getElementById('crediario-list').style.display = "none";
+        document.getElementById('crediario-placar').style.display = "none";
         document.getElementById('total-border').style.display = "none";
         document.getElementById('group-nivel').style.display = "none";
         document.getElementById('group-bonus').style.display = "none";
         document.getElementById('info-contato').style.display = "none";
         document.getElementById('admin-panel').style.display = "none";
         document.getElementById('cart-capture').style.display = "block";
+        document.getElementById('all-clients-panel').style.display = "none";
         
         document.getElementById('btn-refresh').style.display = "none";
         document.getElementById('btn-transfer').style.display = "none";
@@ -490,7 +587,12 @@
         document.getElementById('btn-db-update').style.display = "none";
         document.getElementById('btn-db-delete').style.display = "none";
 
-        // Aplica regras
+        // Ajusta layout container
+        const cont = document.getElementById('shop-container');
+        if (isCli || isCred) cont.classList.add('centered-mode');
+        else cont.classList.remove('centered-mode');
+
+        // Lógica das Abas
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
@@ -502,7 +604,6 @@
                 document.getElementById('btn-save-venda').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
-                document.getElementById('in-id').disabled = false;
             }
             if (isProd) {
                 document.getElementById('btn-refresh').style.display = "block";
@@ -522,18 +623,19 @@
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('group-nivel').style.display = "block";
             document.getElementById('group-bonus').style.display = "block";
-            document.getElementById('btn-img-only').style.display = "block";
-            document.getElementById('btn-img-only').innerText = "SALVAR FICHA";
-            document.getElementById('in-id').disabled = window.clienteSelecionado ? true : false;
+            document.getElementById('all-clients-panel').style.display = "flex";
             
             if (window.clienteSelecionado) { 
-                document.getElementById('btn-db-update').style.display = "block";
-                document.getElementById('btn-db-delete').style.display = "block";
+                if(uiHasPerm('cli_edit')) document.getElementById('btn-db-update').style.display = "block";
+                if(uiHasPerm('cli_del')) document.getElementById('btn-db-delete').style.display = "block";
+                document.getElementById('btn-img-only').style.display = "block";
+                document.getElementById('btn-img-only').innerText = "SALVAR FICHA";
             } else { 
                 document.getElementById('in-nivel').value = "FERRO";
                 document.getElementById('in-bonus').value = "0";
-                document.getElementById('btn-db-create').style.display = "block";
+                if(uiHasPerm('cli_add')) document.getElementById('btn-db-create').style.display = "block";
             }
+            if(typeof window.loadAllClients === 'function') window.loadAllClients();
         }
         else if (isCred) {
             document.getElementById('crediario-filters').style.display = "block";
@@ -550,29 +652,16 @@
             document.getElementById('admin-panel').style.display = "block";
             document.getElementById('cart-capture').style.display = "none";
             if(typeof window.carregarUsuariosAdmin === 'function') window.carregarUsuariosAdmin();
+            if(typeof window.carregarCargosAdmin === 'function') window.carregarCargosAdmin();
         }
 
-        // Cabeçalhos e Cores
-        if(isProd) { 
-            header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; 
-            document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO";
-        } else if(isBuy) { 
-            header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; 
-            document.getElementById('cart-title').innerText = "🛒 LISTA DE ENCOMENDA";
-        } else if(isCli) {
-            header.classList.add('header-clientes'); internalTitle.style.color = "var(--clientes)"; 
-            document.getElementById('cart-title').innerText = "👥 FICHA DO CLIENTE";
-        } else if(isCred) {
-            header.classList.add('header-crediario'); internalTitle.style.color = "var(--crediario)"; 
-            document.getElementById('cart-title').innerText = "💳 CONTROLE DE CREDIÁRIO";
-        } else if(isAdm) {
-            header.classList.add('header-admin'); 
-        } else { 
-            internalTitle.style.color = "var(--primary)"; 
-            document.getElementById('cart-title').innerText = "📋 RESUMO DO PEDIDO";
-            document.getElementById('pay-label').style.color = "var(--primary)";
-            document.getElementById('date-label').style.color = "var(--primary)";
-        }
+        // Títulos e Cores
+        if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO"; } 
+        else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('cart-title').innerText = "🛒 LISTA DE ENCOMENDA"; } 
+        else if(isCli) { header.classList.add('header-clientes'); internalTitle.style.color = "var(--clientes)"; document.getElementById('cart-title').innerText = "👥 CADASTRO DE CLIENTES"; } 
+        else if(isCred) { header.classList.add('header-crediario'); internalTitle.style.color = "var(--crediario)"; document.getElementById('cart-title').innerText = "💳 CONTROLE DE CREDIÁRIO"; } 
+        else if(isAdm) { header.classList.add('header-admin'); }
+        else { internalTitle.style.color = "var(--primary)"; document.getElementById('cart-title').innerText = "📋 RESUMO DO PEDIDO"; document.getElementById('pay-label').style.color = "var(--primary)"; document.getElementById('date-label').style.color = "var(--primary)"; }
 
         let borderColor = "var(--primary)";
         if(isBuy) borderColor = "var(--buy)";
@@ -685,7 +774,6 @@
         if (currentMode === 'clientes') {
             document.getElementById('in-nivel').value = "FERRO";
             document.getElementById('in-bonus').value = "0";
-            document.getElementById('in-id').disabled = false;
         }
         
         document.getElementById('has-entry').checked = false; 
@@ -695,6 +783,7 @@
         document.getElementById('search-results-box').style.display = "none";
         document.getElementById('client-stats').style.display = "none";
         document.getElementById('crediario-list').innerHTML = "";
+        document.getElementById('crediario-placar').style.display = "none";
         
         window.clienteSelecionado = null;
         switchSystem(currentMode);
@@ -749,14 +838,12 @@
                     priceColHTML = `<div style="text-align:right"><span>ESTOQUE OK</span>${stockInputHTML}</div>`;
                     qtyFinalLabel = `<small style="color:#10b981">Disponível</small>`;
                 } else {
-                    const subTotal = item.price * needsToBuy;
-                    totalRaw += subTotal;
+                    const subTotal = item.price * needsToBuy; totalRaw += subTotal;
                     priceColHTML = `<div style="text-align:right"><span>$${subTotal.toFixed(2)}</span>${stockInputHTML}</div>`;
                     qtyFinalLabel = `<small style="color:#aaa">Comprar: ${needsToBuy} un.</small>`;
                 }
             } else { 
-                const subTotal = item.price * item.quantity; 
-                totalRaw += subTotal; 
+                const subTotal = item.price * item.quantity; totalRaw += subTotal; 
                 priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`;
                 qtyFinalLabel = `<small style="color:#aaa">Qtd: ${item.quantity} un. | Unit: $${item.price.toFixed(2)}</small>`;
             }
@@ -799,8 +886,7 @@
         if(currentMode === 'vendas' || currentMode === 'clientes' || currentMode === 'crediario') {
             const name = document.getElementById('in-name').value;
             const idCli = document.getElementById('in-id').value;
-            
-            if(!name || !idCli) return alert("Preencha Nome e ID para gerar a imagem!");
+            if(!name) return alert("Preencha o Nome do cliente!");
             
             document.getElementById('out-name').innerText = name.toUpperCase();
             document.getElementById('out-id').innerText = idCli.toUpperCase();
@@ -832,11 +918,16 @@
         document.getElementById('search-client-btn').style.display = 'none';
         if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'none';
         document.getElementById('search-results-box').style.display = 'none';
+        document.getElementById('all-clients-panel').style.display = 'none';
         
         // Esconder Botões do Crediário no Print
         if (currentMode === 'crediario') {
             document.getElementById('crediario-filters').style.display = 'none';
             document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
+            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'none'); 
+            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'none'); 
+            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'block'); 
+            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'none'); 
         }
         
         document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
@@ -862,6 +953,10 @@
         if (currentMode === 'crediario') {
             document.getElementById('crediario-filters').style.display = 'block';
             document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'inline-block');
+            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'inline-block');
+            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'inline-block');
+            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'none'); 
+            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'block'); 
         }
 
         document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
@@ -869,6 +964,12 @@
         document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
         
         switchSystem(currentMode); 
+    }
+
+    window.toggleItens = function(id) {
+        const el = document.getElementById(id);
+        if (el.style.display === 'none') el.style.display = 'block';
+        else el.style.display = 'none';
     }
 </script>
 
@@ -889,52 +990,54 @@
     const db = getFirestore(app);
 
     // =====================================
-    // 0. AUTENTICAÇÃO E GERENCIAMENTO
+    // 0. AUTENTICAÇÃO E PERMISSÕES
     // =====================================
     window.usuarioLogado = null;
+    window.todosCargos = [];
+
+    window.hasPerm = function(permKey) {
+        if (!window.usuarioLogado) return false;
+        if (window.usuarioLogado.role === 'admin') return true;
+        if (window.usuarioLogado.permissoes && window.usuarioLogado.permissoes[permKey]) return true;
+        return false;
+    }
 
     window.authLogin = async function() {
         const user = document.getElementById('login-user').value.trim();
         const pass = document.getElementById('login-pass').value.trim();
         if(!user || !pass) return alert("Preencha Usuário e Senha!");
 
-        let userData = null;
-        let userId = null;
-
         try {
             const q = query(collection(db, "vendedores"), where("username", "==", user), where("password", "==", pass));
             const snap = await getDocs(q);
             if (snap.empty) return alert("Usuário ou senha incorretos!");
             
-            userData = snap.docs[0].data();
-            userId = snap.docs[0].id;
-        } catch (error) { 
-            console.log(error); 
-            return alert("Erro ao conectar com o banco de dados!"); 
-        }
+            const userData = snap.docs[0].data();
+            const userId = snap.docs[0].id;
 
-        if (userData.status === 'pendente') {
-            return alert("Seu cadastro está PENDENTE! Aguarde a aprovação do Administrador.");
-        }
+            if (userData.status === 'pendente') return alert("Seu cadastro está PENDENTE! Aguarde aprovação.");
 
-        // Login Aprovado
-        window.usuarioLogado = { ...userData, id: userId };
-        
-        try {
+            let permissoes = {};
+            if (userData.role !== 'admin') {
+                const roleSnap = await getDoc(doc(db, "cargos", userData.role));
+                if (roleSnap.exists()) permissoes = roleSnap.data().permissoes || {};
+            } else {
+                permissoes = { admin: true };
+            }
+
+            window.usuarioLogado = { ...userData, id: userId, permissoes: permissoes };
+            
             document.getElementById('logged-username').innerText = userData.username.toUpperCase();
             document.getElementById('print-username').innerText = userData.username.toUpperCase();
             document.getElementById('auth-overlay').style.display = "none";
             document.getElementById('main-app').style.display = "flex";
 
-            if (userData.role === 'admin') {
+            if (window.hasPerm('user_approve') || window.hasPerm('user_edit') || window.hasPerm('user_del') || userData.role === 'admin') {
                 document.querySelector('.btn-admin').style.display = "block";
-            } else {
-                document.querySelector('.btn-admin').style.display = "none";
             }
+            
             switchSystem('vendas'); 
-        } catch (uiError) {
-            console.error("Erro na interface após login:", uiError);
-        }
+        } catch (error) { console.log(error); alert("Erro ao conectar."); }
     };
 
     window.authRegister = async function() {
@@ -952,27 +1055,36 @@
             
             await addDoc(collection(db, "vendedores"), {
                 username: user, password: pass, 
-                role: isFirstUser ? 'admin' : 'vendedor',
+                role: isFirstUser ? 'admin' : 'Pendente',
                 status: isFirstUser ? 'aprovado' : 'pendente',
                 data_registro: new Date().toLocaleDateString('pt-BR')
             });
 
-            if (isFirstUser) alert("✨ Parabéns! Como você é o primeiro a se registrar, você foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login agora.");
-            else alert("Solicitação enviada! Aguarde o Administrador aprovar.");
-            
+            if (isFirstUser) alert("✨ Você é o primeiro! Foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login.");
+            else alert("Solicitação enviada! Aguarde a aprovação.");
             toggleAuthMode();
-        } catch (error) { console.error(error); alert("Erro ao registrar no banco."); }
+        } catch (error) { console.error(error); alert("Erro ao registrar."); }
     };
 
     window.authLogout = function() {
         window.usuarioLogado = null;
         document.getElementById('auth-overlay').style.display = "flex";
         document.getElementById('main-app').style.display = "none";
-        document.getElementById('login-user').value = "";
-        document.getElementById('login-pass').value = "";
     };
 
+    // =====================================
+    // GERENCIAMENTO (Admin)
+    // =====================================
+    window.carregarCargosAdmin = async function() {
+        try {
+            const snap = await getDocs(collection(db, "cargos"));
+            window.todosCargos = [];
+            snap.forEach(docSnap => window.todosCargos.push({ id: docSnap.id, ...docSnap.data() }));
+        } catch(e) {}
+    }
+
     window.carregarUsuariosAdmin = async function() {
+        if (!window.todosCargos || window.todosCargos.length === 0) await window.carregarCargosAdmin();
         const tbody = document.getElementById('admin-user-list');
         tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Carregando...</td></tr>";
 
@@ -982,49 +1094,167 @@
             snap.forEach(docSnap => {
                 const u = docSnap.data();
                 const uId = docSnap.id;
-                if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
+                if (uId === window.usuarioLogado.id) return;
 
                 const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
-                let acoes = u.status === 'pendente' 
-                    ? `<button style="background:var(--buy); color:black; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold;" onclick="aprovarVendedor('${uId}')">Aprovar</button>
-                       <button style="background:var(--admin); color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold;" onclick="excluirVendedor('${uId}')">Recusar</button>`
-                    : `<button style="background:var(--admin); color:white; border:none; padding:5px 10px; border-radius:3px; cursor:pointer; font-weight:bold;" onclick="excluirVendedor('${uId}')">Revogar Acesso</button>`;
+                
+                let options = `<option value="admin" ${u.role==='admin'?'selected':''}>Admin Supremo</option>`;
+                window.todosCargos.forEach(c => { options += `<option value="${c.id}" ${u.role===c.id?'selected':''}>${c.nome}</option>`; });
+                const selCargo = `<select id="cargo-${uId}" class="pay-select" style="margin:0; padding:4px;">${options}</select>`;
 
-                html += `<tr><td style="color:white; font-weight:bold;">${u.username}</td><td style="color:#aaa;">${u.role.toUpperCase()}</td><td><span class="badge-status ${badgeClass}">${u.status.toUpperCase()}</span></td><td>${acoes}</td></tr>`;
+                let acoes = "";
+                if (u.status === 'pendente') {
+                    if (window.hasPerm('user_approve')) acoes += `<button style="background:var(--buy); color:black; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="aprovarVendedor('${uId}')">Aprovar</button> `;
+                    if (window.hasPerm('user_del')) acoes += `<button style="background:var(--admin); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="excluirVendedor('${uId}')">Recusar</button>`;
+                } else {
+                    if (window.hasPerm('user_edit')) acoes += `<button style="background:var(--secondary); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="alterarCargoVendedor('${uId}')">Salvar Cargo</button> `;
+                    if (window.hasPerm('user_del')) acoes += `<button style="background:var(--admin); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="excluirVendedor('${uId}')">Revogar</button>`;
+                }
+
+                html += `<tr><td style="color:white; font-weight:bold;">${u.username}</td><td>${window.hasPerm('user_edit') ? selCargo : u.role.toUpperCase()}</td><td><span class="badge-status ${badgeClass}">${u.status.toUpperCase()}</span></td><td>${acoes}</td></tr>`;
             });
             tbody.innerHTML = html || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhum outro usuário.</td></tr>";
-        } catch(e) { tbody.innerHTML = "<tr><td colspan='4' style='color:red;'>Erro ao carregar lista.</td></tr>"; }
+        } catch(e) { tbody.innerHTML = "<tr><td colspan='4' style='color:red;'>Erro ao carregar.</td></tr>"; }
+    };
+
+    window.salvarNovoCargo = async function() {
+        if (!window.hasPerm('admin')) return alert("Apenas admins podem criar níveis de acesso.");
+        const nome = document.getElementById('role-name-input').value.trim();
+        if (!nome) return alert("Digite o nome do cargo!");
+        
+        const permissoes = {
+            cli_add: document.getElementById('perm_cli_add').checked,
+            cli_edit: document.getElementById('perm_cli_edit').checked,
+            cli_del: document.getElementById('perm_cli_del').checked,
+            fat_pay: document.getElementById('perm_fat_pay').checked,
+            fat_del: document.getElementById('perm_fat_del').checked,
+            user_approve: document.getElementById('perm_user_approve').checked,
+            user_edit: document.getElementById('perm_user_edit').checked,
+            user_del: document.getElementById('perm_user_del').checked
+        };
+
+        try {
+            await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes });
+            alert("Cargo Criado!");
+            document.getElementById('role-name-input').value = "";
+            window.carregarUsuariosAdmin(); 
+        } catch(e) { alert("Erro ao criar cargo."); }
     };
 
     window.aprovarVendedor = async function(docId) {
+        const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
         if(!confirm("Deseja APROVAR este vendedor?")) return;
-        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado' }); window.carregarUsuariosAdmin(); } 
+        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado', role: cargoSelecionado }); window.carregarUsuariosAdmin(); } 
         catch(e) { alert("Erro."); }
     };
 
+    window.alterarCargoVendedor = async function(docId) {
+        const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
+        try { await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado }); alert("Cargo atualizado!"); } 
+        catch(e) { alert("Erro."); }
+    }
+
     window.excluirVendedor = async function(docId) {
-        if(!confirm("Deseja EXCLUIR este usuário permanentemente?")) return;
+        if(!confirm("Deseja EXCLUIR este usuário?")) return;
         try { await deleteDoc(doc(db, "vendedores", docId)); window.carregarUsuariosAdmin(); } 
         catch(e) { alert("Erro."); }
     };
 
     // =====================================
-    // 1. BUSCA DE CLIENTES E FATURAS
+    // 1. BUSCA DE CLIENTES E LISTAGEM
     // =====================================
-    window.resultadosBuscaFirebase = [];
 
     async function getNextSequence(counterName) {
         const counterRef = doc(db, "counters", counterName);
         const counterSnap = await getDoc(counterRef);
         let nextNum = 1;
-        if (counterSnap.exists()) {
-            nextNum = (counterSnap.data().seq || 0) + 1;
-            await updateDoc(counterRef, { seq: nextNum });
-        } else {
-            await setDoc(counterRef, { seq: nextNum });
-        }
+        if (counterSnap.exists()) { nextNum = (counterSnap.data().seq || 0) + 1; await updateDoc(counterRef, { seq: nextNum });
+        } else { await setDoc(counterRef, { seq: nextNum }); }
         return nextNum;
     }
+
+    window.loadAllClients = async function() {
+        const listDiv = document.getElementById('full-client-list-render');
+        listDiv.innerHTML = "<span style='color:#aaa'>Carregando clientes...</span>";
+        try {
+            const snap = await getDocs(collection(db, "clientes"));
+            let allC = [];
+            snap.forEach(d => allC.push({ ...d.data(), firebase_doc_id: d.id }));
+            
+            const sort = document.getElementById('client-sort').value;
+            if(sort === 'nome') allC.sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
+            if(sort === 'id') allC.sort((a,b) => (a.id_cliente||"").localeCompare(b.id_cliente||""));
+            if(sort === 'credito') allC.sort((a,b) => parseFloat(b.limite_credito||0) - parseFloat(a.limite_credito||0));
+            if(sort === 'data') allC.sort((a,b) => {
+                const da = (a.data_cadastro||"").split('/').reverse().join('');
+                const db = (b.data_cadastro||"").split('/').reverse().join('');
+                return db.localeCompare(da); 
+            });
+
+            window.allClientsData = allC;
+            window.resultadosBuscaFirebase = allC; 
+            window.currentPage = 1;
+            window.renderClientPage();
+        } catch(e) { listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar clientes.</span>"; }
+    }
+
+    window.changeItemsPerPage = function() {
+        const val = document.getElementById('client-per-page').value;
+        window.itemsPerPage = val === 'all' ? window.allClientsData.length : parseInt(val);
+        window.currentPage = 1;
+        window.renderClientPage();
+    };
+
+    window.changePage = function(dir) {
+        window.currentPage += dir;
+        window.renderClientPage();
+    };
+
+    window.renderClientPage = function() {
+        const listDiv = document.getElementById('full-client-list-render');
+        const data = window.allClientsData;
+        
+        if(data.length === 0) {
+            listDiv.innerHTML = "<span style='color:#aaa'>Nenhum cliente encontrado.</span>";
+            document.getElementById('client-pagination').style.display = 'none';
+            return;
+        }
+
+        const itemsPerPage = window.itemsPerPage || data.length;
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+        
+        if (window.currentPage < 1) window.currentPage = 1;
+        if (window.currentPage > totalPages) window.currentPage = totalPages;
+
+        const start = (window.currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageData = data.slice(start, end);
+
+        let html = "";
+        pageData.forEach((c, i) => {
+            const globalIdx = start + i; 
+            html += `<div class="client-list-item" onclick="selecionarClienteNaLista(${globalIdx})">
+                <div><strong style="color:var(--primary)">${c.nome}</strong> <small style="color:#aaa">#${c.id_cliente}</small></div>
+                <div style="text-align:right">
+                    <div style="color:var(--clientes); font-size:0.8rem;">${c.nivel || 'FERRO'}</div>
+                    <div style="color:var(--buy); font-size:0.75rem;">Lim: $${parseFloat(c.limite_credito||0).toFixed(2)}</div>
+                </div>
+            </div>`;
+        });
+        listDiv.innerHTML = html;
+
+        const pagination = document.getElementById('client-pagination');
+        if (totalPages > 1) {
+            pagination.style.display = 'flex';
+            document.getElementById('page-indicator').innerText = `Página ${window.currentPage} de ${totalPages}`;
+            document.getElementById('btn-prev-page').disabled = window.currentPage === 1;
+            document.getElementById('btn-next-page').disabled = window.currentPage === totalPages;
+            document.getElementById('btn-prev-page').style.opacity = window.currentPage === 1 ? '0.5' : '1';
+            document.getElementById('btn-next-page').style.opacity = window.currentPage === totalPages ? '0.5' : '1';
+        } else {
+            pagination.style.display = 'none';
+        }
+    };
 
     window.buscarClienteFirebase = async function() {
         const nomeInput = document.getElementById('in-name').value.trim().toUpperCase();
@@ -1070,16 +1300,12 @@
                 resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado encontrado.</div>";
                 setTimeout(() => resultsBox.style.display = "none", 3000);
             }
-        } catch (error) {
-            resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Erro ao conectar com o banco.</div>";
-            setTimeout(() => resultsBox.style.display = "none", 3000);
-        }
+        } catch (error) { resultsBox.innerHTML = "<div style='padding:10px; color:red;'>Erro ao buscar.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000); }
     };
 
     window.selecionarClienteNaLista = function(index) {
         const dados = window.resultadosBuscaFirebase[index];
         if(!dados) return;
-        
         window.clienteSelecionado = dados; 
         
         document.getElementById('in-name').value = dados.nome;
@@ -1090,7 +1316,6 @@
         if (currentMode === 'clientes') {
             document.getElementById('in-nivel').value = dados.nivel || 'FERRO';
             document.getElementById('in-bonus').value = dados.bonus || 0;
-            document.getElementById('in-id').disabled = true; 
         }
         
         document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I");
@@ -1111,16 +1336,19 @@
         document.getElementById('client-stats').style.display = "block";
         document.getElementById('search-results-box').style.display = "none";
         
-        const ev = new Event('change');
         if (currentMode === 'crediario') {
             document.getElementById('crediario-filter-select').value = "CLIENT_ONLY";
-            document.getElementById('crediario-filter-select').dispatchEvent(ev);
+            document.getElementById('crediario-filter-select').dispatchEvent(new Event('change'));
         } else {
             switchSystem(currentMode); 
         }
     }
 
+    // =====================================
+    // 2. ABA CLIENTES (CRUD)
+    // =====================================
     window.salvarClienteFirebase = async function() {
+        if(!window.hasPerm('cli_add')) return alert("Você não tem permissão para Cadastrar Clientes.");
         const nome = document.getElementById('in-name').value.trim();
         const id_cliente = document.getElementById('in-id').value.trim(); 
         const telegrama = document.getElementById('in-tele').value.trim();
@@ -1131,9 +1359,7 @@
         try {
             const q = query(collection(db, "clientes"), where("id_cliente", "==", id_cliente.toUpperCase()));
             const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                return alert(`ERRO: Já existe um cliente utilizando o ID "${id_cliente.toUpperCase()}"! Não foi possível salvar.`);
-            }
+            if (!querySnapshot.empty) return alert(`ERRO: Já existe um cliente utilizando o ID "${id_cliente.toUpperCase()}"!`);
             
             const nivelPadrao = 'FERRO';
             const bonusPadrao = 0;
@@ -1156,14 +1382,15 @@
             
             alert(`Sucesso! Cliente cadastrado com ID #${id_cliente.toUpperCase()}`);
             clearCart();
-        } catch (error) { alert("Erro ao salvar! Verifique sua conexão."); console.log(error); }
+        } catch (error) { alert("Erro ao salvar! Verifique sua conexão."); }
     };
 
     window.atualizarClienteFirebase = async function() {
+        if(!window.hasPerm('cli_edit')) return alert("Você não tem permissão para Editar Clientes.");
         if (!window.clienteSelecionado) return alert("Nenhum cliente selecionado.");
         
         const nome = document.getElementById('in-name').value.trim();
-        const id_cliente = document.getElementById('in-id').value.trim();
+        const id_cliente = document.getElementById('in-id').value.trim(); 
         const nivel = document.getElementById('in-nivel').value;
         const bonus = parseFloat(document.getElementById('in-bonus').value) || 0;
         
@@ -1199,21 +1426,22 @@
     };
 
     window.deletarClienteFirebase = async function() {
+        if(!window.hasPerm('cli_del')) return alert("Você não tem permissão para Excluir Clientes.");
         if (!window.clienteSelecionado) return;
         if (confirm(`⚠️ ATENÇÃO!\n\nDeseja APAGAR PERMANENTEMENTE o cliente "${window.clienteSelecionado.nome}" do banco?`)) {
-            try {
-                await deleteDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id));
-                alert("Cliente excluído!"); clearCart(); 
-            } catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
+            try { await deleteDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id)); alert("Cliente excluído!"); clearCart(); } 
+            catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
         }
     };
 
+    // =====================================
+    // 3. ABA VENDAS
+    // =====================================
     window.finalizarVenda = async function() {
         const totalVendaRaw = document.getElementById('total-val').innerText;
         const totalVenda = parseFloat(totalVendaRaw);
-        
         if (totalVenda <= 0) return alert("O carrinho está vazio!");
-        if (!window.clienteSelecionado) return alert("Para vender, você deve BUSCAR e SELECIONAR o cliente na Lupa 🔍 primeiro!");
+        if (!window.clienteSelecionado) return alert("Para vender, BUSQUE e SELECIONAR o cliente na Lupa 🔍 primeiro!");
 
         const paySelect = document.getElementById('pay-method');
         const numParcelas = parseInt(paySelect.value);
@@ -1237,7 +1465,6 @@
         try {
             const dataHoje = new Date().toLocaleDateString('pt-BR');
             const anoAtual = new Date().getFullYear();
-            
             const seqFatura = await getNextSequence(`faturas_${anoAtual}`);
             const numPedido = `Fatura ${String(seqFatura).padStart(5, '0')}/${anoAtual}`;
 
@@ -1268,7 +1495,12 @@
             const oldTotalCompras = parseFloat(window.clienteSelecionado.total_compras || 0);
             let updateCli = { total_compras: oldTotalCompras + totalVenda, ultima_compra: dataHoje };
             
-            if (numParcelas > 1 && valorFinanciado > 0) updateCli.credito_disponivel = creditoDisponivel - valorFinanciado;
+            if (numParcelas > 1 && valorFinanciado > 0) {
+                const novoC = creditoDisponivel - valorFinanciado;
+                updateCli.credito_disponivel = novoC;
+                window.clienteSelecionado.credito_disponivel = novoC;
+                document.getElementById('stat-credito').innerText = `$${novoC.toFixed(2)}`;
+            }
             await updateDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id), updateCli);
             
             alert(`✅ Venda confirmada!\nNúmero: ${numPedido}\nA imagem será gerada agora.`);
@@ -1277,6 +1509,9 @@
         } catch (error) { console.log(error); alert("Erro ao finalizar a venda!"); }
     };
 
+    // =====================================
+    // 4. ABA CREDIÁRIO
+    // =====================================
     function isAtrasada(dataStr) {
         if(!dataStr) return false;
         const parts = dataStr.split('/');
@@ -1291,9 +1526,11 @@
         const filtro = document.getElementById('crediario-filter-select').value;
         const subFiltro = document.getElementById('crediario-extrato-filter').value;
         const listContainer = document.getElementById('crediario-list');
+        const placar = document.getElementById('crediario-placar');
         
         listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Buscando no servidor...</div>";
         listContainer.style.display = "flex";
+        placar.style.display = "none";
 
         if(filtro === 'CLIENT_ONLY') {
             document.getElementById('info-contato').style.display = "flex";
@@ -1335,13 +1572,22 @@
             const snap = await getDocs(q);
             let htmlList = "";
             let temFatura = false;
+            let totalReceber = 0;
+            let totalAtraso = 0;
             
             let vendasData = [];
             snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
             
             vendasData.forEach(venda => {
                 if (venda.parcelas && venda.parcelas.length > 0) {
+                    
                     if (filtro === 'CLIENT_ONLY') {
+                        venda.parcelas.forEach(p => {
+                            if (p.status !== 'pago') {
+                                totalReceber += p.valor;
+                                if (isAtrasada(p.vencimento)) totalAtraso += p.valor;
+                            }
+                        });
                         let temPendente = false;
                         venda.parcelas.forEach(p => { if (p.status !== 'pago') temPendente = true; });
                         if (subFiltro === 'OPEN' && !temPendente) return; 
@@ -1360,11 +1606,42 @@
 
                     if(parcelasFiltradas.length > 0) {
                         temFatura = true;
-                        htmlList += `<div class="fatura-card">
+                        
+                        let itensArray = (venda.pedido && venda.pedido.itens) ? venda.pedido.itens : [];
+                        let itensHtml = "";
+                        if (itensArray.length > 0) {
+                            itensHtml = itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${i.subtotal})`).join('<br>');
+                        } else {
+                            itensHtml = "<i>Itens não registrados (Fatura antiga)</i>";
+                        }
+                        
+                        let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
+                        if (window.hasPerm('fat_del')) {
+                            faturaBtns += `<button class="btn-del-fat" onclick="apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
+                        }
+                        faturaBtns += `<button class="btn-print-fat" onclick="imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
+                        faturaBtns += `</div>`;
+
+                        htmlList += `<div class="fatura-card" id="fatura-card-${venda.docId}" style="background: var(--card);">
+                            <div class="print-header" id="print-header-${venda.docId}">
+                                <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
+                                <h4 style="margin:5px 0 0 0; color:var(--primary);">FERRARIA CUSCO</h4>
+                                <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
+                                    <b>CLIENTE:</b> ${venda.cliente_nome}<br>
+                                    <b>FATURA:</b> ${venda.numero_pedido}
+                                </div>
+                            </div>
+
                             <div class="fatura-header">
                                 <span class="fatura-id">📄 ${venda.numero_pedido} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome}</span>` : ''}</span>
                                 <span class="fatura-date">${venda.data}</span>
-                            </div>`;
+                            </div>
+                            
+                            <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Compra ▾</div>
+                            <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
+                                <b>Itens Comprados:</b><br>${itensHtml}
+                            </div>
+                            `;
                         
                         parcelasFiltradas.forEach(obj => {
                             const p = obj.p; const idx = obj.index;
@@ -1372,27 +1649,42 @@
                             let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : 'border-left: 3px solid var(--primary);';
                             if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
                             
-                            const badge = isPago ? `<span style="color:var(--buy); font-weight:bold;">PAGO</span>` : `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">RECEBER</button>`;
+                            let badge = "";
+                            if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGO</span>`;
+                            else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">RECEBER</button>`;
+                            
                             const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
                             
                             htmlList += `<div class="fatura-parcela" style="${corCss}">
-                                <span>Parc ${p.numero} - ${p.vencimento} - <b>$${p.valor.toFixed(2)}</b> ${labelLate}</span>
+                                <span>Parc ${p.numero} - ${p.vencimento} - <b>$${parseFloat(p.valor).toFixed(2)}</b> ${labelLate}</span>
                                 ${badge}
                             </div>`;
                         });
-                        htmlList += `</div>`;
+                        htmlList += `${faturaBtns}</div>`;
                     }
                 }
             });
 
-            if(temFatura) listContainer.innerHTML = htmlList;
-            else listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>";
+            if(temFatura) {
+                listContainer.innerHTML = htmlList;
+                if(filtro === 'CLIENT_ONLY') {
+                    document.getElementById('placar-receber').innerText = `$${totalReceber.toFixed(2)}`;
+                    document.getElementById('placar-atraso').innerText = `$${totalAtraso.toFixed(2)}`;
+                    placar.style.display = "block";
+                }
+            } else {
+                listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>";
+            }
 
-        } catch(e) { listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados.</div>"; }
+        } catch(e) { 
+            console.error(e);
+            listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados no Crediário. Verifique o console.</div>"; 
+        }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
-        if (!confirm(`Deseja confirmar o recebimento desta parcela de $${valorParcela.toFixed(2)}?`)) return;
+        if (!window.hasPerm('fat_pay')) return alert("Sem permissão para Receber Parcelas.");
+        if (!confirm(`Deseja confirmar o recebimento desta parcela de $${parseFloat(valorParcela).toFixed(2)}?`)) return;
 
         try {
             const vendaRef = doc(db, "vendas", vendaDocId);
@@ -1420,6 +1712,59 @@
             alert("Parcela Paga! Crédito restaurado.");
             aplicarFiltroCrediario(); 
         } catch (error) { alert("Falha ao registrar pagamento."); }
+    };
+
+    window.apagarFaturaGlobal = async function(vendaDocId) {
+        if (!window.hasPerm('fat_del')) return alert("Sem permissão para Apagar Faturas.");
+        if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente? Os valores em aberto não retornarão para o limite do cliente automaticamente.")) return;
+        try {
+            await deleteDoc(doc(db, "vendas", vendaDocId));
+            alert("Fatura Apagada com sucesso!");
+            aplicarFiltroCrediario();
+        } catch (error) { alert("Falha ao apagar fatura."); }
+    };
+
+    window.imprimirFaturaUnica = async function(docId) {
+        const card = document.getElementById(`fatura-card-${docId}`);
+        if (!card) return;
+
+        // Salva estilos originais
+        const oldBg = card.style.background;
+        const oldBorder = card.style.border;
+        
+        // Prepara para a foto
+        card.style.background = "#1e1e1e";
+        card.style.border = "none";
+        document.getElementById(`print-header-${docId}`).style.display = 'flex';
+        document.getElementById(`itens-${docId}`).style.display = 'block'; 
+        
+        // Esconde botões
+        const actions = card.querySelector('.fatura-actions');
+        if(actions) actions.style.display = 'none';
+        const toggleBtn = card.querySelector('.toggle-itens-btn');
+        if(toggleBtn) toggleBtn.style.display = 'none';
+        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
+
+        // Captura
+        try {
+            const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
+            const link = document.createElement('a');
+            link.download = `FATURA_${docId}_${Date.now()}.png`;
+            link.href = canvas.toDataURL(); 
+            link.click();
+        } catch(e) {
+            console.error("Erro ao gerar imagem", e);
+            alert("Erro ao gerar a imagem da fatura.");
+        }
+
+        // Restaura a visualização da tela
+        card.style.background = oldBg;
+        card.style.border = oldBorder;
+        document.getElementById(`print-header-${docId}`).style.display = 'none';
+        document.getElementById(`itens-${docId}`).style.display = 'none';
+        if(actions) actions.style.display = 'flex';
+        if(toggleBtn) toggleBtn.style.display = 'block';
+        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
     };
 </script>
 </body>
