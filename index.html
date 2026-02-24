@@ -14,6 +14,7 @@
             --clientes: #8b5cf6;
             --crediario: #14b8a6;
             --admin: #ef4444;
+            --balanco: #eab308; /* Dourado/Amarelo para o dinheiro */
             --bg: #121212;
             --card: #1e1e1e;
             --text: #ffffff;
@@ -46,6 +47,7 @@
         .btn-compras { background: var(--buy); }
         .btn-clientes { background: var(--clientes); }
         .btn-crediario { background: var(--crediario); color: black; }
+        .btn-balanco { background: var(--balanco); color: black; display: none; }
         .btn-admin { background: var(--admin); display: none; }
 
         /* Container Dinâmico e Focus Mode */
@@ -59,6 +61,7 @@
         .header-compras { border-left-color: var(--buy) !important; }
         .header-clientes { border-left-color: var(--clientes) !important; }
         .header-crediario { border-left-color: var(--crediario) !important; }
+        .header-balanco { border-left-color: var(--balanco) !important; }
         .header-admin { border-left-color: var(--admin) !important; }
 
         .logo-ferraria { width: 80px; height: 80px; object-fit: contain; }
@@ -134,7 +137,7 @@
         .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
         .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Lista de Crediário e Admin */
+        /* Lista de Crediário */
         .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
         .crediario-filters label { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--crediario); display: block; margin-bottom: 8px; }
         .crediario-list { display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
@@ -147,12 +150,17 @@
         .fatura-parcela.pago { border-left: 3px solid var(--buy); opacity: 0.6; }
         .fatura-parcela.pendente { border-left: 3px solid var(--primary); }
         .btn-pay { background: var(--buy); color: black; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
-        
-        /* Cabeçalho exclusivo para print da fatura */
         .print-header { display: none; flex-direction: column; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; }
 
+        /* ABA BALANÇO FINANCEIRO */
+        .balanco-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
+        .balanco-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .balanco-card { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; border-left: 4px solid #555; text-align: center; }
+        .balanco-card h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase; }
+        .balanco-card h2 { margin: 0; font-size: 2rem; color: white; }
+
         /* ABA GERENCIAMENTO (Admin) */
-        .admin-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; }
+        .admin-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
         .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         @media(max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
         
@@ -169,7 +177,6 @@
         .role-title { color: var(--secondary); font-size: 0.9rem; border-bottom: 1px dashed #555; padding-bottom: 5px; margin: 15px 0 10px 0; text-transform: uppercase;}
     </style>
     <script>
-        // Trava F12 / Context Menu
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode === 123) { return false; } 
@@ -178,7 +185,6 @@
             if(e.ctrlKey && e.keyCode === 85) { return false; } 
             if(e.ctrlKey && e.keyCode === 83) { return false; } 
         };
-        // Inicializa a função hasPerm globalmente para evitar quebras se o Firebase demorar
         window.hasPerm = window.hasPerm || function() { return false; };
     </script>
 </head>
@@ -217,6 +223,7 @@
         <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Encomenda de Insumos</button>
         <button class="tab-btn btn-clientes" onclick="switchSystem('clientes')">Clientes</button>
         <button class="tab-btn btn-crediario" onclick="switchSystem('crediario')">Crediário</button>
+        <button class="tab-btn btn-balanco" id="tab-balanco" onclick="switchSystem('balanco')">Balanço</button>
         <button class="tab-btn btn-admin" id="tab-admin" onclick="switchSystem('gerenciamento')">Gerenciamento</button>
     </div>
 
@@ -233,6 +240,40 @@
             <button class="logout-btn" onclick="authLogout()">SAIR</button>
         </div>
     </header>
+
+    <div class="balanco-panel" id="balanco-panel">
+        <h2 style="color: var(--balanco); margin-top: 0; margin-bottom: 5px;">Painel Financeiro</h2>
+        <p style="color: #aaa; font-size: 0.9rem; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">Resumo consolidado do caixa da Ferraria (Valores Líquidos Recebidos).</p>
+        
+        <div class="balanco-dashboard">
+            <div class="balanco-card">
+                <h4>Saldo Anterior (Até Mês Passado)</h4>
+                <h2 id="bal-anterior">$0.00</h2>
+            </div>
+            <div class="balanco-card" style="border-left-color: var(--buy);">
+                <h4>Entradas do Mês Atual</h4>
+                <h2 id="bal-mes" style="color: var(--buy);">$0.00</h2>
+            </div>
+            <div class="balanco-card" style="border-left-color: var(--balanco);">
+                <h4>Saldo Atual (Caixa Total)</h4>
+                <h2 id="bal-atual" style="color: var(--balanco);">$0.00</h2>
+            </div>
+        </div>
+
+        <h3 style="color: #ccc; margin-top: 30px;">Histórico por Mês</h3>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th style="color: var(--balanco);">Mês/Ano</th>
+                    <th style="color: var(--balanco);">Total Vendido (Bruto)</th>
+                    <th style="color: var(--balanco);">Total Recebido (Caixa)</th>
+                </tr>
+            </thead>
+            <tbody id="balanco-table-body">
+                <tr><td colspan="3" style="text-align:center;">Carregando dados...</td></tr>
+            </tbody>
+        </table>
+    </div>
 
     <div class="admin-panel" id="admin-panel">
         <h2 style="color: var(--admin); margin-top: 0; margin-bottom: 5px;">Painel de Controle Empresarial</h2>
@@ -262,6 +303,11 @@
                 <div class="role-check-group">
                     <label><input type="checkbox" id="perm_fat_pay"> Receber parcela</label>
                     <label><input type="checkbox" id="perm_fat_del"> Apagar fatura inteira</label>
+                </div>
+
+                <div class="role-title">Gerenciamento Financeiro</div>
+                <div class="role-check-group">
+                    <label><input type="checkbox" id="perm_ver_balanco"> Visualizar Balanço da Empresa</label>
                 </div>
 
                 <div class="role-title">Gerenciamento de Pessoal</div>
@@ -558,12 +604,13 @@
         const isCred = mode === 'crediario';
         const isVend = mode === 'vendas';
         const isAdm = mode === 'gerenciamento';
+        const isBal = mode === 'balanco';
         
         const header = document.getElementById('main-header');
         const internalTitle = document.getElementById('internal-title');
         header.className = '';
         
-        // Reset Displays Full
+        // Reset Base Displays
         document.getElementById('catalog').style.display = "none";
         document.getElementById('filter-bar').style.display = "none";
         document.getElementById('crediario-filters').style.display = "none";
@@ -576,6 +623,7 @@
         document.getElementById('group-bonus').style.display = "none";
         document.getElementById('info-contato').style.display = "none";
         document.getElementById('admin-panel').style.display = "none";
+        document.getElementById('balanco-panel').style.display = "none";
         document.getElementById('cart-capture').style.display = "block";
         document.getElementById('all-clients-panel').style.display = "none";
         
@@ -587,12 +635,12 @@
         document.getElementById('btn-db-update').style.display = "none";
         document.getElementById('btn-db-delete').style.display = "none";
 
-        // Ajusta layout container
+        // Layout Container
         const cont = document.getElementById('shop-container');
         if (isCli || isCred) cont.classList.add('centered-mode');
         else cont.classList.remove('centered-mode');
 
-        // Lógica das Abas
+        // Lógica de Abas
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
@@ -604,6 +652,7 @@
                 document.getElementById('btn-save-venda').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+                document.getElementById('in-id').disabled = false;
             }
             if (isProd) {
                 document.getElementById('btn-refresh').style.display = "block";
@@ -624,6 +673,7 @@
             document.getElementById('group-nivel').style.display = "block";
             document.getElementById('group-bonus').style.display = "block";
             document.getElementById('all-clients-panel').style.display = "flex";
+            document.getElementById('in-id').disabled = false; // Sempre aberto para pesquisa ou criação
             
             if (window.clienteSelecionado) { 
                 if(uiHasPerm('cli_edit')) document.getElementById('btn-db-update').style.display = "block";
@@ -642,6 +692,7 @@
             document.getElementById('crediario-list').style.display = "flex";
             if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
                 document.getElementById('info-contato').style.display = "flex";
+                document.getElementById('in-id').disabled = false;
                 if (window.clienteSelecionado) {
                     document.getElementById('btn-img-only').style.display = "block";
                     document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
@@ -654,13 +705,19 @@
             if(typeof window.carregarUsuariosAdmin === 'function') window.carregarUsuariosAdmin();
             if(typeof window.carregarCargosAdmin === 'function') window.carregarCargosAdmin();
         }
+        else if (isBal) {
+            document.getElementById('balanco-panel').style.display = "block";
+            document.getElementById('cart-capture').style.display = "none";
+            if(typeof window.carregarBalanco === 'function') window.carregarBalanco();
+        }
 
-        // Títulos e Cores
+        // Títulos e Cores do Header
         if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO"; } 
         else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('cart-title').innerText = "🛒 LISTA DE ENCOMENDA"; } 
         else if(isCli) { header.classList.add('header-clientes'); internalTitle.style.color = "var(--clientes)"; document.getElementById('cart-title').innerText = "👥 CADASTRO DE CLIENTES"; } 
         else if(isCred) { header.classList.add('header-crediario'); internalTitle.style.color = "var(--crediario)"; document.getElementById('cart-title').innerText = "💳 CONTROLE DE CREDIÁRIO"; } 
         else if(isAdm) { header.classList.add('header-admin'); }
+        else if(isBal) { header.classList.add('header-balanco'); }
         else { internalTitle.style.color = "var(--primary)"; document.getElementById('cart-title').innerText = "📋 RESUMO DO PEDIDO"; document.getElementById('pay-label').style.color = "var(--primary)"; document.getElementById('date-label').style.color = "var(--primary)"; }
 
         let borderColor = "var(--primary)";
@@ -672,7 +729,7 @@
         document.getElementById('total-border').style.borderTopColor = borderColor;
         document.getElementById('total-border').style.color = borderColor;
 
-        if(!isCli && !isCred && !isAdm) renderCatalog();
+        if(!isCli && !isCred && !isAdm && !isBal) renderCatalog();
         if(isVend || isBuy || isProd) updateUI(); 
         if(isCred && typeof window.aplicarFiltroCrediario === 'function') window.aplicarFiltroCrediario();
     }
@@ -774,6 +831,7 @@
         if (currentMode === 'clientes') {
             document.getElementById('in-nivel').value = "FERRO";
             document.getElementById('in-bonus').value = "0";
+            document.getElementById('in-id').disabled = false;
         }
         
         document.getElementById('has-entry').checked = false; 
@@ -801,7 +859,7 @@
     }
 
     function updateUI() {
-        if(currentMode === 'clientes' || currentMode === 'crediario' || currentMode === 'gerenciamento') return;
+        if(currentMode === 'clientes' || currentMode === 'crediario' || currentMode === 'gerenciamento' || currentMode === 'balanco') return;
 
         const cartList = document.getElementById('cart-items');
         cartList.innerHTML = ""; 
@@ -889,7 +947,7 @@
             if(!name) return alert("Preencha o Nome do cliente!");
             
             document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-id').innerText = idCli.toUpperCase();
+            document.getElementById('out-id').innerText = idCli ? idCli.toUpperCase() : "N/I";
             document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
             document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
             
@@ -1035,6 +1093,9 @@
             if (window.hasPerm('user_approve') || window.hasPerm('user_edit') || window.hasPerm('user_del') || userData.role === 'admin') {
                 document.querySelector('.btn-admin').style.display = "block";
             }
+            if (window.hasPerm('ver_balanco')) {
+                document.getElementById('tab-balanco').style.display = "block";
+            }
             
             switchSystem('vendas'); 
         } catch (error) { console.log(error); alert("Erro ao conectar."); }
@@ -1070,6 +1131,8 @@
         window.usuarioLogado = null;
         document.getElementById('auth-overlay').style.display = "flex";
         document.getElementById('main-app').style.display = "none";
+        document.getElementById('tab-balanco').style.display = "none";
+        document.querySelector('.btn-admin').style.display = "none";
     };
 
     // =====================================
@@ -1128,6 +1191,7 @@
             cli_del: document.getElementById('perm_cli_del').checked,
             fat_pay: document.getElementById('perm_fat_pay').checked,
             fat_del: document.getElementById('perm_fat_del').checked,
+            ver_balanco: document.getElementById('perm_ver_balanco').checked,
             user_approve: document.getElementById('perm_user_approve').checked,
             user_edit: document.getElementById('perm_user_edit').checked,
             user_del: document.getElementById('perm_user_del').checked
@@ -1316,6 +1380,7 @@
         if (currentMode === 'clientes') {
             document.getElementById('in-nivel').value = dados.nivel || 'FERRO';
             document.getElementById('in-bonus').value = dados.bonus || 0;
+            document.getElementById('in-id').disabled = false; // Mantenha destravado conforme pedido
         }
         
         document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I");
@@ -1413,7 +1478,7 @@
 
             await updateDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id), {
                 nome: nome.toUpperCase(),
-                id_cliente: id_cliente.toUpperCase(),
+                id_cliente: id_cliente.toUpperCase(), // Atualiza o ID livremente
                 telegrama: document.getElementById('in-tele').value.trim().toUpperCase(),
                 discord: document.getElementById('in-disc').value.trim().toUpperCase(),
                 nivel: nivel,
@@ -1558,8 +1623,7 @@
                     html += `<div class="fatura-card" style="border-color: #ef4444;">
                         <strong style="color: var(--primary)">${c.nome}</strong> (ID: ${c.id_cliente})<br>
                         <div style="color: #ef4444; font-weight: bold; margin-top:5px;">Crédito: $${parseFloat(c.credito_disponivel).toFixed(2)}</div>
-                    </div>`;
-                    count++;
+                    </div>`; count++;
                 });
                 if(count === 0) html = "<div style='color: var(--buy); text-align:center;'>Todos os clientes estão com saldo positivo! 🎉</div>";
                 listContainer.innerHTML = html;
@@ -1765,6 +1829,107 @@
         if(actions) actions.style.display = 'flex';
         if(toggleBtn) toggleBtn.style.display = 'block';
         card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
+    };
+
+    // =====================================
+    // ABA BALANÇO FINANCEIRO
+    // =====================================
+    window.carregarBalanco = async function() {
+        const tbody = document.getElementById('balanco-table-body');
+        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Calculando fechamento financeiro...</td></tr>";
+
+        try {
+            const snap = await getDocs(collection(db, "vendas"));
+            let aggregated = {};
+            let totalRecebidoGlobal = 0;
+            let recebidoCurrentMonth = 0;
+
+            const hoje = new Date();
+            const curMonth = String(hoje.getMonth() + 1).padStart(2, '0');
+            const curYear = hoje.getFullYear();
+            const curPeriod = `${curMonth}/${curYear}`;
+
+            snap.forEach(doc => {
+                const v = doc.data();
+                if (!v.data) return;
+
+                // Processa a Venda Base (Entrada ou À Vista)
+                const dataParts = v.data.split('/'); 
+                if(dataParts.length === 3) {
+                    const pMonth = dataParts[1];
+                    const pYear = dataParts[2];
+                    const period = `${pMonth}/${pYear}`;
+                    
+                    if(!aggregated[period]) aggregated[period] = { vendido: 0, recebido: 0 };
+                    
+                    let totalVendido = 0;
+                    if(v.pedido && v.pedido.total) totalVendido = parseFloat(v.pedido.total);
+                    aggregated[period].vendido += totalVendido;
+                    
+                    let recebidoNaHora = 0;
+                    if(v.pedido && v.pedido.pagamento === 'À VISTA') {
+                        recebidoNaHora = totalVendido;
+                    } else if (v.pedido && v.pedido.entrada) {
+                        recebidoNaHora = parseFloat(v.pedido.entrada);
+                    }
+
+                    aggregated[period].recebido += recebidoNaHora;
+                    totalRecebidoGlobal += recebidoNaHora;
+                    if(period === curPeriod) recebidoCurrentMonth += recebidoNaHora;
+                }
+                
+                // Processa Parcelas Pagas posteriormente
+                if(v.parcelas && v.parcelas.length > 0) {
+                    v.parcelas.forEach(p => {
+                        if(p.status === 'pago' && p.vencimento) {
+                            const pParts = p.vencimento.split('/');
+                            if(pParts.length === 3) {
+                                const parPeriod = `${pParts[1]}/${pParts[2]}`;
+                                if(!aggregated[parPeriod]) aggregated[parPeriod] = { vendido: 0, recebido: 0 };
+                                
+                                const valorPago = parseFloat(p.valor || 0);
+                                aggregated[parPeriod].recebido += valorPago;
+                                totalRecebidoGlobal += valorPago;
+                                if(parPeriod === curPeriod) recebidoCurrentMonth += valorPago;
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Ordena os meses do mais recente para o mais antigo
+            const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
+                const [mA, yA] = a.split('/');
+                const [mB, yB] = b.split('/');
+                if (yA !== yB) return parseInt(yB) - parseInt(yA);
+                return parseInt(mB) - parseInt(mA);
+            });
+
+            let html = "";
+            sortedPeriods.forEach(period => {
+                const data = aggregated[period];
+                html += `<tr>
+                    <td style="color:white; font-weight:bold;">${period}</td>
+                    <td style="color:#aaa;">$${data.vendido.toFixed(2)}</td>
+                    <td style="color:var(--buy); font-weight:bold;">$${data.recebido.toFixed(2)}</td>
+                </tr>`;
+            });
+
+            if(!html) html = "<tr><td colspan='3' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
+            tbody.innerHTML = html;
+
+            // Atualiza Dashboard
+            const saldoAtual = totalRecebidoGlobal;
+            const saldoAnterior = saldoAtual - recebidoCurrentMonth;
+
+            document.getElementById('bal-anterior').innerText = `$${saldoAnterior.toFixed(2)}`;
+            document.getElementById('bal-mes').innerText = `$${recebidoCurrentMonth.toFixed(2)}`;
+            document.getElementById('bal-atual').innerText = `$${saldoAtual.toFixed(2)}`;
+
+        } catch(e) { 
+            console.error(e);
+            tbody.innerHTML = "<tr><td colspan='3' style='color:#ef4444;'>Erro ao processar o balanço.</td></tr>"; 
+        }
     };
 </script>
 </body>
