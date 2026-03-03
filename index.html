@@ -12,9 +12,9 @@
             --secondary: #3b82f6; /* Produção */
             --buy: #10b981; /* Compras */
             --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
+            --fornecedores: #ec4899; /* Fornecedores */
             --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
+            --contas: #f43f5e; /* Contas a Pagar */
             --balanco: #eab308; /* Balanço */
             --admin: #ef4444; /* Admin */
             --bg: #121212;
@@ -699,7 +699,7 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false; // Mantém ID livre para Vendas/Compras
+            document.getElementById('in-id').disabled = false;
             
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
@@ -730,7 +730,7 @@
         else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false; // Mantém ID livre na ficha
+            document.getElementById('in-id').disabled = false;
             
             if (isCli) {
                 document.getElementById('group-nivel').style.display = "block";
@@ -768,7 +768,7 @@
 
             if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
                 document.getElementById('info-contato').style.display = "flex";
-                document.getElementById('in-id').disabled = false; // Mantém ID livre no Crediário
+                document.getElementById('in-id').disabled = false;
                 if (window.pessoaSelecionada) {
                     document.getElementById('btn-img-only').style.display = "block";
                     document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
@@ -1010,7 +1010,7 @@
             let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
             for(let i=0; i < numParcelas; i++) {
                 let nextDate = new Date(baseDate);
-                nextDate.setDate(baseDate.getDate() + (i * 2)); // Corrigido para 2 dias
+                nextDate.setDate(baseDate.getDate() + (i * 2)); 
                 pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
@@ -1684,6 +1684,7 @@
 
             let parcelasArray = [];
             
+            // Tratamento de Entrada Automática
             if (entryVal > 0) {
                 parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pago' });
             }
@@ -1699,7 +1700,7 @@
                     parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: formatDate(nextDate), status: 'pendente' });
                 }
             } else if (valorFinanciado > 0) {
-                // A vista do restante do valor
+                // A vista salva como parcela paga para constar no histórico
                 parcelasArray.push({ numero: 1, valor: valorFinanciado, vencimento: dataHoje, status: 'pago' });
             }
 
@@ -1811,7 +1812,7 @@
             
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD
+                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS
                     if (Array.isArray(venda.parcelas) && venda.parcelas.length > 0) {
                         
                         if (filtro === 'CLIENT_ONLY') {
@@ -1844,7 +1845,7 @@
                         if(parcelasFiltradas.length > 0) {
                             temFatura = true;
                             
-                            // SAFEGUARD
+                            // SAFEGUARD DE ITENS
                             let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                             let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
                             
@@ -1967,36 +1968,28 @@
         const card = document.getElementById(`fatura-card-${docId}`);
         if (!card) return;
 
-        // Salva estilos originais
         const oldBg = card.style.background;
         const oldBorder = card.style.border;
         
-        // Prepara para a foto
         card.style.background = "#1e1e1e";
         card.style.border = "none";
         document.getElementById(`print-header-${docId}`).style.display = 'flex';
         document.getElementById(`itens-${docId}`).style.display = 'block'; 
         
-        // Esconde botões
         const actions = card.querySelector('.fatura-actions');
         if(actions) actions.style.display = 'none';
         const toggleBtn = card.querySelector('.toggle-itens-btn');
         if(toggleBtn) toggleBtn.style.display = 'none';
         card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
 
-        // Captura
         try {
             const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
             const link = document.createElement('a');
             link.download = `FATURA_${docId}_${Date.now()}.png`;
             link.href = canvas.toDataURL(); 
             link.click();
-        } catch(e) {
-            console.error("Erro ao gerar imagem", e);
-            alert("Erro ao gerar a imagem da fatura.");
-        }
+        } catch(e) { console.error(e); alert("Erro ao gerar a imagem da fatura."); }
 
-        // Restaura a visualização da tela
         card.style.background = oldBg;
         card.style.border = oldBorder;
         document.getElementById(`print-header-${docId}`).style.display = 'none';
@@ -2026,15 +2019,16 @@
                     const v = doc.data();
                     if (!v.data) return;
 
-                    const dataParts = v.data.split('/'); 
-                    if(dataParts.length === 3) {
-                        const period = `${dataParts[1]}/${dataParts[2]}`;
-                        if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
-                    }
+                    let hasEntradaParcela = false;
+                    let hasAVistaParcela = false;
                     
+                    // 1. Processa parcelas registradas
                     if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
                         v.parcelas.forEach(p => {
                             if(p && p.status === 'pago' && p.vencimento) {
+                                if (p.numero === 'Entrada') hasEntradaParcela = true;
+                                if (p.numero === 1 && v.pedido && v.pedido.pagamento === 'À VISTA') hasAVistaParcela = true;
+
                                 const pParts = p.vencimento.split('/');
                                 if(pParts.length === 3) {
                                     const parPeriod = `${pParts[1]}/${pParts[2]}`;
@@ -2047,13 +2041,31 @@
                             }
                         });
                     }
+
+                    // 2. Retro-compatibilidade (Vendas Antigas sem estrutura de parcela)
+                    const dataParts = v.data.split('/'); 
+                    if(dataParts.length === 3) {
+                        const period = `${dataParts[1]}/${dataParts[2]}`;
+                        if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
+                        
+                        let valorAntigoPerdido = 0;
+                        if(v.pedido && v.pedido.pagamento === 'À VISTA' && (!v.parcelas || v.parcelas.length === 0)) {
+                            valorAntigoPerdido = parseFloat(v.pedido.total || 0);
+                        } else if (v.pedido && parseFloat(v.pedido.entrada || 0) > 0 && !hasEntradaParcela) {
+                            valorAntigoPerdido = parseFloat(v.pedido.entrada);
+                        }
+
+                        if (valorAntigoPerdido > 0) {
+                            if(tipo === 'entrada') { aggregated[period].entradas += valorAntigoPerdido; totalEntradasGlobal += valorAntigoPerdido; }
+                            else { aggregated[period].saidas += valorAntigoPerdido; totalSaidasGlobal += valorAntigoPerdido; }
+                        }
+                    }
                 });
             };
 
             processDocs(snapVendas, 'entrada');
             processDocs(snapCompras, 'saida');
 
-            // Ordena os meses
             const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
                 const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
                 if (yA !== yB) return parseInt(yB) - parseInt(yA);
@@ -2077,7 +2089,6 @@
             if(!html) html = "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
             tbody.innerHTML = html;
 
-            // Atualiza Dashboard Global
             const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal;
             const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)';
             
