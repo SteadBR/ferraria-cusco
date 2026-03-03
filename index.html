@@ -12,9 +12,9 @@
             --secondary: #3b82f6; /* Produção */
             --buy: #10b981; /* Compras */
             --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores */
+            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
             --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar */
+            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
             --balanco: #eab308; /* Balanço */
             --admin: #ef4444; /* Admin */
             --bg: #121212;
@@ -333,6 +333,13 @@
                 </div>
 
                 <button class="btn-solid" style="background: var(--buy); margin-top: 10px;" onclick="salvarNovoCargo()">SALVAR CARGO</button>
+                
+                <div style="margin-top: 25px; border-top: 1px dashed #555; padding-top: 15px;">
+                    <h4 style="color: var(--admin); margin-top: 0; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85rem;">Cargos Existentes</h4>
+                    <ul id="admin-role-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #ccc; display: flex; flex-direction: column; gap: 5px;">
+                        <li>Carregando...</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -1023,12 +1030,9 @@
             if(!name) return alert("Preencha o Nome!");
             
             document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-id').innerText = idCli.toUpperCase() || "N/I";
-            
-            let valTele = document.getElementById('in-tele').value.toUpperCase();
-            document.getElementById('out-tele').innerText = valTele !== "" ? valTele : "NÃO INFORMADO";
-            
+            document.getElementById('out-id').innerText = idCli.toUpperCase();
             document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
+            document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
             document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
             
             if (currentMode === 'clientes') {
@@ -1227,6 +1231,19 @@
             const snap = await getDocs(collection(db, "cargos"));
             window.todosCargos = [];
             snap.forEach(docSnap => window.todosCargos.push({ id: docSnap.id, ...docSnap.data() }));
+            
+            // Renderiza lista de cargos para exclusão
+            const list = document.getElementById('admin-role-list');
+            if(list) {
+                let html = "";
+                window.todosCargos.forEach(c => {
+                    html += `<li style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 4px; border: 1px solid #333;">
+                        <span style="color:var(--secondary); font-weight:bold;">${c.nome}</span>
+                        <button onclick="deletarCargo('${c.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-weight:bold; font-size:0.7rem;">EXCLUIR</button>
+                    </li>`;
+                });
+                list.innerHTML = html || "<li style='text-align:center;'>Nenhum cargo extra criado.</li>";
+            }
         } catch(e) {}
     }
 
@@ -1285,8 +1302,24 @@
             await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes });
             alert("Cargo Criado!");
             document.getElementById('role-name-input').value = "";
+            
+            // Limpa as checkboxes
+            document.querySelectorAll('.role-check-group input[type="checkbox"]').forEach(cb => cb.checked = false);
+            
             window.carregarUsuariosAdmin(); 
         } catch(e) { alert("Erro ao criar cargo."); }
+    };
+
+    window.deletarCargo = async function(cargoId) {
+        if(!window.hasPerm('admin')) return;
+        if(!confirm("⚠️ Atenção!\nTem certeza que deseja apagar este cargo? Certifique-se de que nenhum funcionário está utilizando ele antes!")) return;
+        try {
+            await deleteDoc(doc(db, "cargos", cargoId));
+            alert("Cargo apagado com sucesso!");
+            window.carregarUsuariosAdmin(); // Recarrega a tela de admin toda
+        } catch(e) {
+            alert("Erro ao apagar cargo.");
+        }
     };
 
     window.aprovarVendedor = async function(docId) {
@@ -1309,7 +1342,7 @@
     };
 
     // =====================================
-    // 1. BUSCA DE CLIENTES E LISTAGEM
+    // 1. BUSCA E LISTAGEM CLIENTE/FORN
     // =====================================
 
     async function getNextSequence(counterName) {
@@ -1758,6 +1791,7 @@
             
             vendasData.forEach(venda => {
                 try {
+                    // SAFEGUARD contra faturas defeituosas sem a lista de parcelas
                     if (Array.isArray(venda.parcelas) && venda.parcelas.length > 0) {
                         
                         if (filtro === 'CLIENT_ONLY') {
@@ -1787,6 +1821,8 @@
 
                         if(parcelasFiltradas.length > 0) {
                             temFatura = true;
+                            
+                            // SAFEGUARD contra faturas antigas sem a lista de 'itens'
                             let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                             let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
                             
