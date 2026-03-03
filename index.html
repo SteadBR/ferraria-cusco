@@ -25,6 +25,7 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh;}
         
+        /* BLOQUEIOS ANTI-CÓPIA */
         body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
         input, select, textarea { -webkit-user-select: text; -ms-user-select: text; user-select: text; }
 
@@ -139,7 +140,6 @@
         .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-solid { color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;}
         .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
-        .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
 
         /* Lista de Crediário / Contas a Pagar */
         .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
@@ -681,7 +681,7 @@
         if (isCli || isCred || isForn || isCont) cont.classList.add('centered-mode');
         else cont.classList.remove('centered-mode');
 
-        // Dynamic Labels for People
+        // Dynamic Labels
         const isSupplierMode = (isBuy || isForn || isCont);
         document.getElementById('lbl-pesquisa-nome').innerText = isSupplierMode ? "Pesquisar Fornecedor (Nome/ID)" : "Pesquisar Cliente (Nome/ID)";
         document.getElementById('lbl-pesquisa-id').innerText = isSupplierMode ? "ID do Fornecedor" : "ID do Cliente";
@@ -1237,7 +1237,7 @@
             snap.forEach(docSnap => {
                 const u = docSnap.data();
                 const uId = docSnap.id;
-                if (uId === window.usuarioLogado.id) return;
+                if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
 
                 const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
                 
@@ -1894,6 +1894,41 @@
         } catch (error) { alert("Falha ao apagar fatura."); }
     };
 
+    window.imprimirFaturaUnica = async function(docId) {
+        const card = document.getElementById(`fatura-card-${docId}`);
+        if (!card) return;
+
+        const oldBg = card.style.background;
+        const oldBorder = card.style.border;
+        
+        card.style.background = "#1e1e1e";
+        card.style.border = "none";
+        document.getElementById(`print-header-${docId}`).style.display = 'flex';
+        document.getElementById(`itens-${docId}`).style.display = 'block'; 
+        
+        const actions = card.querySelector('.fatura-actions');
+        if(actions) actions.style.display = 'none';
+        const toggleBtn = card.querySelector('.toggle-itens-btn');
+        if(toggleBtn) toggleBtn.style.display = 'none';
+        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
+
+        try {
+            const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
+            const link = document.createElement('a');
+            link.download = `FATURA_${docId}_${Date.now()}.png`;
+            link.href = canvas.toDataURL(); 
+            link.click();
+        } catch(e) { console.error(e); alert("Erro ao gerar a imagem da fatura."); }
+
+        card.style.background = oldBg;
+        card.style.border = oldBorder;
+        document.getElementById(`print-header-${docId}`).style.display = 'none';
+        document.getElementById(`itens-${docId}`).style.display = 'none';
+        if(actions) actions.style.display = 'flex';
+        if(toggleBtn) toggleBtn.style.display = 'block';
+        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
+    };
+
     // =====================================
     // ABA BALANÇO FINANCEIRO (DRE)
     // =====================================
@@ -1909,10 +1944,6 @@
             let totalEntradasGlobal = 0;
             let totalSaidasGlobal = 0;
             
-            const hoje = new Date();
-            const curMonth = String(hoje.getMonth() + 1).padStart(2, '0');
-            const curYear = hoje.getFullYear();
-
             const processDocs = (snap, tipo) => {
                 snap.forEach(doc => {
                     const v = doc.data();
