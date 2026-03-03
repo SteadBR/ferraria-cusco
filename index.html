@@ -699,7 +699,7 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false; // Mantém ID liberado
+            document.getElementById('in-id').disabled = false; // Mantém ID livre para Vendas/Compras
             
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
@@ -730,7 +730,7 @@
         else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false;
+            document.getElementById('in-id').disabled = false; // Mantém ID livre na ficha
             
             if (isCli) {
                 document.getElementById('group-nivel').style.display = "block";
@@ -768,7 +768,7 @@
 
             if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
                 document.getElementById('info-contato').style.display = "flex";
-                document.getElementById('in-id').disabled = false;
+                document.getElementById('in-id').disabled = false; // Mantém ID livre no Crediário
                 if (window.pessoaSelecionada) {
                     document.getElementById('btn-img-only').style.display = "block";
                     document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
@@ -1010,7 +1010,7 @@
             let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
             for(let i=0; i < numParcelas; i++) {
                 let nextDate = new Date(baseDate);
-                nextDate.setDate(baseDate.getDate() + (i * 30)); // 30 dias para faturas
+                nextDate.setDate(baseDate.getDate() + (i * 2)); // Corrigido para 2 dias
                 pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
@@ -1684,12 +1684,10 @@
 
             let parcelasArray = [];
             
-            // Tratamento de Entrada
             if (entryVal > 0) {
                 parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pago' });
             }
 
-            // Tratamento das Parcelas Restantes
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorDaParcela = valorFinanciado / numParcelas;
                 const dataBaseInput = document.getElementById('first-payment-date').value;
@@ -1697,11 +1695,11 @@
                 
                 for(let i=0; i < numParcelas; i++) {
                     let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 30)); // 30 dias para as parcelas
+                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
                     parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: formatDate(nextDate), status: 'pendente' });
                 }
             } else if (valorFinanciado > 0) {
-                // Pagamento 1x (À Vista) do valor total (ou valor restante após a entrada)
+                // A vista do restante do valor
                 parcelasArray.push({ numero: 1, valor: valorFinanciado, vencimento: dataHoje, status: 'pago' });
             }
 
@@ -1931,6 +1929,7 @@
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
+            // Se for venda de cliente, devolve o limite de crédito. Se for de fornecedor, ignora limite.
             if(!isContas) {
                 const clienteRef = doc(db, "clientes", clienteDocId);
                 const clienteSnap = await getDoc(clienteRef);
@@ -1956,7 +1955,7 @@
         if (!window.hasPerm('fat_del')) return alert("Sem permissão para Apagar Faturas.");
         const isContas = (currentMode === 'contas_pagar');
         const dbName = isContas ? "compras" : "vendas";
-        if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente?")) return;
+        if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente? Os valores em aberto não retornarão para o limite do cliente automaticamente.")) return;
         try {
             await deleteDoc(doc(db, dbName, vendaDocId));
             alert("Fatura Apagada com sucesso!");
@@ -1968,28 +1967,36 @@
         const card = document.getElementById(`fatura-card-${docId}`);
         if (!card) return;
 
+        // Salva estilos originais
         const oldBg = card.style.background;
         const oldBorder = card.style.border;
         
+        // Prepara para a foto
         card.style.background = "#1e1e1e";
         card.style.border = "none";
         document.getElementById(`print-header-${docId}`).style.display = 'flex';
         document.getElementById(`itens-${docId}`).style.display = 'block'; 
         
+        // Esconde botões
         const actions = card.querySelector('.fatura-actions');
         if(actions) actions.style.display = 'none';
         const toggleBtn = card.querySelector('.toggle-itens-btn');
         if(toggleBtn) toggleBtn.style.display = 'none';
         card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
 
+        // Captura
         try {
             const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
             const link = document.createElement('a');
             link.download = `FATURA_${docId}_${Date.now()}.png`;
             link.href = canvas.toDataURL(); 
             link.click();
-        } catch(e) { console.error(e); alert("Erro ao gerar a imagem da fatura."); }
+        } catch(e) {
+            console.error("Erro ao gerar imagem", e);
+            alert("Erro ao gerar a imagem da fatura.");
+        }
 
+        // Restaura a visualização da tela
         card.style.background = oldBg;
         card.style.border = oldBorder;
         document.getElementById(`print-header-${docId}`).style.display = 'none';
@@ -2023,15 +2030,6 @@
                     if(dataParts.length === 3) {
                         const period = `${dataParts[1]}/${dataParts[2]}`;
                         if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
-                        
-                        let totalFechado = 0;
-                        if(v.pedido && v.pedido.total) totalFechado = parseFloat(v.pedido.total);
-                        let pagoNaHora = 0;
-                        if(v.pedido && v.pedido.pagamento === 'À VISTA') pagoNaHora = totalFechado;
-                        else if (v.pedido && v.pedido.entrada) pagoNaHora = parseFloat(v.pedido.entrada);
-
-                        if(tipo === 'entrada') { aggregated[period].entradas += pagoNaHora; totalEntradasGlobal += pagoNaHora; }
-                        else { aggregated[period].saidas += pagoNaHora; totalSaidasGlobal += pagoNaHora; }
                     }
                     
                     if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
@@ -2055,6 +2053,7 @@
             processDocs(snapVendas, 'entrada');
             processDocs(snapCompras, 'saida');
 
+            // Ordena os meses
             const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
                 const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
                 if (yA !== yB) return parseInt(yB) - parseInt(yA);
@@ -2078,6 +2077,7 @@
             if(!html) html = "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
             tbody.innerHTML = html;
 
+            // Atualiza Dashboard Global
             const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal;
             const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)';
             
