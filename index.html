@@ -699,6 +699,8 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
+            document.getElementById('in-id').disabled = false; // Mantém ID liberado
+            
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
                 document.getElementById('info-contato').style.display = "flex";
@@ -707,7 +709,6 @@
                 document.getElementById('btn-save-venda').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
-                document.getElementById('in-id').disabled = false;
             }
             if (isProd) {
                 document.getElementById('btn-refresh').style.display = "block";
@@ -724,7 +725,6 @@
                 document.getElementById('btn-save-compra').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
-                document.getElementById('in-id').disabled = false;
             }
         }
         else if (isCli || isForn) {
@@ -1010,7 +1010,7 @@
             let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
             for(let i=0; i < numParcelas; i++) {
                 let nextDate = new Date(baseDate);
-                nextDate.setDate(baseDate.getDate() + (i * 2));
+                nextDate.setDate(baseDate.getDate() + (i * 30)); // 30 dias para faturas
                 pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
@@ -1031,8 +1031,11 @@
             
             document.getElementById('out-name').innerText = name.toUpperCase();
             document.getElementById('out-id').innerText = idCli.toUpperCase();
+            
+            let vTele = document.getElementById('in-tele').value.toUpperCase();
+            document.getElementById('out-tele').innerText = vTele !== "" ? vTele : "NÃO INFORMADO";
+            
             document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
-            document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
             document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
             
             if (currentMode === 'clientes') {
@@ -1302,10 +1305,7 @@
             await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes });
             alert("Cargo Criado!");
             document.getElementById('role-name-input').value = "";
-            
-            // Limpa as checkboxes
             document.querySelectorAll('.role-check-group input[type="checkbox"]').forEach(cb => cb.checked = false);
-            
             window.carregarUsuariosAdmin(); 
         } catch(e) { alert("Erro ao criar cargo."); }
     };
@@ -1316,10 +1316,8 @@
         try {
             await deleteDoc(doc(db, "cargos", cargoId));
             alert("Cargo apagado com sucesso!");
-            window.carregarUsuariosAdmin(); // Recarrega a tela de admin toda
-        } catch(e) {
-            alert("Erro ao apagar cargo.");
-        }
+            window.carregarUsuariosAdmin(); 
+        } catch(e) { alert("Erro ao apagar cargo."); }
     };
 
     window.aprovarVendedor = async function(docId) {
@@ -1685,6 +1683,13 @@
             const numPedido = `${prefix} ${String(seqFatura).padStart(5, '0')}/${anoAtual}`;
 
             let parcelasArray = [];
+            
+            // Tratamento de Entrada
+            if (entryVal > 0) {
+                parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pago' });
+            }
+
+            // Tratamento das Parcelas Restantes
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorDaParcela = valorFinanciado / numParcelas;
                 const dataBaseInput = document.getElementById('first-payment-date').value;
@@ -1692,9 +1697,12 @@
                 
                 for(let i=0; i < numParcelas; i++) {
                     let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 2));
+                    nextDate.setDate(baseDate.getDate() + (i * 30)); // 30 dias para as parcelas
                     parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: formatDate(nextDate), status: 'pendente' });
                 }
+            } else if (valorFinanciado > 0) {
+                // Pagamento 1x (À Vista) do valor total (ou valor restante após a entrada)
+                parcelasArray.push({ numero: 1, valor: valorFinanciado, vencimento: dataHoje, status: 'pago' });
             }
 
             await addDoc(collection(db, dbNameOp), {
@@ -1728,6 +1736,16 @@
     // =====================================
     // 4. ABA CREDIÁRIO / CONTAS A PAGAR
     // =====================================
+    function isAtrasada(dataStr) {
+        if(typeof dataStr !== 'string' || !dataStr) return false;
+        const parts = dataStr.split('/');
+        if(parts.length !== 3) return false;
+        const vencimento = new Date(parts[2], parts[1] - 1, parts[0]);
+        const hoje = new Date();
+        hoje.setHours(0,0,0,0);
+        return vencimento < hoje;
+    }
+
     window.aplicarFiltroCrediario = async function() {
         const isContas = (currentMode === 'contas_pagar');
         const dbName = isContas ? "compras" : "vendas";
@@ -1773,12 +1791,16 @@
                 listContainer.innerHTML = html;
                 return;
             } else if (filtro === 'NEGATIVE_CREDIT' && isContas) {
-                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro de Limite não se aplica a Fornecedores.</div>";
+                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>";
                 return;
             }
 
             let q = collection(db, dbName);
-            if (filtro === 'CLIENT_ONLY') q = query(collection(db, dbName), where("cliente_doc_id", "==", window.pessoaSelecionada.firebase_doc_id));
+            if (filtro === 'CLIENT_ONLY') {
+                const cliId = window.pessoaSelecionada.firebase_doc_id;
+                if (!cliId) throw new Error("Documento não encontrado");
+                q = query(collection(db, dbName), where("cliente_doc_id", "==", cliId));
+            }
             
             const snap = await getDocs(q);
             let htmlList = "";
@@ -1791,15 +1813,17 @@
             
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD contra faturas defeituosas sem a lista de parcelas
+                    // SAFEGUARD
                     if (Array.isArray(venda.parcelas) && venda.parcelas.length > 0) {
                         
                         if (filtro === 'CLIENT_ONLY') {
                             venda.parcelas.forEach(p => {
                                 if (p && p.status !== 'pago') {
                                     const val = parseFloat(p.valor || 0);
-                                    totalReceber += val;
-                                    if (isAtrasada(p.vencimento)) totalAtraso += val;
+                                    if (!isNaN(val)) {
+                                        totalReceber += val;
+                                        if (isAtrasada(p.vencimento)) totalAtraso += val;
+                                    }
                                 }
                             });
                             let temPendente = false;
@@ -1822,7 +1846,7 @@
                         if(parcelasFiltradas.length > 0) {
                             temFatura = true;
                             
-                            // SAFEGUARD contra faturas antigas sem a lista de 'itens'
+                            // SAFEGUARD
                             let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                             let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
                             
@@ -1884,12 +1908,12 @@
             if(temFatura) {
                 listContainer.innerHTML = htmlList;
                 if(filtro === 'CLIENT_ONLY') {
-                    document.getElementById('placar-receber').innerText = `$${totalReceber.toFixed(2)}`;
-                    document.getElementById('placar-atraso').innerText = `$${totalAtraso.toFixed(2)}`;
+                    document.getElementById('placar-receber').innerText = `$${(isNaN(totalReceber) ? 0 : totalReceber).toFixed(2)}`;
+                    document.getElementById('placar-atraso').innerText = `$${(isNaN(totalAtraso) ? 0 : totalAtraso).toFixed(2)}`;
                     placar.style.display = "block";
                 }
             } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
-        } catch(e) { console.error(e); listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados no Crediário/Contas. Verifique o console.</div>"; }
+        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato. Contate suporte.</div>`; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
