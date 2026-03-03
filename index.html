@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ferraria Cusco - Sistema Interno</title>
+    <title>Ferraria Cusco - Sistema Integrado</title>
     <link rel="icon" type="image/png" href="https://i.imgur.com/bQAy1gG.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --primary: #f59e0b;
-            --secondary: #3b82f6;
-            --buy: #10b981;
-            --clientes: #8b5cf6;
-            --crediario: #14b8a6;
-            --admin: #ef4444;
-            --balanco: #eab308; /* Dourado/Amarelo para o dinheiro */
+            --primary: #f59e0b; /* Vendas */
+            --secondary: #3b82f6; /* Produção */
+            --buy: #10b981; /* Compras */
+            --clientes: #8b5cf6; /* Clientes */
+            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
+            --crediario: #14b8a6; /* Crediario */
+            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
+            --balanco: #eab308; /* Balanço */
+            --admin: #ef4444; /* Admin */
             --bg: #121212;
             --card: #1e1e1e;
             --text: #ffffff;
@@ -23,7 +25,6 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh;}
         
-        /* BLOQUEIOS ANTI-CÓPIA */
         body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
         input, select, textarea { -webkit-user-select: text; -ms-user-select: text; user-select: text; }
 
@@ -37,30 +38,34 @@
         .auth-link { color: #aaa; font-size: 0.8rem; margin-top: 15px; cursor: pointer; text-decoration: underline; }
         
         /* SISTEMA PRINCIPAL */
-        #main-app { width: 100%; max-width: 1200px; display: none; flex-direction: column; align-items: center; }
+        #main-app { width: 100%; max-width: 1250px; display: none; flex-direction: column; align-items: center; }
 
-        .nav-tabs { width: 100%; display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .tab-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; color: white; opacity: 0.4; border: 1px solid rgba(255,255,255,0.1); min-width: 130px; }
+        .nav-tabs { width: 100%; display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;}
+        .tab-btn { padding: 12px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; color: white; opacity: 0.4; border: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem;}
         .tab-btn.active { opacity: 1; border: 1px solid white; }
+        
         .btn-vendas { background: var(--primary); color: black; }
         .btn-producao { background: var(--secondary); }
-        .btn-compras { background: var(--buy); }
+        .btn-compras { background: var(--buy); color: black;}
         .btn-clientes { background: var(--clientes); }
+        .btn-fornecedores { background: var(--fornecedores); }
         .btn-crediario { background: var(--crediario); color: black; }
+        .btn-contas_pagar { background: var(--contas); }
         .btn-balanco { background: var(--balanco); color: black; display: none; }
         .btn-admin { background: var(--admin); display: none; }
 
-        /* Container Dinâmico e Focus Mode */
-        .shop-container { width: 100%; display: grid; grid-template-columns: 1fr 420px; gap: 20px; transition: 0.3s; }
+        .shop-container { width: 100%; display: grid; grid-template-columns: 1fr 420px; gap: 20px; transition: 0.3s; align-items: start;}
         .centered-mode { display: flex !important; flex-direction: column; align-items: center; }
-        .centered-mode .cart-panel { width: 100%; max-width: 700px; }
+        .centered-mode .cart-panel { width: 100%; max-width: 750px; }
         
         header { width: 100%; box-sizing: border-box; background: var(--card); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
         .header-left { display: flex; align-items: center; gap: 20px; }
         .header-producao { border-left-color: var(--secondary) !important; }
         .header-compras { border-left-color: var(--buy) !important; }
         .header-clientes { border-left-color: var(--clientes) !important; }
+        .header-fornecedores { border-left-color: var(--fornecedores) !important; }
         .header-crediario { border-left-color: var(--crediario) !important; }
+        .header-contas_pagar { border-left-color: var(--contas) !important; }
         .header-balanco { border-left-color: var(--balanco) !important; }
         .header-admin { border-left-color: var(--admin) !important; }
 
@@ -72,7 +77,6 @@
 
         /* Telas Principais */
         .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; width: 100%; }
-        
         .item-card { background: var(--item-bg); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; transition: 0.2s; }
         .product-img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; }
         .buy-inputs { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px; }
@@ -97,13 +101,13 @@
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
         .info-group label { font-size: 0.75rem; color: #ccc; margin-bottom: 3px; display: block; font-weight: bold;}
 
+        /* Estatísticas da Pessoa */
         .client-stats { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; border-left: 3px solid var(--clientes); display: none; margin-top: 5px; }
         .stat-line { font-size: 0.8rem; color: #aaa; margin-bottom: 6px; display: flex; justify-content: space-between; }
         .stat-val { color: white; font-weight: bold; }
         .stat-credit { color: var(--buy); font-size: 1.1rem; }
         .stat-credit.negative { color: #ef4444; }
 
-        /* Lista de Clientes (Paginação) */
         .all-clients-panel { margin-top: 25px; border-top: 2px solid #444; padding-top: 20px; display: none; flex-direction: column; gap: 10px; }
         .client-list-item { background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 10px 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;}
         .client-list-item:hover { background: rgba(0,0,0,0.6); border-color: var(--clientes); }
@@ -137,7 +141,7 @@
         .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
         .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Lista de Crediário */
+        /* Lista de Crediário / Contas a Pagar */
         .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
         .crediario-filters label { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--crediario); display: block; margin-bottom: 8px; }
         .crediario-list { display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
@@ -150,6 +154,7 @@
         .fatura-parcela.pago { border-left: 3px solid var(--buy); opacity: 0.6; }
         .fatura-parcela.pendente { border-left: 3px solid var(--primary); }
         .btn-pay { background: var(--buy); color: black; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
+        
         .print-header { display: none; flex-direction: column; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; }
 
         /* ABA BALANÇO FINANCEIRO */
@@ -219,12 +224,20 @@
 <div id="main-app">
     <div class="nav-tabs">
         <button class="tab-btn btn-vendas active" onclick="switchSystem('vendas')">Vendas</button>
-        <button class="tab-btn btn-producao" onclick="switchSystem('producao')">Cálculo de Produção</button>
-        <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Encomenda de Insumos</button>
+        <button class="tab-btn btn-producao" onclick="switchSystem('producao')">Produção</button>
         <button class="tab-btn btn-clientes" onclick="switchSystem('clientes')">Clientes</button>
-        <button class="tab-btn btn-crediario" onclick="switchSystem('crediario')">Crediário</button>
+        <button class="tab-btn btn-crediario" onclick="switchSystem('crediario')">Crediário (A Receber)</button>
+        
+        <div style="width: 1px; background: #333; margin: 0 5px;"></div>
+        
+        <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Compras</button>
+        <button class="tab-btn btn-fornecedores" onclick="switchSystem('fornecedores')">Fornecedores</button>
+        <button class="tab-btn btn-contas_pagar" onclick="switchSystem('contas_pagar')">Contas a Pagar</button>
+        
+        <div style="width: 1px; background: #333; margin: 0 5px;"></div>
+
         <button class="tab-btn btn-balanco" id="tab-balanco" onclick="switchSystem('balanco')">Balanço</button>
-        <button class="tab-btn btn-admin" id="tab-admin" onclick="switchSystem('gerenciamento')">Gerenciamento</button>
+        <button class="tab-btn btn-admin" id="tab-admin" onclick="switchSystem('gerenciamento')">Admin</button>
     </div>
 
     <header id="main-header" style="max-width: 1200px; width:100%;">
@@ -242,35 +255,36 @@
     </header>
 
     <div class="balanco-panel" id="balanco-panel">
-        <h2 style="color: var(--balanco); margin-top: 0; margin-bottom: 5px;">Painel Financeiro</h2>
-        <p style="color: #aaa; font-size: 0.9rem; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">Resumo consolidado do caixa da Ferraria (Valores Líquidos Recebidos).</p>
+        <h2 style="color: var(--balanco); margin-top: 0; margin-bottom: 5px;">Painel Financeiro (DRE)</h2>
+        <p style="color: #aaa; font-size: 0.9rem; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">Resumo consolidado do caixa da Ferraria.</p>
         
         <div class="balanco-dashboard">
-            <div class="balanco-card">
-                <h4>Saldo Anterior (Até Mês Passado)</h4>
-                <h2 id="bal-anterior">$0.00</h2>
+            <div class="balanco-card" style="border-left-color: var(--primary);">
+                <h4>Total Entradas (Vendas)</h4>
+                <h2 id="bal-entradas" style="color: var(--primary);">$0.00</h2>
             </div>
-            <div class="balanco-card" style="border-left-color: var(--buy);">
-                <h4>Entradas do Mês Atual</h4>
-                <h2 id="bal-mes" style="color: var(--buy);">$0.00</h2>
+            <div class="balanco-card" style="border-left-color: var(--contas);">
+                <h4>Total Saídas (Compras)</h4>
+                <h2 id="bal-saidas" style="color: var(--contas);">$0.00</h2>
             </div>
             <div class="balanco-card" style="border-left-color: var(--balanco);">
-                <h4>Saldo Atual (Caixa Total)</h4>
-                <h2 id="bal-atual" style="color: var(--balanco);">$0.00</h2>
+                <h4>Saldo Líquido Real</h4>
+                <h2 id="bal-liquido" style="color: var(--balanco);">$0.00</h2>
             </div>
         </div>
 
-        <h3 style="color: #ccc; margin-top: 30px;">Histórico por Mês</h3>
+        <h3 style="color: #ccc; margin-top: 30px;">Histórico de Caixa por Mês</h3>
         <table class="admin-table">
             <thead>
                 <tr>
                     <th style="color: var(--balanco);">Mês/Ano</th>
-                    <th style="color: var(--balanco);">Total Vendido (Bruto)</th>
-                    <th style="color: var(--balanco);">Total Recebido (Caixa)</th>
+                    <th style="color: var(--primary);">Receitas (Entrou)</th>
+                    <th style="color: var(--contas);">Despesas (Saiu)</th>
+                    <th style="color: var(--balanco);">Lucro do Mês</th>
                 </tr>
             </thead>
             <tbody id="balanco-table-body">
-                <tr><td colspan="3" style="text-align:center;">Carregando dados...</td></tr>
+                <tr><td colspan="4" style="text-align:center;">Carregando dados...</td></tr>
             </tbody>
         </table>
     </div>
@@ -292,16 +306,16 @@
                 <h3 style="color: var(--buy); margin-top: 0;">Criar / Editar Cargos (Níveis)</h3>
                 <input type="text" id="role-name-input" placeholder="Nome do Cargo (Ex: Gerente)" class="pay-select" style="width: 100%;">
                 
-                <div class="role-title">Gerenciamento de Clientes</div>
+                <div class="role-title">Gerenciamento de Clientes e Fornecedores</div>
                 <div class="role-check-group">
-                    <label><input type="checkbox" id="perm_cli_add"> Cadastro de Clientes</label>
-                    <label><input type="checkbox" id="perm_cli_edit"> Edição de Clientes</label>
-                    <label><input type="checkbox" id="perm_cli_del"> Exclusão de Clientes</label>
+                    <label><input type="checkbox" id="perm_cli_add"> Cadastrar Clientes/Fornecedores</label>
+                    <label><input type="checkbox" id="perm_cli_edit"> Editar Clientes/Fornecedores</label>
+                    <label><input type="checkbox" id="perm_cli_del"> Excluir Clientes/Fornecedores</label>
                 </div>
 
-                <div class="role-title">Gerenciamento de Faturas</div>
+                <div class="role-title">Gerenciamento de Faturas (Crediário / Contas a Pagar)</div>
                 <div class="role-check-group">
-                    <label><input type="checkbox" id="perm_fat_pay"> Receber parcela</label>
+                    <label><input type="checkbox" id="perm_fat_pay"> Dar Baixa / Pagar parcela</label>
                     <label><input type="checkbox" id="perm_fat_del"> Apagar fatura inteira</label>
                 </div>
 
@@ -349,10 +363,10 @@
             <div class="crediario-filters" id="crediario-filters">
                 <label>Modo de Visualização (Filtro)</label>
                 <select id="crediario-filter-select" class="category-select" style="border-color: var(--crediario); margin-bottom: 5px;" onchange="aplicarFiltroCrediario()">
-                    <option value="CLIENT_ONLY">Por Cliente Específico (Buscar Abaixo)</option>
+                    <option value="CLIENT_ONLY">Por Cadastro Específico (Buscar Abaixo)</option>
                     <option value="ALL_LATE">🚨 ALERTAS: Parcelas Atrasadas</option>
-                    <option value="NEGATIVE_CREDIT">🚨 ALERTAS: Clientes com Limite Negativo</option>
-                    <option value="ALL_PENDING">📊 GERAL: Todas as Parcelas a Receber</option>
+                    <option value="NEGATIVE_CREDIT">🚨 ALERTAS: Limites Estourados</option>
+                    <option value="ALL_PENDING">📊 GERAL: Todas as Parcelas em Aberto</option>
                 </select>
                 <div id="sub-filter-crediario" style="display:none; margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px;">
                     <label style="color: #aaa;">Quais faturas exibir no extrato?</label>
@@ -365,35 +379,54 @@
 
             <div class="client-info" id="info-contato">
                 <div class="info-group">
-                    <label>Pesquisar Cliente (Nome ou ID)</label>
+                    <label id="lbl-pesquisa-nome">Pesquisar Cliente (Nome ou ID)</label>
                     <div style="display: flex; gap: 5px; width: 100%; position: relative;">
-                        <input type="text" id="in-name" placeholder="NOME DO CLIENTE" style="flex: 1;">
-                        <button id="search-client-btn" onclick="buscarClienteFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar Cliente">🔍</button>
+                        <input type="text" id="in-name" placeholder="NOME" style="flex: 1;">
+                        <button id="search-client-btn" onclick="buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar">🔍</button>
                         <div id="search-results-box" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; z-index: 1000; max-height: 180px; overflow-y: auto; margin-top: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"></div>
                     </div>
                     <span id="out-name" class="display-data"></span>
                 </div>
                 
                 <div class="info-group" id="group-id">
-                    <label>ID do Cliente</label>
+                    <label id="lbl-pesquisa-id">ID do Cliente</label>
                     <div style="display: flex; gap: 5px; width: 100%;">
                         <input type="text" id="in-id" placeholder="Ex: 1234" style="flex: 1;">
-                        <button id="search-id-btn" onclick="buscarClienteFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar por ID">🔍</button>
+                        <button id="search-id-btn" onclick="buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar por ID">🔍</button>
                     </div>
                     <span id="out-id" class="display-data"></span>
                 </div>
 
                 <div class="info-group">
-                    <label>Telegrama</label>
+                    <label>Contato / Telegrama</label>
                     <input type="text" id="in-tele" placeholder="POMBO">
                     <span id="out-tele" class="display-data"></span>
                 </div>
-                <div class="info-group">
-                    <label>Discord</label>
-                    <input type="text" id="in-disc" placeholder="USUARIO#0000">
+                
+                <div class="info-group" id="group-disc">
+                    <label>Discord / Detalhes</label>
+                    <input type="text" id="in-disc" placeholder="INFO EXTRA">
                     <span id="out-disc" class="display-data"></span>
                 </div>
+
+                <div class="info-group">
+                    <label>Conta / Faturamento</label>
+                    <input type="text" id="in-conta" placeholder="LOCAL DE REGISTRO DA CONTA">
+                    <span id="out-conta" class="display-data"></span>
+                </div>
                 
+                <div class="info-group" id="group-categoria" style="display: none;">
+                    <label style="color: var(--fornecedores)">Empresa do Fornecedor</label>
+                    <select id="in-categoria" class="pay-select" style="margin-bottom: 5px; border-color: var(--fornecedores);">
+                        <option value="Fazendas">FAZENDAS</option>
+                        <option value="Mineradoras">MINERADORAS</option>
+                        <option value="Artesanatos">ARTESANATOS</option>
+                        <option value="Madeireiras">MADEIREIRAS</option>
+                        <option value="Outros">OUTROS</option>
+                    </select>
+                    <span id="out-categoria" class="display-data" style="color: var(--fornecedores)"></span>
+                </div>
+
                 <div class="info-group" id="group-nivel" style="display: none;">
                     <label style="color: var(--clientes)">Nível do Cliente</label>
                     <select id="in-nivel" class="pay-select" style="margin-bottom: 5px; border-color: var(--clientes);">
@@ -416,16 +449,19 @@
                 </div>
 
                 <div class="client-stats" id="client-stats">
-                    <div class="stat-line"><span>Número do Cliente:</span> <span class="stat-val" id="stat-numcli" style="color:var(--primary)">--</span></div>
-                    <div class="stat-line"><span>Cliente desde:</span> <span class="stat-val" id="stat-desde">--/--/----</span></div>
-                    <div class="stat-line"><span>Última compra:</span> <span class="stat-val" id="stat-ultima">--/--/----</span></div>
-                    <div class="stat-line"><span>Total comprado:</span> <span class="stat-val" style="color:var(--buy)">$<span id="stat-totalcompras">0.00</span></span></div>
-                    <div style="border-top: 1px dashed #555; margin: 8px 0;"></div>
-                    <div class="stat-line"><span>Nível:</span> <span class="stat-val" id="stat-nivel" style="color: var(--clientes)">FERRO</span></div>
-                    <div class="stat-line"><span>Bônus:</span> <span class="stat-val">$<span id="stat-bonus">0.00</span></span></div>
-                    <div class="stat-line" style="font-size: 0.7rem; margin-top:5px;"><span>Limite Total:</span> <span>$<span id="stat-limite">1000.00</span></span></div>
-                    <div class="stat-line" style="margin-top: 5px;">Crédito Disponível:</div>
-                    <div class="stat-val stat-credit" id="stat-credito">$1000.00</div>
+                    <div class="stat-line"><span>Número de Cadastro:</span> <span class="stat-val" id="stat-numcli" style="color:var(--primary)">--</span></div>
+                    <div class="stat-line"><span>Registrado em:</span> <span class="stat-val" id="stat-desde">--/--/----</span></div>
+                    <div class="stat-line"><span>Última Operação:</span> <span class="stat-val" id="stat-ultima">--/--/----</span></div>
+                    <div class="stat-line"><span>Total Movimentado:</span> <span class="stat-val" style="color:var(--buy)">$<span id="stat-totalcompras">0.00</span></span></div>
+                    
+                    <div id="estatisticas-cliente-only">
+                        <div style="border-top: 1px dashed #555; margin: 8px 0;"></div>
+                        <div class="stat-line"><span>Nível:</span> <span class="stat-val" id="stat-nivel" style="color: var(--clientes)">FERRO</span></div>
+                        <div class="stat-line"><span>Bônus:</span> <span class="stat-val">$<span id="stat-bonus">0.00</span></span></div>
+                        <div class="stat-line" style="font-size: 0.7rem; margin-top:5px;"><span>Limite Total:</span> <span>$<span id="stat-limite">1000.00</span></span></div>
+                        <div class="stat-line" style="margin-top: 5px;">Crédito Disponível:</div>
+                        <div class="stat-val stat-credit" id="stat-credito">$1000.00</div>
+                    </div>
                 </div>
             </div>
 
@@ -447,7 +483,7 @@
 
                 <div class="entry-group" id="entry-checkbox-group">
                     <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
-                    <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada?</label>
+                    <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada (Sinal)?</label>
                 </div>
                 <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
                 <div id="parcel-details" class="parcel-info" style="display:none"></div>
@@ -457,7 +493,7 @@
             
             <div id="crediario-placar" style="display:none; background:rgba(20, 184, 166, 0.1); border: 1px solid var(--crediario); padding: 15px; border-radius: 8px; margin-top: 15px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                    <span style="color:#aaa; font-size:0.85rem;">Total a Receber:</span>
+                    <span style="color:#aaa; font-size:0.85rem;" id="lbl-placar-total">Total a Receber:</span>
                     <span style="color:var(--crediario); font-weight:bold; font-size:1.1rem;" id="placar-receber">$0.00</span>
                 </div>
                 <div style="display: flex; justify-content: space-between;">
@@ -477,11 +513,12 @@
                 <button id="btn-refresh" class="btn-outline" style="color: var(--secondary); border-color: var(--secondary);" onclick="updateUI()">ATUALIZAR PEDIDO</button>
                 <button id="btn-transfer" class="btn-solid" style="background: var(--secondary); display: none;" onclick="transferToCompras()">TRANSFERIR PARA COMPRAS</button>
 
-                <button id="btn-save-venda" class="btn-solid" style="background: #059669;" onclick="finalizarVenda()">FINALIZAR E SALVAR VENDA</button>
+                <button id="btn-save-venda" class="btn-solid" style="background: #059669; display: none;" onclick="finalizarOperacao()">FINALIZAR E SALVAR VENDA</button>
+                <button id="btn-save-compra" class="btn-solid" style="background: var(--buy); color:black; display: none;" onclick="finalizarOperacao()">FINALIZAR COMPRA NO FORNECEDOR</button>
                 
-                <button id="btn-db-create" class="btn-solid" style="background: var(--clientes); display: none;" onclick="salvarClienteFirebase()">CADASTRAR NOVO CLIENTE</button>
-                <button id="btn-db-update" class="btn-solid" style="background: var(--secondary); display: none;" onclick="atualizarClienteFirebase()">ATUALIZAR CLIENTE</button>
-                <button id="btn-db-delete" class="btn-solid" style="background: #ef4444; display: none;" onclick="deletarClienteFirebase()">EXCLUIR CLIENTE</button>
+                <button id="btn-db-create" class="btn-solid" style="background: var(--clientes); display: none;" onclick="salvarPessoaFirebase()">CADASTRAR</button>
+                <button id="btn-db-update" class="btn-solid" style="background: var(--secondary); display: none;" onclick="atualizarPessoaFirebase()">ATUALIZAR CADASTRO</button>
+                <button id="btn-db-delete" class="btn-solid" style="background: #ef4444; display: none;" onclick="deletarPessoaFirebase()">EXCLUIR CADASTRO</button>
 
                 <button id="btn-img-only" class="btn-outline" style="color: white; border-color: white;" onclick="generateImage()">SALVAR IMAGEM / EXTRATO</button>
                 <button id="btn-clear" class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="clearCart()">LIMPAR ABA ATUAL</button>
@@ -489,7 +526,7 @@
 
             <div class="all-clients-panel" id="all-clients-panel">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="color: var(--clientes); margin: 0;">Todos os Clientes</h3>
+                    <h3 style="color: var(--clientes); margin: 0;" id="lbl-lista-pessoas">Todos os Registros</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <label style="font-size: 0.75rem; color: #aaa;">Mostrar:</label>
                         <select id="client-per-page" class="pay-select" style="margin: 0; padding: 5px; width: auto;" onchange="changeItemsPerPage()">
@@ -501,11 +538,11 @@
                         </select>
                     </div>
                 </div>
-                <select id="client-sort" class="pay-select" onchange="loadAllClients()">
+                <select id="client-sort" class="pay-select" onchange="loadAllPessoas()">
                     <option value="data">Ordenar por Data de Registro</option>
                     <option value="nome">Ordenar por Ordem Alfabética</option>
-                    <option value="credito">Ordenar por Maior Limite</option>
                     <option value="id">Ordenar por ID</option>
+                    <option value="credito" id="sort-opt-credito">Ordenar por Maior Limite</option>
                 </select>
                 <div id="full-client-list-render" style="display:flex; flex-direction:column; gap:8px;"></div>
                 
@@ -521,14 +558,14 @@
 
 <script>
     // =====================================
-    // UI DO SISTEMA (NÃO-FIREBASE)
+    // UI DO SISTEMA (FRONT-END)
     // =====================================
     let currentMode = 'vendas';
     let carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
-    window.clienteSelecionado = null; 
+    window.pessoaSelecionada = null; 
     
     // Variáveis de Paginação
-    window.allClientsData = [];
+    window.allPessoasData = [];
     window.currentPage = 1;
     window.itemsPerPage = 10;
 
@@ -598,19 +635,21 @@
         const tabBtn = document.querySelector(`.btn-${mode}`);
         if(tabBtn) tabBtn.classList.add('active');
         
-        const isBuy = mode === 'compras';
-        const isProd = mode === 'producao';
-        const isCli = mode === 'clientes'; 
-        const isCred = mode === 'crediario';
         const isVend = mode === 'vendas';
-        const isAdm = mode === 'gerenciamento';
+        const isProd = mode === 'producao';
+        const isBuy = mode === 'compras';
+        const isCli = mode === 'clientes'; 
+        const isForn = mode === 'fornecedores'; 
+        const isCred = mode === 'crediario';
+        const isCont = mode === 'contas_pagar';
         const isBal = mode === 'balanco';
+        const isAdm = mode === 'gerenciamento';
         
         const header = document.getElementById('main-header');
         const internalTitle = document.getElementById('internal-title');
         header.className = '';
         
-        // Reset Base Displays
+        // Reset Displays Full
         document.getElementById('catalog').style.display = "none";
         document.getElementById('filter-bar').style.display = "none";
         document.getElementById('crediario-filters').style.display = "none";
@@ -621,6 +660,8 @@
         document.getElementById('total-border').style.display = "none";
         document.getElementById('group-nivel').style.display = "none";
         document.getElementById('group-bonus').style.display = "none";
+        document.getElementById('group-categoria').style.display = "none";
+        document.getElementById('estatisticas-cliente-only').style.display = "none";
         document.getElementById('info-contato').style.display = "none";
         document.getElementById('admin-panel').style.display = "none";
         document.getElementById('balanco-panel').style.display = "none";
@@ -630,17 +671,23 @@
         document.getElementById('btn-refresh').style.display = "none";
         document.getElementById('btn-transfer').style.display = "none";
         document.getElementById('btn-save-venda').style.display = "none";
+        document.getElementById('btn-save-compra').style.display = "none";
         document.getElementById('btn-img-only').style.display = "none";
         document.getElementById('btn-db-create').style.display = "none";
         document.getElementById('btn-db-update').style.display = "none";
         document.getElementById('btn-db-delete').style.display = "none";
 
-        // Layout Container
         const cont = document.getElementById('shop-container');
-        if (isCli || isCred) cont.classList.add('centered-mode');
+        if (isCli || isCred || isForn || isCont) cont.classList.add('centered-mode');
         else cont.classList.remove('centered-mode');
 
-        // Lógica de Abas
+        // Dynamic Labels for People
+        const isSupplierMode = (isBuy || isForn || isCont);
+        document.getElementById('lbl-pesquisa-nome').innerText = isSupplierMode ? "Pesquisar Fornecedor (Nome/ID)" : "Pesquisar Cliente (Nome/ID)";
+        document.getElementById('lbl-pesquisa-id').innerText = isSupplierMode ? "ID do Fornecedor" : "ID do Cliente";
+        document.getElementById('lbl-lista-pessoas').innerText = isSupplierMode ? "Todos os Fornecedores" : "Todos os Clientes";
+        document.getElementById('sort-opt-credito').style.display = isSupplierMode ? "none" : "block";
+
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
@@ -662,42 +709,68 @@
             }
             if (isBuy) {
                 document.getElementById('filter-bar').style.display = "flex";
+                document.getElementById('payment-box').style.display = "block"; 
+                document.getElementById('info-contato').style.display = "flex"; 
                 document.getElementById('total-border').style.display = "flex";
                 document.getElementById('btn-refresh').style.display = "block";
+                document.getElementById('btn-save-compra').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+                document.getElementById('in-id').disabled = false;
             }
         }
-        else if (isCli) {
+        else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
-            document.getElementById('group-nivel').style.display = "block";
-            document.getElementById('group-bonus').style.display = "block";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false; // Sempre aberto para pesquisa ou criação
+            document.getElementById('in-id').disabled = false;
             
-            if (window.clienteSelecionado) { 
+            if (isCli) {
+                document.getElementById('group-nivel').style.display = "block";
+                document.getElementById('group-bonus').style.display = "block";
+                document.getElementById('estatisticas-cliente-only').style.display = "block";
+                document.getElementById('btn-db-create').innerText = "CADASTRAR CLIENTE";
+            } else {
+                document.getElementById('group-categoria').style.display = "block";
+                document.getElementById('btn-db-create').innerText = "CADASTRAR FORNECEDOR";
+            }
+
+            if (window.pessoaSelecionada) { 
                 if(uiHasPerm('cli_edit')) document.getElementById('btn-db-update').style.display = "block";
                 if(uiHasPerm('cli_del')) document.getElementById('btn-db-delete').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR FICHA";
             } else { 
-                document.getElementById('in-nivel').value = "FERRO";
-                document.getElementById('in-bonus').value = "0";
+                if(isCli) { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; }
+                else { document.getElementById('in-categoria').value = "Fazendas"; }
                 if(uiHasPerm('cli_add')) document.getElementById('btn-db-create').style.display = "block";
             }
-            if(typeof window.loadAllClients === 'function') window.loadAllClients();
+            if(typeof window.loadAllPessoas === 'function') window.loadAllPessoas();
         }
-        else if (isCred) {
+        else if (isCred || isCont) {
             document.getElementById('crediario-filters').style.display = "block";
             document.getElementById('crediario-list').style.display = "flex";
+            
+            if (isCont) {
+                document.getElementById('lbl-placar-total').innerText = "Total a Pagar:";
+                document.getElementById('crediario-filter-select').options[2].text = "🚨 ALERTAS: Faturas de Compras Antigas"; 
+            } else {
+                document.getElementById('lbl-placar-total').innerText = "Total a Receber:";
+                document.getElementById('crediario-filter-select').options[2].text = "🚨 ALERTAS: Clientes com Limite Negativo";
+            }
+
             if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
                 document.getElementById('info-contato').style.display = "flex";
                 document.getElementById('in-id').disabled = false;
-                if (window.clienteSelecionado) {
+                if (window.pessoaSelecionada) {
                     document.getElementById('btn-img-only').style.display = "block";
                     document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
                 }
             }
+        }
+        else if (isBal) {
+            document.getElementById('balanco-panel').style.display = "block";
+            document.getElementById('cart-capture').style.display = "none";
+            if(typeof window.carregarBalanco === 'function') window.carregarBalanco();
         }
         else if (isAdm) {
             document.getElementById('admin-panel').style.display = "block";
@@ -705,33 +778,32 @@
             if(typeof window.carregarUsuariosAdmin === 'function') window.carregarUsuariosAdmin();
             if(typeof window.carregarCargosAdmin === 'function') window.carregarCargosAdmin();
         }
-        else if (isBal) {
-            document.getElementById('balanco-panel').style.display = "block";
-            document.getElementById('cart-capture').style.display = "none";
-            if(typeof window.carregarBalanco === 'function') window.carregarBalanco();
-        }
 
         // Títulos e Cores do Header
         if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO"; } 
-        else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('cart-title').innerText = "🛒 LISTA DE ENCOMENDA"; } 
+        else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('cart-title').innerText = "🛒 RECEBIMENTO DE ENCOMENDA"; } 
         else if(isCli) { header.classList.add('header-clientes'); internalTitle.style.color = "var(--clientes)"; document.getElementById('cart-title').innerText = "👥 CADASTRO DE CLIENTES"; } 
+        else if(isForn) { header.classList.add('header-fornecedores'); internalTitle.style.color = "var(--fornecedores)"; document.getElementById('cart-title').innerText = "🏭 CADASTRO DE FORNECEDORES"; } 
         else if(isCred) { header.classList.add('header-crediario'); internalTitle.style.color = "var(--crediario)"; document.getElementById('cart-title').innerText = "💳 CONTROLE DE CREDIÁRIO"; } 
-        else if(isAdm) { header.classList.add('header-admin'); }
+        else if(isCont) { header.classList.add('header-contas_pagar'); internalTitle.style.color = "var(--contas)"; document.getElementById('cart-title').innerText = "🧾 CONTAS A PAGAR (DESPESAS)"; } 
         else if(isBal) { header.classList.add('header-balanco'); }
+        else if(isAdm) { header.classList.add('header-admin'); }
         else { internalTitle.style.color = "var(--primary)"; document.getElementById('cart-title').innerText = "📋 RESUMO DO PEDIDO"; document.getElementById('pay-label').style.color = "var(--primary)"; document.getElementById('date-label').style.color = "var(--primary)"; }
 
         let borderColor = "var(--primary)";
         if(isBuy) borderColor = "var(--buy)";
         if(isProd) borderColor = "var(--secondary)";
         if(isCli) borderColor = "var(--clientes)";
+        if(isForn) borderColor = "var(--fornecedores)";
         if(isCred) borderColor = "var(--crediario)";
+        if(isCont) borderColor = "var(--contas)";
         
         document.getElementById('total-border').style.borderTopColor = borderColor;
         document.getElementById('total-border').style.color = borderColor;
 
-        if(!isCli && !isCred && !isAdm && !isBal) renderCatalog();
+        if(!isCli && !isForn && !isCred && !isCont && !isAdm && !isBal) renderCatalog();
         if(isVend || isBuy || isProd) updateUI(); 
-        if(isCred && typeof window.aplicarFiltroCrediario === 'function') window.aplicarFiltroCrediario();
+        if((isCred || isCont) && typeof window.aplicarFiltroCrediario === 'function') window.aplicarFiltroCrediario();
     }
 
     function renderCatalog() {
@@ -827,11 +899,14 @@
         document.getElementById('in-id').value = ""; 
         document.getElementById('in-tele').value = ""; 
         document.getElementById('in-disc').value = "";
+        document.getElementById('in-conta').value = "";
         
         if (currentMode === 'clientes') {
             document.getElementById('in-nivel').value = "FERRO";
             document.getElementById('in-bonus').value = "0";
-            document.getElementById('in-id').disabled = false;
+        }
+        if (currentMode === 'fornecedores') {
+            document.getElementById('in-categoria').value = "Fazendas";
         }
         
         document.getElementById('has-entry').checked = false; 
@@ -843,7 +918,7 @@
         document.getElementById('crediario-list').innerHTML = "";
         document.getElementById('crediario-placar').style.display = "none";
         
-        window.clienteSelecionado = null;
+        window.pessoaSelecionada = null;
         switchSystem(currentMode);
     }
 
@@ -859,7 +934,7 @@
     }
 
     function updateUI() {
-        if(currentMode === 'clientes' || currentMode === 'crediario' || currentMode === 'gerenciamento' || currentMode === 'balanco') return;
+        if(currentMode === 'clientes' || currentMode === 'fornecedores' || currentMode === 'crediario' || currentMode === 'contas_pagar' || currentMode === 'gerenciamento' || currentMode === 'balanco') return;
 
         const cartList = document.getElementById('cart-items');
         cartList.innerHTML = ""; 
@@ -917,9 +992,9 @@
         const firstDateInput = document.getElementById('first-payment-date').value;
         const dateGroup = document.getElementById('date-group');
         
-        dateGroup.style.display = (numParcelas > 1 && currentMode === 'vendas') ? "block" : "none";
+        dateGroup.style.display = (numParcelas > 1 && (currentMode === 'vendas' || currentMode === 'compras')) ? "block" : "none";
 
-        if (numParcelas > 1 && totalRaw > 0 && currentMode === 'vendas') {
+        if (numParcelas > 1 && totalRaw > 0 && (currentMode === 'vendas' || currentMode === 'compras')) {
             parcelBox.style.display = "block";
             let pHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
             if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
@@ -941,20 +1016,25 @@
             return alert("A lista de itens está vazia!");
         }
         
-        if(currentMode === 'vendas' || currentMode === 'clientes' || currentMode === 'crediario') {
+        if(currentMode !== 'producao') {
             const name = document.getElementById('in-name').value;
             const idCli = document.getElementById('in-id').value;
-            if(!name) return alert("Preencha o Nome do cliente!");
+            if(!name) return alert("Preencha o Nome!");
             
             document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-id').innerText = idCli ? idCli.toUpperCase() : "N/I";
+            document.getElementById('out-id').innerText = idCli.toUpperCase();
             document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
             document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
+            document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
             
             if (currentMode === 'clientes') {
                 const selectNivel = document.getElementById('in-nivel');
                 document.getElementById('out-nivel').innerText = selectNivel.options[selectNivel.selectedIndex].text;
                 document.getElementById('out-bonus').innerText = "$" + parseFloat(document.getElementById('in-bonus').value || 0).toFixed(2);
+            }
+            if (currentMode === 'fornecedores') {
+                const selectCat = document.getElementById('in-categoria');
+                document.getElementById('out-categoria').innerText = selectCat.options[selectCat.selectedIndex].text;
             }
 
             document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
@@ -978,8 +1058,8 @@
         document.getElementById('search-results-box').style.display = 'none';
         document.getElementById('all-clients-panel').style.display = 'none';
         
-        // Esconder Botões do Crediário no Print
-        if (currentMode === 'crediario') {
+        // Esconder Botões no Print
+        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
             document.getElementById('crediario-filters').style.display = 'none';
             document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
             document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'none'); 
@@ -1008,7 +1088,7 @@
         if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'block';
         if(document.getElementById('has-entry').checked) document.getElementById('entry-val').style.display = 'block';
         
-        if (currentMode === 'crediario') {
+        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
             document.getElementById('crediario-filters').style.display = 'block';
             document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'inline-block');
             document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'inline-block');
@@ -1225,7 +1305,7 @@
     };
 
     // =====================================
-    // 1. BUSCA DE CLIENTES E LISTAGEM
+    // 1. BUSCA E LISTAGEM CLIENTE/FORN
     // =====================================
 
     async function getNextSequence(counterName) {
@@ -1237,34 +1317,37 @@
         return nextNum;
     }
 
-    window.loadAllClients = async function() {
+    window.loadAllPessoas = async function() {
+        const isForn = (currentMode === 'fornecedores');
+        const dbName = isForn ? "fornecedores" : "clientes";
         const listDiv = document.getElementById('full-client-list-render');
-        listDiv.innerHTML = "<span style='color:#aaa'>Carregando clientes...</span>";
+        listDiv.innerHTML = "<span style='color:#aaa'>Carregando registros...</span>";
+        
         try {
-            const snap = await getDocs(collection(db, "clientes"));
+            const snap = await getDocs(collection(db, dbName));
             let allC = [];
             snap.forEach(d => allC.push({ ...d.data(), firebase_doc_id: d.id }));
             
             const sort = document.getElementById('client-sort').value;
             if(sort === 'nome') allC.sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
             if(sort === 'id') allC.sort((a,b) => (a.id_cliente||"").localeCompare(b.id_cliente||""));
-            if(sort === 'credito') allC.sort((a,b) => parseFloat(b.limite_credito||0) - parseFloat(a.limite_credito||0));
+            if(sort === 'credito' && !isForn) allC.sort((a,b) => parseFloat(b.limite_credito||0) - parseFloat(a.limite_credito||0));
             if(sort === 'data') allC.sort((a,b) => {
                 const da = (a.data_cadastro||"").split('/').reverse().join('');
                 const db = (b.data_cadastro||"").split('/').reverse().join('');
                 return db.localeCompare(da); 
             });
 
-            window.allClientsData = allC;
+            window.allPessoasData = allC;
             window.resultadosBuscaFirebase = allC; 
             window.currentPage = 1;
             window.renderClientPage();
-        } catch(e) { listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar clientes.</span>"; }
+        } catch(e) { listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar dados.</span>"; }
     }
 
     window.changeItemsPerPage = function() {
         const val = document.getElementById('client-per-page').value;
-        window.itemsPerPage = val === 'all' ? window.allClientsData.length : parseInt(val);
+        window.itemsPerPage = val === 'all' ? window.allPessoasData.length : parseInt(val);
         window.currentPage = 1;
         window.renderClientPage();
     };
@@ -1275,18 +1358,18 @@
     };
 
     window.renderClientPage = function() {
+        const isForn = (currentMode === 'fornecedores' || currentMode === 'compras' || currentMode === 'contas_pagar');
         const listDiv = document.getElementById('full-client-list-render');
-        const data = window.allClientsData;
+        const data = window.allPessoasData;
         
         if(data.length === 0) {
-            listDiv.innerHTML = "<span style='color:#aaa'>Nenhum cliente encontrado.</span>";
+            listDiv.innerHTML = "<span style='color:#aaa'>Nenhum registro encontrado.</span>";
             document.getElementById('client-pagination').style.display = 'none';
             return;
         }
 
         const itemsPerPage = window.itemsPerPage || data.length;
         const totalPages = Math.ceil(data.length / itemsPerPage);
-        
         if (window.currentPage < 1) window.currentPage = 1;
         if (window.currentPage > totalPages) window.currentPage = totalPages;
 
@@ -1297,12 +1380,14 @@
         let html = "";
         pageData.forEach((c, i) => {
             const globalIdx = start + i; 
-            html += `<div class="client-list-item" onclick="selecionarClienteNaLista(${globalIdx})">
+            let extraInfo = isForn 
+                ? `<div style="color:var(--fornecedores); font-size:0.8rem;">${c.categoria || 'OUTROS'}</div>`
+                : `<div style="color:var(--clientes); font-size:0.8rem;">${c.nivel || 'FERRO'}</div>
+                   <div style="color:var(--buy); font-size:0.75rem;">Lim: $${parseFloat(c.limite_credito||0).toFixed(2)}</div>`;
+                   
+            html += `<div class="client-list-item" onclick="selecionarPessoaNaLista(${globalIdx})">
                 <div><strong style="color:var(--primary)">${c.nome}</strong> <small style="color:#aaa">#${c.id_cliente}</small></div>
-                <div style="text-align:right">
-                    <div style="color:var(--clientes); font-size:0.8rem;">${c.nivel || 'FERRO'}</div>
-                    <div style="color:var(--buy); font-size:0.75rem;">Lim: $${parseFloat(c.limite_credito||0).toFixed(2)}</div>
-                </div>
+                <div style="text-align:right">${extraInfo}</div>
             </div>`;
         });
         listDiv.innerHTML = html;
@@ -1315,25 +1400,26 @@
             document.getElementById('btn-next-page').disabled = window.currentPage === totalPages;
             document.getElementById('btn-prev-page').style.opacity = window.currentPage === 1 ? '0.5' : '1';
             document.getElementById('btn-next-page').style.opacity = window.currentPage === totalPages ? '0.5' : '1';
-        } else {
-            pagination.style.display = 'none';
-        }
+        } else { pagination.style.display = 'none'; }
     };
 
-    window.buscarClienteFirebase = async function() {
+    window.buscarPessoaFirebase = async function() {
+        const isForn = (currentMode === 'fornecedores' || currentMode === 'compras' || currentMode === 'contas_pagar');
+        const dbName = isForn ? "fornecedores" : "clientes";
+        
         const nomeInput = document.getElementById('in-name').value.trim().toUpperCase();
         const idInput = document.getElementById('in-id').value.trim().toUpperCase();
         const resultsBox = document.getElementById('search-results-box');
         
-        if (!nomeInput && !idInput) return alert("Preencha o NOME ou ID para buscar!");
+        if (!nomeInput && !idInput) return alert("Preencha NOME ou ID para buscar!");
 
         resultsBox.innerHTML = "<div style='padding: 10px; color: #aaa; text-align: center;'>Buscando no banco...</div>";
         resultsBox.style.display = "block";
         window.resultadosBuscaFirebase = []; 
-        window.clienteSelecionado = null; 
+        window.pessoaSelecionada = null; 
 
         try {
-            const querySnapshot = await getDocs(collection(db, "clientes"));
+            const querySnapshot = await getDocs(collection(db, dbName));
             let htmlList = "";
             
             querySnapshot.forEach((documento) => {
@@ -1350,9 +1436,13 @@
                 if (matchNome && matchId) {
                     window.resultadosBuscaFirebase.push(dados);
                     const index = window.resultadosBuscaFirebase.length - 1;
-                    htmlList += `<div onclick="selecionarClienteNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
+                    
+                    const tColor = isForn ? "var(--fornecedores)" : "var(--clientes)";
+                    const subLabel = isForn ? (dados.categoria || 'OUTROS') : (dados.nivel || 'FERRO');
+
+                    htmlList += `<div onclick="selecionarPessoaNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
                         <strong style="color: var(--primary)">${dados.nome}</strong><br>
-                        <small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | Nível: ${dados.nivel || 'FERRO'}</small>
+                        <small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small>
                     </div>`;
                 }
             });
@@ -1361,47 +1451,54 @@
                 htmlList += `<div onclick="document.getElementById('search-results-box').style.display='none'" style="padding: 8px; text-align: center; color: #ef4444; cursor: pointer; font-size: 0.8rem; background: #121212;">FECHAR ✕</div>`;
                 resultsBox.innerHTML = htmlList;
             } else {
-                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado encontrado.</div>";
+                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado.</div>";
                 setTimeout(() => resultsBox.style.display = "none", 3000);
             }
         } catch (error) { resultsBox.innerHTML = "<div style='padding:10px; color:red;'>Erro ao buscar.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000); }
     };
 
-    window.selecionarClienteNaLista = function(index) {
+    window.selecionarPessoaNaLista = function(index) {
         const dados = window.resultadosBuscaFirebase[index];
         if(!dados) return;
-        window.clienteSelecionado = dados; 
+        window.pessoaSelecionada = dados; 
+        
+        const isForn = (currentMode === 'fornecedores' || currentMode === 'compras' || currentMode === 'contas_pagar');
         
         document.getElementById('in-name').value = dados.nome;
         document.getElementById('in-id').value = dados.id_cliente || '';
         document.getElementById('in-tele').value = dados.telegrama;
         document.getElementById('in-disc').value = dados.discord;
-        
-        if (currentMode === 'clientes') {
-            document.getElementById('in-nivel').value = dados.nivel || 'FERRO';
-            document.getElementById('in-bonus').value = dados.bonus || 0;
-            document.getElementById('in-id').disabled = false; // Mantenha destravado conforme pedido
-        }
+        document.getElementById('in-conta').value = dados.conta || '';
         
         document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I");
         document.getElementById('stat-desde').innerText = dados.data_cadastro || "N/I";
-        document.getElementById('stat-ultima').innerText = dados.ultima_compra || "Nenhuma compra";
+        document.getElementById('stat-ultima').innerText = dados.ultima_compra || "Nunca";
         document.getElementById('stat-totalcompras').innerText = parseFloat(dados.total_compras || 0).toFixed(2);
-        document.getElementById('stat-nivel').innerText = dados.nivel || "FERRO";
-        document.getElementById('stat-bonus').innerText = parseFloat(dados.bonus || 0).toFixed(2);
-        
-        const limTotal = parseFloat(dados.limite_credito || tierCredits['FERRO']);
-        const credDisp = parseFloat(dados.credito_disponivel !== undefined ? dados.credito_disponivel : limTotal);
-        
-        document.getElementById('stat-limite').innerText = limTotal.toFixed(2);
-        const elDisp = document.getElementById('stat-credito');
-        elDisp.innerText = `$${credDisp.toFixed(2)}`;
-        if(credDisp < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+
+        if (isForn) {
+            if(currentMode === 'fornecedores') {
+                document.getElementById('in-categoria').value = dados.categoria || 'Fazendas';
+            }
+        } else {
+            if(currentMode === 'clientes') {
+                document.getElementById('in-nivel').value = dados.nivel || 'FERRO';
+                document.getElementById('in-bonus').value = dados.bonus || 0;
+            }
+            document.getElementById('stat-nivel').innerText = dados.nivel || "FERRO";
+            document.getElementById('stat-bonus').innerText = parseFloat(dados.bonus || 0).toFixed(2);
+            
+            const limTotal = parseFloat(dados.limite_credito || tierCredits['FERRO']);
+            const credDisp = parseFloat(dados.credito_disponivel !== undefined ? dados.credito_disponivel : limTotal);
+            document.getElementById('stat-limite').innerText = limTotal.toFixed(2);
+            const elDisp = document.getElementById('stat-credito');
+            elDisp.innerText = `$${credDisp.toFixed(2)}`;
+            if(credDisp < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+        }
         
         document.getElementById('client-stats').style.display = "block";
         document.getElementById('search-results-box').style.display = "none";
         
-        if (currentMode === 'crediario') {
+        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
             document.getElementById('crediario-filter-select').value = "CLIENT_ONLY";
             document.getElementById('crediario-filter-select').dispatchEvent(new Event('change'));
         } else {
@@ -1410,103 +1507,118 @@
     }
 
     // =====================================
-    // 2. ABA CLIENTES (CRUD)
+    // 2. ABA CLIENTES / FORNECEDORES (CRUD)
     // =====================================
-    window.salvarClienteFirebase = async function() {
-        if(!window.hasPerm('cli_add')) return alert("Você não tem permissão para Cadastrar Clientes.");
+    window.salvarPessoaFirebase = async function() {
+        if(!window.hasPerm('cli_add')) return alert("Sem permissão para Cadastrar.");
+        const isForn = (currentMode === 'fornecedores');
+        const dbName = isForn ? "fornecedores" : "clientes";
+
         const nome = document.getElementById('in-name').value.trim();
         const id_cliente = document.getElementById('in-id').value.trim(); 
         const telegrama = document.getElementById('in-tele').value.trim();
         const discord = document.getElementById('in-disc').value.trim();
+        const conta = document.getElementById('in-conta').value.trim();
         
-        if(!nome || !id_cliente) return alert("Preencha Nome e ID MANUAL para cadastrar!");
+        if(!nome || !id_cliente) return alert("Preencha Nome e ID para cadastrar!");
 
         try {
-            const q = query(collection(db, "clientes"), where("id_cliente", "==", id_cliente.toUpperCase()));
+            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase()));
             const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) return alert(`ERRO: Já existe um cliente utilizando o ID "${id_cliente.toUpperCase()}"!`);
+            if (!querySnapshot.empty) return alert(`ERRO: ID "${id_cliente.toUpperCase()}" já em uso!`);
             
-            const nivelPadrao = 'FERRO';
-            const bonusPadrao = 0;
-            const limiteTotal = tierCredits[nivelPadrao] + bonusPadrao;
+            let objSalvar = {
+                nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(),
+                telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(),
+                conta: conta.toUpperCase(),
+                total_compras: 0, ultima_compra: "Nunca",
+                data_cadastro: new Date().toLocaleDateString('pt-BR'), hora_cadastro: new Date().toLocaleTimeString('pt-BR')
+            };
 
-            await addDoc(collection(db, "clientes"), {
-                nome: nome.toUpperCase(),
-                id_cliente: id_cliente.toUpperCase(),
-                telegrama: telegrama.toUpperCase(),
-                discord: discord.toUpperCase(),
-                nivel: nivelPadrao,
-                bonus: bonusPadrao,
-                limite_credito: limiteTotal,
-                credito_disponivel: limiteTotal, 
-                total_compras: 0,
-                ultima_compra: "Nunca",
-                data_cadastro: new Date().toLocaleDateString('pt-BR'),
-                hora_cadastro: new Date().toLocaleTimeString('pt-BR')
-            });
-            
-            alert(`Sucesso! Cliente cadastrado com ID #${id_cliente.toUpperCase()}`);
+            if (isForn) {
+                objSalvar.categoria = document.getElementById('in-categoria').value;
+            } else {
+                const n = 'FERRO'; const b = 0; const lim = tierCredits[n] + b;
+                objSalvar.nivel = n; objSalvar.bonus = b; objSalvar.limite_credito = lim; objSalvar.credito_disponivel = lim;
+            }
+
+            await addDoc(collection(db, dbName), objSalvar);
+            alert(`Sucesso! Cadastro realizado com ID #${id_cliente.toUpperCase()}`);
             clearCart();
-        } catch (error) { alert("Erro ao salvar! Verifique sua conexão."); }
+        } catch (error) { alert("Erro ao salvar!"); }
     };
 
-    window.atualizarClienteFirebase = async function() {
-        if(!window.hasPerm('cli_edit')) return alert("Você não tem permissão para Editar Clientes.");
-        if (!window.clienteSelecionado) return alert("Nenhum cliente selecionado.");
+    window.atualizarPessoaFirebase = async function() {
+        if(!window.hasPerm('cli_edit')) return alert("Sem permissão para Editar.");
+        if (!window.pessoaSelecionada) return alert("Nenhum cadastro selecionado.");
         
+        const isForn = (currentMode === 'fornecedores');
+        const dbName = isForn ? "fornecedores" : "clientes";
+
         const nome = document.getElementById('in-name').value.trim();
         const id_cliente = document.getElementById('in-id').value.trim(); 
-        const nivel = document.getElementById('in-nivel').value;
-        const bonus = parseFloat(document.getElementById('in-bonus').value) || 0;
+        const conta = document.getElementById('in-conta').value.trim();
         
         if(!nome || !id_cliente) return alert("Nome e ID não podem ficar em branco!");
 
         try {
-            const q = query(collection(db, "clientes"), where("id_cliente", "==", id_cliente.toUpperCase()));
+            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase()));
             const querySnapshot = await getDocs(q);
-            let idEmUsoPorOutro = false;
-            querySnapshot.forEach((documento) => {
-                if (documento.id !== window.clienteSelecionado.firebase_doc_id) idEmUsoPorOutro = true;
-            });
+            let conflito = false;
+            querySnapshot.forEach((doc) => { if (doc.id !== window.pessoaSelecionada.firebase_doc_id) conflito = true; });
+            if (conflito) return alert(`ERRO: O ID "${id_cliente.toUpperCase()}" já pertence a outro.`);
 
-            if (idEmUsoPorOutro) return alert(`ERRO: O ID "${id_cliente.toUpperCase()}" já pertence a outro cliente.`);
-
-            const limiteAntigo = parseFloat(window.clienteSelecionado.limite_credito || tierCredits['FERRO']);
-            const novoLimiteTotal = tierCredits[nivel] + bonus;
-            const diffLimite = novoLimiteTotal - limiteAntigo;
-            const novoDisponivel = parseFloat(window.clienteSelecionado.credito_disponivel || 0) + diffLimite;
-
-            await updateDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id), {
-                nome: nome.toUpperCase(),
-                id_cliente: id_cliente.toUpperCase(), // Atualiza o ID livremente
+            let objAtualizar = {
+                nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(),
                 telegrama: document.getElementById('in-tele').value.trim().toUpperCase(),
                 discord: document.getElementById('in-disc').value.trim().toUpperCase(),
-                nivel: nivel,
-                bonus: bonus,
-                limite_credito: novoLimiteTotal,
-                credito_disponivel: novoDisponivel
-            });
-            alert("Ficha ATUALIZADA com sucesso! O limite de crédito foi reajustado."); clearCart();
+                conta: conta.toUpperCase()
+            };
+
+            if (isForn) {
+                objAtualizar.categoria = document.getElementById('in-categoria').value;
+            } else {
+                const nivel = document.getElementById('in-nivel').value;
+                const bonus = parseFloat(document.getElementById('in-bonus').value) || 0;
+                const limiteAntigo = parseFloat(window.pessoaSelecionada.limite_credito || tierCredits['FERRO']);
+                const novoLimiteTotal = tierCredits[nivel] + bonus;
+                const diffLimite = novoLimiteTotal - limiteAntigo;
+                const novoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0) + diffLimite;
+
+                objAtualizar.nivel = nivel; objAtualizar.bonus = bonus;
+                objAtualizar.limite_credito = novoLimiteTotal; objAtualizar.credito_disponivel = novoDisponivel;
+            }
+
+            await updateDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id), objAtualizar);
+            alert("Ficha ATUALIZADA com sucesso!"); clearCart();
         } catch (error) { alert("Ocorreu um erro ao atualizar."); }
     };
 
-    window.deletarClienteFirebase = async function() {
-        if(!window.hasPerm('cli_del')) return alert("Você não tem permissão para Excluir Clientes.");
-        if (!window.clienteSelecionado) return;
-        if (confirm(`⚠️ ATENÇÃO!\n\nDeseja APAGAR PERMANENTEMENTE o cliente "${window.clienteSelecionado.nome}" do banco?`)) {
-            try { await deleteDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id)); alert("Cliente excluído!"); clearCart(); } 
+    window.deletarPessoaFirebase = async function() {
+        if(!window.hasPerm('cli_del')) return alert("Sem permissão para Excluir.");
+        if (!window.pessoaSelecionada) return;
+        const dbName = (currentMode === 'fornecedores') ? "fornecedores" : "clientes";
+
+        if (confirm(`⚠️ ATENÇÃO!\n\nDeseja APAGAR PERMANENTEMENTE o cadastro de "${window.pessoaSelecionada.nome}"?`)) {
+            try { await deleteDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id)); alert("Cadastro excluído!"); clearCart(); } 
             catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
         }
     };
 
     // =====================================
-    // 3. ABA VENDAS
+    // 3. ABA VENDAS E COMPRAS (FINALIZAR)
     // =====================================
-    window.finalizarVenda = async function() {
+    window.finalizarOperacao = async function() {
+        const isCompra = (currentMode === 'compras');
+        const dbNamePessoa = isCompra ? "fornecedores" : "clientes";
+        const dbNameOp = isCompra ? "compras" : "vendas";
+        const strPessoa = isCompra ? "fornecedor" : "cliente";
+        const strOp = isCompra ? "Compra" : "Venda";
+
         const totalVendaRaw = document.getElementById('total-val').innerText;
         const totalVenda = parseFloat(totalVendaRaw);
         if (totalVenda <= 0) return alert("O carrinho está vazio!");
-        if (!window.clienteSelecionado) return alert("Para vender, BUSQUE e SELECIONAR o cliente na Lupa 🔍 primeiro!");
+        if (!window.pessoaSelecionada) return alert(`Para registrar, BUSQUE e SELECIONE o ${strPessoa} na Lupa 🔍 primeiro!`);
 
         const paySelect = document.getElementById('pay-method');
         const numParcelas = parseInt(paySelect.value);
@@ -1514,24 +1626,26 @@
         const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
         const valorFinanciado = totalVenda - entryVal;
 
-        let creditoDisponivel = parseFloat(window.clienteSelecionado.credito_disponivel || 0);
-        
-        if (numParcelas > 1 && valorFinanciado > 0) {
-            if (valorFinanciado > creditoDisponivel) {
+        let creditoDisponivel = 0;
+        if (!isCompra) {
+            creditoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0);
+            if (numParcelas > 1 && valorFinanciado > 0 && valorFinanciado > creditoDisponivel) {
                 const conf = confirm(`⚠️ ALERTA DE CRÉDITO ⚠️\n\nO cliente possui apenas $${creditoDisponivel.toFixed(2)} de limite.\nO valor a parcelar é $${valorFinanciado.toFixed(2)}.\n\nDeseja confiar e liberar o saldo negativo?`);
                 if (!conf) return; 
             }
         }
 
-        const itensComprados = Object.values(carts['vendas']).map(item => ({
+        const itensComprados = Object.values(carts[currentMode]).map(item => ({
             nome_produto: item.name, quantidade: item.quantity, valor_unitario: item.price, subtotal: (item.quantity * item.price).toFixed(2)
         }));
 
         try {
             const dataHoje = new Date().toLocaleDateString('pt-BR');
             const anoAtual = new Date().getFullYear();
-            const seqFatura = await getNextSequence(`faturas_${anoAtual}`);
-            const numPedido = `Fatura ${String(seqFatura).padStart(5, '0')}/${anoAtual}`;
+            const counterName = isCompra ? `compras_faturas_${anoAtual}` : `vendas_faturas_${anoAtual}`;
+            const prefix = isCompra ? "COMPRA" : "FATURA";
+            const seqFatura = await getNextSequence(counterName);
+            const numPedido = `${prefix} ${String(seqFatura).padStart(5, '0')}/${anoAtual}`;
 
             let parcelasArray = [];
             if (numParcelas > 1 && valorFinanciado > 0) {
@@ -1546,48 +1660,41 @@
                 }
             }
 
-            await addDoc(collection(db, "vendas"), {
+            await addDoc(collection(db, dbNameOp), {
                 numero_pedido: numPedido,
                 vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
-                cliente_doc_id: window.clienteSelecionado.firebase_doc_id,
-                cliente_nome: window.clienteSelecionado.nome,
+                cliente_doc_id: window.pessoaSelecionada.firebase_doc_id,
+                cliente_nome: window.pessoaSelecionada.nome,
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
                 parcelas: parcelasArray,
                 data: dataHoje,
                 hora: new Date().toLocaleTimeString('pt-BR')
             });
             
-            const oldTotalCompras = parseFloat(window.clienteSelecionado.total_compras || 0);
+            const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
             let updateCli = { total_compras: oldTotalCompras + totalVenda, ultima_compra: dataHoje };
             
-            if (numParcelas > 1 && valorFinanciado > 0) {
+            if (!isCompra && numParcelas > 1 && valorFinanciado > 0) {
                 const novoC = creditoDisponivel - valorFinanciado;
                 updateCli.credito_disponivel = novoC;
-                window.clienteSelecionado.credito_disponivel = novoC;
+                window.pessoaSelecionada.credito_disponivel = novoC;
                 document.getElementById('stat-credito').innerText = `$${novoC.toFixed(2)}`;
             }
-            await updateDoc(doc(db, "clientes", window.clienteSelecionado.firebase_doc_id), updateCli);
+            await updateDoc(doc(db, dbNamePessoa, window.pessoaSelecionada.firebase_doc_id), updateCli);
             
-            alert(`✅ Venda confirmada!\nNúmero: ${numPedido}\nA imagem será gerada agora.`);
+            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nA imagem será gerada agora.`);
             await generateImage();
             clearCart();
-        } catch (error) { console.log(error); alert("Erro ao finalizar a venda!"); }
+        } catch (error) { console.log(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
     };
 
     // =====================================
-    // 4. ABA CREDIÁRIO
+    // 4. ABA CREDIÁRIO / CONTAS A PAGAR
     // =====================================
-    function isAtrasada(dataStr) {
-        if(!dataStr) return false;
-        const parts = dataStr.split('/');
-        if(parts.length !== 3) return false;
-        const vencimento = new Date(parts[2], parts[1] - 1, parts[0]);
-        const hoje = new Date();
-        hoje.setHours(0,0,0,0);
-        return vencimento < hoje;
-    }
-
     window.aplicarFiltroCrediario = async function() {
+        const isContas = (currentMode === 'contas_pagar');
+        const dbName = isContas ? "compras" : "vendas";
+        
         const filtro = document.getElementById('crediario-filter-select').value;
         const subFiltro = document.getElementById('crediario-extrato-filter').value;
         const listContainer = document.getElementById('crediario-list');
@@ -1600,8 +1707,8 @@
         if(filtro === 'CLIENT_ONLY') {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('sub-filter-crediario').style.display = "block";
-            if(!window.clienteSelecionado) {
-                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Busque e selecione um cliente na lupa acima.</div>";
+            if(!window.pessoaSelecionada) {
+                listContainer.innerHTML = `<div style='color: #aaa; text-align:center;'>Busque um ${isContas?'Fornecedor':'Cliente'} na lupa acima.</div>`;
                 document.getElementById('btn-img-only').style.display = "none";
                 return;
             }
@@ -1613,7 +1720,7 @@
         }
 
         try {
-            if (filtro === 'NEGATIVE_CREDIT') {
+            if (filtro === 'NEGATIVE_CREDIT' && !isContas) {
                 const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0));
                 const snap = await getDocs(q);
                 let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>";
@@ -1628,10 +1735,13 @@
                 if(count === 0) html = "<div style='color: var(--buy); text-align:center;'>Todos os clientes estão com saldo positivo! 🎉</div>";
                 listContainer.innerHTML = html;
                 return;
+            } else if (filtro === 'NEGATIVE_CREDIT' && isContas) {
+                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro de Limite não se aplica a Fornecedores.</div>";
+                return;
             }
 
-            let q = collection(db, "vendas");
-            if (filtro === 'CLIENT_ONLY') q = query(collection(db, "vendas"), where("cliente_doc_id", "==", window.clienteSelecionado.firebase_doc_id));
+            let q = collection(db, dbName);
+            if (filtro === 'CLIENT_ONLY') q = query(collection(db, dbName), where("cliente_doc_id", "==", window.pessoaSelecionada.firebase_doc_id));
             
             const snap = await getDocs(q);
             let htmlList = "";
@@ -1670,14 +1780,8 @@
 
                     if(parcelasFiltradas.length > 0) {
                         temFatura = true;
-                        
                         let itensArray = (venda.pedido && venda.pedido.itens) ? venda.pedido.itens : [];
-                        let itensHtml = "";
-                        if (itensArray.length > 0) {
-                            itensHtml = itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${i.subtotal})`).join('<br>');
-                        } else {
-                            itensHtml = "<i>Itens não registrados (Fatura antiga)</i>";
-                        }
+                        let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${i.subtotal})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
                         
                         let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
                         if (window.hasPerm('fat_del')) {
@@ -1686,36 +1790,38 @@
                         faturaBtns += `<button class="btn-print-fat" onclick="imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
                         faturaBtns += `</div>`;
 
+                        const corHeader = isContas ? "var(--contas)" : "var(--primary)";
+
                         htmlList += `<div class="fatura-card" id="fatura-card-${venda.docId}" style="background: var(--card);">
                             <div class="print-header" id="print-header-${venda.docId}">
                                 <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
-                                <h4 style="margin:5px 0 0 0; color:var(--primary);">FERRARIA CUSCO</h4>
+                                <h4 style="margin:5px 0 0 0; color:${corHeader};">FERRARIA CUSCO</h4>
                                 <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
-                                    <b>CLIENTE:</b> ${venda.cliente_nome}<br>
+                                    <b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome}<br>
                                     <b>FATURA:</b> ${venda.numero_pedido}
                                 </div>
                             </div>
 
                             <div class="fatura-header">
-                                <span class="fatura-id">📄 ${venda.numero_pedido} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome}</span>` : ''}</span>
+                                <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome}</span>` : ''}</span>
                                 <span class="fatura-date">${venda.data}</span>
                             </div>
                             
-                            <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Compra ▾</div>
+                            <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
                             <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
-                                <b>Itens Comprados:</b><br>${itensHtml}
+                                <b>Itens:</b><br>${itensHtml}
                             </div>
                             `;
                         
                         parcelasFiltradas.forEach(obj => {
                             const p = obj.p; const idx = obj.index;
                             const isPago = p.status === 'pago';
-                            let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : 'border-left: 3px solid var(--primary);';
+                            let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : `border-left: 3px solid ${corHeader};`;
                             if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
                             
                             let badge = "";
                             if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGO</span>`;
-                            else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">RECEBER</button>`;
+                            else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
                             
                             const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
                             
@@ -1736,171 +1842,120 @@
                     document.getElementById('placar-atraso').innerText = `$${totalAtraso.toFixed(2)}`;
                     placar.style.display = "block";
                 }
-            } else {
-                listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>";
-            }
-
-        } catch(e) { 
-            console.error(e);
-            listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados no Crediário. Verifique o console.</div>"; 
-        }
+            } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
+        } catch(e) { console.error(e); listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados no Crediário/Contas.</div>"; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
-        if (!window.hasPerm('fat_pay')) return alert("Sem permissão para Receber Parcelas.");
-        if (!confirm(`Deseja confirmar o recebimento desta parcela de $${parseFloat(valorParcela).toFixed(2)}?`)) return;
+        if (!window.hasPerm('fat_pay')) return alert("Sem permissão de Caixa.");
+        const isContas = (currentMode === 'contas_pagar');
+        const dbName = isContas ? "compras" : "vendas";
+        if (!confirm(`Deseja confirmar a baixa desta parcela de $${parseFloat(valorParcela).toFixed(2)}?`)) return;
 
         try {
-            const vendaRef = doc(db, "vendas", vendaDocId);
+            const vendaRef = doc(db, dbName, vendaDocId);
             const vendaSnap = await getDoc(vendaRef);
-            if(!vendaSnap.exists()) return alert("Erro: Venda não encontrada!");
+            if(!vendaSnap.exists()) return alert("Erro: Fatura não encontrada!");
             
             let dadosVenda = vendaSnap.data();
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
-            const clienteRef = doc(db, "clientes", clienteDocId);
-            const clienteSnap = await getDoc(clienteRef);
-            if(clienteSnap.exists()) {
-                const dadosCli = clienteSnap.data();
-                const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
-                await updateDoc(clienteRef, { credito_disponivel: credAtual + parseFloat(valorParcela) });
-                
-                if(window.clienteSelecionado && window.clienteSelecionado.firebase_doc_id === clienteDocId) {
-                    window.clienteSelecionado.credito_disponivel = credAtual + parseFloat(valorParcela);
-                    const elDisp = document.getElementById('stat-credito');
-                    elDisp.innerText = `$${window.clienteSelecionado.credito_disponivel.toFixed(2)}`;
-                    if(window.clienteSelecionado.credito_disponivel < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+            if(!isContas) {
+                const clienteRef = doc(db, "clientes", clienteDocId);
+                const clienteSnap = await getDoc(clienteRef);
+                if(clienteSnap.exists()) {
+                    const dadosCli = clienteSnap.data();
+                    const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
+                    await updateDoc(clienteRef, { credito_disponivel: credAtual + parseFloat(valorParcela) });
+                    
+                    if(window.pessoaSelecionada && window.pessoaSelecionada.firebase_doc_id === clienteDocId) {
+                        window.pessoaSelecionada.credito_disponivel = credAtual + parseFloat(valorParcela);
+                        const elDisp = document.getElementById('stat-credito');
+                        elDisp.innerText = `$${window.pessoaSelecionada.credito_disponivel.toFixed(2)}`;
+                        if(window.pessoaSelecionada.credito_disponivel < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+                    }
                 }
             }
-            alert("Parcela Paga! Crédito restaurado.");
+            alert("Baixa Efetuada!");
             aplicarFiltroCrediario(); 
         } catch (error) { alert("Falha ao registrar pagamento."); }
     };
 
     window.apagarFaturaGlobal = async function(vendaDocId) {
         if (!window.hasPerm('fat_del')) return alert("Sem permissão para Apagar Faturas.");
-        if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente? Os valores em aberto não retornarão para o limite do cliente automaticamente.")) return;
+        const isContas = (currentMode === 'contas_pagar');
+        const dbName = isContas ? "compras" : "vendas";
+        if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente?")) return;
         try {
-            await deleteDoc(doc(db, "vendas", vendaDocId));
+            await deleteDoc(doc(db, dbName, vendaDocId));
             alert("Fatura Apagada com sucesso!");
             aplicarFiltroCrediario();
         } catch (error) { alert("Falha ao apagar fatura."); }
     };
 
-    window.imprimirFaturaUnica = async function(docId) {
-        const card = document.getElementById(`fatura-card-${docId}`);
-        if (!card) return;
-
-        // Salva estilos originais
-        const oldBg = card.style.background;
-        const oldBorder = card.style.border;
-        
-        // Prepara para a foto
-        card.style.background = "#1e1e1e";
-        card.style.border = "none";
-        document.getElementById(`print-header-${docId}`).style.display = 'flex';
-        document.getElementById(`itens-${docId}`).style.display = 'block'; 
-        
-        // Esconde botões
-        const actions = card.querySelector('.fatura-actions');
-        if(actions) actions.style.display = 'none';
-        const toggleBtn = card.querySelector('.toggle-itens-btn');
-        if(toggleBtn) toggleBtn.style.display = 'none';
-        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
-
-        // Captura
-        try {
-            const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
-            const link = document.createElement('a');
-            link.download = `FATURA_${docId}_${Date.now()}.png`;
-            link.href = canvas.toDataURL(); 
-            link.click();
-        } catch(e) {
-            console.error("Erro ao gerar imagem", e);
-            alert("Erro ao gerar a imagem da fatura.");
-        }
-
-        // Restaura a visualização da tela
-        card.style.background = oldBg;
-        card.style.border = oldBorder;
-        document.getElementById(`print-header-${docId}`).style.display = 'none';
-        document.getElementById(`itens-${docId}`).style.display = 'none';
-        if(actions) actions.style.display = 'flex';
-        if(toggleBtn) toggleBtn.style.display = 'block';
-        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
-    };
-
     // =====================================
-    // ABA BALANÇO FINANCEIRO
+    // ABA BALANÇO FINANCEIRO (DRE)
     // =====================================
     window.carregarBalanco = async function() {
         const tbody = document.getElementById('balanco-table-body');
-        tbody.innerHTML = "<tr><td colspan='3' style='text-align:center;'>Calculando fechamento financeiro...</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Calculando fechamento financeiro...</td></tr>";
 
         try {
-            const snap = await getDocs(collection(db, "vendas"));
+            const snapVendas = await getDocs(collection(db, "vendas"));
+            const snapCompras = await getDocs(collection(db, "compras"));
+            
             let aggregated = {};
-            let totalRecebidoGlobal = 0;
-            let recebidoCurrentMonth = 0;
-
+            let totalEntradasGlobal = 0;
+            let totalSaidasGlobal = 0;
+            
             const hoje = new Date();
             const curMonth = String(hoje.getMonth() + 1).padStart(2, '0');
             const curYear = hoje.getFullYear();
-            const curPeriod = `${curMonth}/${curYear}`;
 
-            snap.forEach(doc => {
-                const v = doc.data();
-                if (!v.data) return;
+            const processDocs = (snap, tipo) => {
+                snap.forEach(doc => {
+                    const v = doc.data();
+                    if (!v.data) return;
 
-                // Processa a Venda Base (Entrada ou À Vista)
-                const dataParts = v.data.split('/'); 
-                if(dataParts.length === 3) {
-                    const pMonth = dataParts[1];
-                    const pYear = dataParts[2];
-                    const period = `${pMonth}/${pYear}`;
-                    
-                    if(!aggregated[period]) aggregated[period] = { vendido: 0, recebido: 0 };
-                    
-                    let totalVendido = 0;
-                    if(v.pedido && v.pedido.total) totalVendido = parseFloat(v.pedido.total);
-                    aggregated[period].vendido += totalVendido;
-                    
-                    let recebidoNaHora = 0;
-                    if(v.pedido && v.pedido.pagamento === 'À VISTA') {
-                        recebidoNaHora = totalVendido;
-                    } else if (v.pedido && v.pedido.entrada) {
-                        recebidoNaHora = parseFloat(v.pedido.entrada);
+                    const dataParts = v.data.split('/'); 
+                    if(dataParts.length === 3) {
+                        const period = `${dataParts[1]}/${dataParts[2]}`;
+                        if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
+                        
+                        let totalFechado = 0;
+                        if(v.pedido && v.pedido.total) totalFechado = parseFloat(v.pedido.total);
+                        let pagoNaHora = 0;
+                        if(v.pedido && v.pedido.pagamento === 'À VISTA') pagoNaHora = totalFechado;
+                        else if (v.pedido && v.pedido.entrada) pagoNaHora = parseFloat(v.pedido.entrada);
+
+                        if(tipo === 'entrada') { aggregated[period].entradas += pagoNaHora; totalEntradasGlobal += pagoNaHora; }
+                        else { aggregated[period].saidas += pagoNaHora; totalSaidasGlobal += pagoNaHora; }
                     }
-
-                    aggregated[period].recebido += recebidoNaHora;
-                    totalRecebidoGlobal += recebidoNaHora;
-                    if(period === curPeriod) recebidoCurrentMonth += recebidoNaHora;
-                }
-                
-                // Processa Parcelas Pagas posteriormente
-                if(v.parcelas && v.parcelas.length > 0) {
-                    v.parcelas.forEach(p => {
-                        if(p.status === 'pago' && p.vencimento) {
-                            const pParts = p.vencimento.split('/');
-                            if(pParts.length === 3) {
-                                const parPeriod = `${pParts[1]}/${pParts[2]}`;
-                                if(!aggregated[parPeriod]) aggregated[parPeriod] = { vendido: 0, recebido: 0 };
-                                
-                                const valorPago = parseFloat(p.valor || 0);
-                                aggregated[parPeriod].recebido += valorPago;
-                                totalRecebidoGlobal += valorPago;
-                                if(parPeriod === curPeriod) recebidoCurrentMonth += valorPago;
+                    
+                    if(v.parcelas && v.parcelas.length > 0) {
+                        v.parcelas.forEach(p => {
+                            if(p.status === 'pago' && p.vencimento) {
+                                const pParts = p.vencimento.split('/');
+                                if(pParts.length === 3) {
+                                    const parPeriod = `${pParts[1]}/${pParts[2]}`;
+                                    if(!aggregated[parPeriod]) aggregated[parPeriod] = { entradas: 0, saidas: 0 };
+                                    const valorPago = parseFloat(p.valor || 0);
+                                    
+                                    if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
+                                    else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
+                                }
                             }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            };
 
-            // Ordena os meses do mais recente para o mais antigo
+            processDocs(snapVendas, 'entrada');
+            processDocs(snapCompras, 'saida');
+
             const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
-                const [mA, yA] = a.split('/');
-                const [mB, yB] = b.split('/');
+                const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
                 if (yA !== yB) return parseInt(yB) - parseInt(yA);
                 return parseInt(mB) - parseInt(mA);
             });
@@ -1908,28 +1963,29 @@
             let html = "";
             sortedPeriods.forEach(period => {
                 const data = aggregated[period];
+                const lucro = data.entradas - data.saidas;
+                const corLucro = lucro < 0 ? '#ef4444' : 'var(--balanco)';
+                
                 html += `<tr>
                     <td style="color:white; font-weight:bold;">${period}</td>
-                    <td style="color:#aaa;">$${data.vendido.toFixed(2)}</td>
-                    <td style="color:var(--buy); font-weight:bold;">$${data.recebido.toFixed(2)}</td>
+                    <td style="color:var(--primary);">$${data.entradas.toFixed(2)}</td>
+                    <td style="color:var(--contas);">$${data.saidas.toFixed(2)}</td>
+                    <td style="color:${corLucro}; font-weight:bold;">$${lucro.toFixed(2)}</td>
                 </tr>`;
             });
 
-            if(!html) html = "<tr><td colspan='3' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
+            if(!html) html = "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
             tbody.innerHTML = html;
 
-            // Atualiza Dashboard
-            const saldoAtual = totalRecebidoGlobal;
-            const saldoAnterior = saldoAtual - recebidoCurrentMonth;
+            const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal;
+            const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)';
+            
+            document.getElementById('bal-entradas').innerText = `$${totalEntradasGlobal.toFixed(2)}`;
+            document.getElementById('bal-saidas').innerText = `$${totalSaidasGlobal.toFixed(2)}`;
+            document.getElementById('bal-liquido').innerText = `$${saldoAtualLiquido.toFixed(2)}`;
+            document.getElementById('bal-liquido').style.color = corSaldo;
 
-            document.getElementById('bal-anterior').innerText = `$${saldoAnterior.toFixed(2)}`;
-            document.getElementById('bal-mes').innerText = `$${recebidoCurrentMonth.toFixed(2)}`;
-            document.getElementById('bal-atual').innerText = `$${saldoAtual.toFixed(2)}`;
-
-        } catch(e) { 
-            console.error(e);
-            tbody.innerHTML = "<tr><td colspan='3' style='color:#ef4444;'>Erro ao processar o balanço.</td></tr>"; 
-        }
+        } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='4' style='color:#ef4444;'>Erro ao processar balanço.</td></tr>"; }
     };
 </script>
 </body>
