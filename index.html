@@ -12,9 +12,9 @@
             --secondary: #3b82f6; /* Produção */
             --buy: #10b981; /* Compras */
             --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
+            --fornecedores: #ec4899; /* Fornecedores */
             --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
+            --contas: #f43f5e; /* Contas a Pagar */
             --balanco: #eab308; /* Balanço */
             --admin: #ef4444; /* Admin */
             --bg: #121212;
@@ -140,6 +140,7 @@
         .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-solid { color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;}
         .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
+        .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
 
         /* Lista de Crediário / Contas a Pagar */
         .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
@@ -1022,9 +1023,12 @@
             if(!name) return alert("Preencha o Nome!");
             
             document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-id').innerText = idCli.toUpperCase();
+            document.getElementById('out-id').innerText = idCli.toUpperCase() || "N/I";
+            
+            let valTele = document.getElementById('in-tele').value.toUpperCase();
+            document.getElementById('out-tele').innerText = valTele !== "" ? valTele : "NÃO INFORMADO";
+            
             document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
-            document.getElementById('out-tele').innerText = document.getElementById('in-tele').value.toUpperCase();
             document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
             
             if (currentMode === 'clientes') {
@@ -1237,7 +1241,7 @@
             snap.forEach(docSnap => {
                 const u = docSnap.data();
                 const uId = docSnap.id;
-                if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
+                if (uId === window.usuarioLogado.id) return;
 
                 const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
                 
@@ -1305,7 +1309,7 @@
     };
 
     // =====================================
-    // 1. BUSCA E LISTAGEM CLIENTE/FORN
+    // 1. BUSCA DE CLIENTES E LISTAGEM
     // =====================================
 
     async function getNextSequence(counterName) {
@@ -1753,85 +1757,91 @@
             snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
             
             vendasData.forEach(venda => {
-                if (venda.parcelas && venda.parcelas.length > 0) {
-                    
-                    if (filtro === 'CLIENT_ONLY') {
-                        venda.parcelas.forEach(p => {
-                            if (p.status !== 'pago') {
-                                totalReceber += p.valor;
-                                if (isAtrasada(p.vencimento)) totalAtraso += p.valor;
+                try {
+                    if (Array.isArray(venda.parcelas) && venda.parcelas.length > 0) {
+                        
+                        if (filtro === 'CLIENT_ONLY') {
+                            venda.parcelas.forEach(p => {
+                                if (p && p.status !== 'pago') {
+                                    const val = parseFloat(p.valor || 0);
+                                    totalReceber += val;
+                                    if (isAtrasada(p.vencimento)) totalAtraso += val;
+                                }
+                            });
+                            let temPendente = false;
+                            venda.parcelas.forEach(p => { if (p && p.status !== 'pago') temPendente = true; });
+                            if (subFiltro === 'OPEN' && !temPendente) return; 
+                        }
+
+                        let parcelasFiltradas = [];
+                        venda.parcelas.forEach((p, index) => {
+                            if(!p) return;
+                            const isLate = isAtrasada(p.vencimento);
+                            if (filtro === 'CLIENT_ONLY') {
+                                parcelasFiltradas.push({p, index, isLate});
+                            } else if (p.status !== 'pago') {
+                                if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
+                                if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
                             }
                         });
-                        let temPendente = false;
-                        venda.parcelas.forEach(p => { if (p.status !== 'pago') temPendente = true; });
-                        if (subFiltro === 'OPEN' && !temPendente) return; 
-                    }
 
-                    let parcelasFiltradas = [];
-                    venda.parcelas.forEach((p, index) => {
-                        const isLate = isAtrasada(p.vencimento);
-                        if (filtro === 'CLIENT_ONLY') {
-                            parcelasFiltradas.push({p, index, isLate});
-                        } else if (p.status !== 'pago') {
-                            if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
-                            if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
-                        }
-                    });
+                        if(parcelasFiltradas.length > 0) {
+                            temFatura = true;
+                            let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
+                            let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
+                            
+                            let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
+                            if (window.hasPerm('fat_del')) {
+                                faturaBtns += `<button class="btn-del-fat" onclick="apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
+                            }
+                            faturaBtns += `<button class="btn-print-fat" onclick="imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
+                            faturaBtns += `</div>`;
 
-                    if(parcelasFiltradas.length > 0) {
-                        temFatura = true;
-                        let itensArray = (venda.pedido && venda.pedido.itens) ? venda.pedido.itens : [];
-                        let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${i.subtotal})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
-                        
-                        let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
-                        if (window.hasPerm('fat_del')) {
-                            faturaBtns += `<button class="btn-del-fat" onclick="apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
-                        }
-                        faturaBtns += `<button class="btn-print-fat" onclick="imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
-                        faturaBtns += `</div>`;
+                            const corHeader = isContas ? "var(--contas)" : "var(--primary)";
 
-                        const corHeader = isContas ? "var(--contas)" : "var(--primary)";
-
-                        htmlList += `<div class="fatura-card" id="fatura-card-${venda.docId}" style="background: var(--card);">
-                            <div class="print-header" id="print-header-${venda.docId}">
-                                <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
-                                <h4 style="margin:5px 0 0 0; color:${corHeader};">FERRARIA CUSCO</h4>
-                                <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
-                                    <b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome}<br>
-                                    <b>FATURA:</b> ${venda.numero_pedido}
+                            htmlList += `<div class="fatura-card" id="fatura-card-${venda.docId}" style="background: var(--card);">
+                                <div class="print-header" id="print-header-${venda.docId}">
+                                    <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
+                                    <h4 style="margin:5px 0 0 0; color:${corHeader};">FERRARIA CUSCO</h4>
+                                    <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
+                                        <b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome || 'N/I'}<br>
+                                        <b>FATURA:</b> ${venda.numero_pedido || 'N/I'}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="fatura-header">
-                                <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome}</span>` : ''}</span>
-                                <span class="fatura-date">${venda.data}</span>
-                            </div>
+                                <div class="fatura-header">
+                                    <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido || 'N/I'} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome || 'N/I'}</span>` : ''}</span>
+                                    <span class="fatura-date">${venda.data || ''}</span>
+                                </div>
+                                
+                                <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
+                                <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
+                                    <b>Itens:</b><br>${itensHtml}
+                                </div>
+                                `;
                             
-                            <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
-                            <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
-                                <b>Itens:</b><br>${itensHtml}
-                            </div>
-                            `;
-                        
-                        parcelasFiltradas.forEach(obj => {
-                            const p = obj.p; const idx = obj.index;
-                            const isPago = p.status === 'pago';
-                            let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : `border-left: 3px solid ${corHeader};`;
-                            if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
-                            
-                            let badge = "";
-                            if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGO</span>`;
-                            else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
-                            
-                            const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
-                            
-                            htmlList += `<div class="fatura-parcela" style="${corCss}">
-                                <span>Parc ${p.numero} - ${p.vencimento} - <b>$${parseFloat(p.valor).toFixed(2)}</b> ${labelLate}</span>
-                                ${badge}
-                            </div>`;
-                        });
-                        htmlList += `${faturaBtns}</div>`;
+                            parcelasFiltradas.forEach(obj => {
+                                const p = obj.p; const idx = obj.index;
+                                const isPago = p.status === 'pago';
+                                let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : `border-left: 3px solid ${corHeader};`;
+                                if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
+                                
+                                let badge = "";
+                                if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGO</span>`;
+                                else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
+                                
+                                const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
+                                
+                                htmlList += `<div class="fatura-parcela" style="${corCss}">
+                                    <span>Parc ${p.numero || '?'} - ${p.vencimento || '?'} - <b>$${parseFloat(p.valor||0).toFixed(2)}</b> ${labelLate}</span>
+                                    ${badge}
+                                </div>`;
+                            });
+                            htmlList += `${faturaBtns}</div>`;
+                        }
                     }
+                } catch(errFatura) {
+                    console.warn("Fatura ignorada por erro de formato antigo:", errFatura);
                 }
             });
 
@@ -1843,7 +1853,7 @@
                     placar.style.display = "block";
                 }
             } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
-        } catch(e) { console.error(e); listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados no Crediário/Contas.</div>"; }
+        } catch(e) { console.error(e); listContainer.innerHTML = "<div style='color: #ef4444;'>Erro ao processar dados no Crediário/Contas. Verifique o console.</div>"; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
@@ -1964,9 +1974,9 @@
                         else { aggregated[period].saidas += pagoNaHora; totalSaidasGlobal += pagoNaHora; }
                     }
                     
-                    if(v.parcelas && v.parcelas.length > 0) {
+                    if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
                         v.parcelas.forEach(p => {
-                            if(p.status === 'pago' && p.vencimento) {
+                            if(p && p.status === 'pago' && p.vencimento) {
                                 const pParts = p.vencimento.split('/');
                                 if(pParts.length === 3) {
                                     const parPeriod = `${pParts[1]}/${pParts[2]}`;
