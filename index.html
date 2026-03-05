@@ -261,11 +261,11 @@
         
         <div class="balanco-dashboard">
             <div class="balanco-card" style="border-left-color: var(--primary);">
-                <h4>Total Entradas (Vendas)</h4>
+                <h4>Total Entradas (Vendas Pagas)</h4>
                 <h2 id="bal-entradas" style="color: var(--primary);">$0.00</h2>
             </div>
             <div class="balanco-card" style="border-left-color: var(--contas);">
-                <h4>Total Saídas (Compras)</h4>
+                <h4>Total Saídas (Compras Pagas)</h4>
                 <h2 id="bal-saidas" style="color: var(--contas);">$0.00</h2>
             </div>
             <div class="balanco-card" style="border-left-color: var(--balanco);">
@@ -566,10 +566,9 @@
 
 <script>
     // =====================================
-    // FUNÇÃO GLOBAL DE DATA
-    // Garante que a data sempre será DD/MM/YYYY com zeros
+    // FUNÇÃO GLOBAL DE DATA (Proteção de zeros)
     // =====================================
-    function formatDate(date) {
+    window.formatDate = function(date) {
         const d = date.getDate().toString().padStart(2, '0');
         const m = (date.getMonth() + 1).toString().padStart(2, '0');
         const y = date.getFullYear();
@@ -710,7 +709,7 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false; // Mantém ID livre
+            document.getElementById('in-id').disabled = false; // Mantém ID livre para pesquisa e digitação
             
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
@@ -741,7 +740,7 @@
         else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false;
+            document.getElementById('in-id').disabled = false; // Mantém ID Livre!
             
             if (isCli) {
                 document.getElementById('group-nivel').style.display = "block";
@@ -779,7 +778,7 @@
 
             if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
                 document.getElementById('info-contato').style.display = "flex";
-                document.getElementById('in-id').disabled = false;
+                document.getElementById('in-id').disabled = false; // Mantém livre para pesquisas
                 if (window.pessoaSelecionada) {
                     document.getElementById('btn-img-only').style.display = "block";
                     document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
@@ -999,7 +998,14 @@
         cartList.innerHTML = htmlContent;
 
         const numParcelas = parseInt(document.getElementById('pay-method').value);
-        const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        
+        // Bloqueia entrada maior que o valor
+        if (entryVal > totalRaw) {
+            entryVal = totalRaw;
+            document.getElementById('entry-val').value = entryVal.toFixed(2);
+        }
+
         const parcelBox = document.getElementById('parcel-details');
         const firstDateInput = document.getElementById('first-payment-date').value;
         const dateGroup = document.getElementById('date-group');
@@ -1013,7 +1019,7 @@
             const valorFinanciado = totalRaw - entryVal;
 
             if(entryVal > 0) {
-                pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span>$${entryVal.toFixed(2)}</span></div>`;
+                pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
             }
             
             if (numParcelas > 1 && valorFinanciado > 0) {
@@ -1021,11 +1027,11 @@
                 let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
                 for(let i=0; i < numParcelas; i++) {
                     let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
-                    pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+                    nextDate.setDate(baseDate.getDate() + (i * 2)); // Mantido padrão da Ferraria (2 dias)
+                    pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${window.formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
                 }
             } else if (valorFinanciado > 0) {
-                pHTML += `<div class="parcel-line"><span>PARC ÚNICA (Hoje):</span><span>$${valorFinanciado.toFixed(2)}</span></div>`;
+                pHTML += `<div class="parcel-line"><span>À VISTA (Hoje):</span><span style="color:var(--primary)">$${valorFinanciado.toFixed(2)} (Pendente)</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
         } else { parcelBox.style.display = "none"; }
@@ -1672,7 +1678,13 @@
         const paySelect = document.getElementById('pay-method');
         const numParcelas = parseInt(paySelect.value);
         const formaPagamento = paySelect.options[paySelect.selectedIndex].text;
-        const entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        
+        let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        if (entryVal > totalVenda) {
+            alert("O valor da entrada não pode ser maior do que o total do pedido!");
+            return;
+        }
+        
         const valorFinanciado = totalVenda - entryVal;
 
         let creditoDisponivel = 0;
@@ -1698,7 +1710,7 @@
 
             let parcelasArray = [];
             
-            // Entrada
+            // Entrada é tratada como parcela pendente para baixar hoje
             if (entryVal > 0) {
                 parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' });
             }
@@ -1712,10 +1724,11 @@
                 for(let i=0; i < numParcelas; i++) {
                     let nextDate = new Date(baseDate);
                     nextDate.setDate(baseDate.getDate() + (i * 2)); 
-                    parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: formatDate(nextDate), status: 'pendente' });
+                    parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: window.formatDate(nextDate), status: 'pendente' });
                 }
             } else if (valorFinanciado > 0) {
-                parcelasArray.push({ numero: 1, valor: valorFinanciado, vencimento: dataHoje, status: 'pendente' });
+                // A vista tratada como parcela pendente para baixar hoje
+                parcelasArray.push({ numero: "1 (À Vista)", valor: valorFinanciado, vencimento: dataHoje, status: 'pendente' });
             }
 
             await addDoc(collection(db, dbNameOp), {
@@ -1725,7 +1738,8 @@
                 cliente_nome: window.pessoaSelecionada.nome,
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
                 parcelas: parcelasArray,
-                data: dataHoje
+                data: dataHoje,
+                hora: new Date().toLocaleTimeString('pt-BR')
             });
             
             const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
@@ -1739,7 +1753,7 @@
             }
             await updateDoc(doc(db, dbNamePessoa, window.pessoaSelecionada.firebase_doc_id), updateCli);
             
-            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nA imagem será gerada agora.`);
+            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nLembre-se de ir na aba Crediário/Contas para confirmar o pagamento.`);
             await generateImage();
             clearCart();
         } catch (error) { console.log(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
@@ -1825,15 +1839,14 @@
             
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS (Não dá erro, apenas renderiza com aviso)
+                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS
                     if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
-                        if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; // Ignora nos filtros globais
-                        // Cria uma parcela artificial só para a fatura antiga aparecer na tela do cliente!
+                        if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; 
                         venda.parcelas = [{
                             numero: "?", 
                             valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, 
                             vencimento: venda.data || "N/I", 
-                            status: "pendente" // Exibe para que você possa dar baixa manual
+                            status: "pendente" 
                         }];
                     }
                         
@@ -2046,18 +2059,20 @@
                     // 1. Processa parcelas registradas
                     if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
                         v.parcelas.forEach(p => {
-                            if(p && p.status === 'pago' && p.vencimento) {
+                            if(p && p.vencimento) {
                                 if (p.numero === 'Entrada') hasEntradaParcela = true;
-                                if (p.numero === 1 && v.pedido && v.pedido.pagamento === 'À VISTA') hasAVistaParcela = true;
+                                if (String(p.numero).includes('À Vista') || p.numero === 1) hasAVistaParcela = true;
 
-                                const pParts = p.vencimento.split('/');
-                                if(pParts.length === 3) {
-                                    const parPeriod = `${pParts[1]}/${pParts[2]}`;
-                                    if(!aggregated[parPeriod]) aggregated[parPeriod] = { entradas: 0, saidas: 0 };
-                                    const valorPago = parseFloat(p.valor || 0);
-                                    
-                                    if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
-                                    else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
+                                if (p.status === 'pago') {
+                                    const pParts = p.vencimento.split('/');
+                                    if(pParts.length === 3) {
+                                        const parPeriod = `${pParts[1]}/${pParts[2]}`;
+                                        if(!aggregated[parPeriod]) aggregated[parPeriod] = { entradas: 0, saidas: 0 };
+                                        const valorPago = parseFloat(p.valor || 0);
+                                        
+                                        if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
+                                        else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
+                                    }
                                 }
                             }
                         });
@@ -2070,7 +2085,7 @@
                         if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
                         
                         let valorAntigoPerdido = 0;
-                        if(v.pedido && v.pedido.pagamento === 'À VISTA' && (!v.parcelas || v.parcelas.length === 0)) {
+                        if(v.pedido && v.pedido.pagamento === 'À VISTA' && !hasAVistaParcela && (!v.parcelas || v.parcelas.length === 0)) {
                             valorAntigoPerdido = parseFloat(v.pedido.total || 0);
                         } else if (v.pedido && parseFloat(v.pedido.entrada || 0) > 0 && !hasEntradaParcela) {
                             valorAntigoPerdido = parseFloat(v.pedido.entrada);
