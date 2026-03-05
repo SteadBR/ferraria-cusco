@@ -12,9 +12,9 @@
             --secondary: #3b82f6; /* Produção */
             --buy: #10b981; /* Compras */
             --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores */
+            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
             --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar */
+            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
             --balanco: #eab308; /* Balanço */
             --admin: #ef4444; /* Admin */
             --bg: #121212;
@@ -1664,8 +1664,8 @@
         let creditoDisponivel = 0;
         if (!isCompra) {
             creditoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0);
-            if (numParcelas > 1 && valorFinanciado > 0 && valorFinanciado > creditoDisponivel) {
-                const conf = confirm(`⚠️ ALERTA DE CRÉDITO ⚠️\n\nO cliente possui apenas $${creditoDisponivel.toFixed(2)} de limite.\nO valor a parcelar é $${valorFinanciado.toFixed(2)}.\n\nDeseja confiar e liberar o saldo negativo?`);
+            if (totalVenda > 0 && totalVenda > creditoDisponivel) {
+                const conf = confirm(`⚠️ ALERTA DE CRÉDITO ⚠️\n\nO cliente possui apenas $${creditoDisponivel.toFixed(2)} de limite.\nO valor total da operação é $${totalVenda.toFixed(2)}.\n\nDeseja confiar e liberar o saldo negativo?`);
                 if (!conf) return; 
             }
         }
@@ -1684,9 +1684,8 @@
 
             let parcelasArray = [];
             
-            // Tratamento de Entrada Automática
             if (entryVal > 0) {
-                parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pago' });
+                parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' });
             }
 
             if (numParcelas > 1 && valorFinanciado > 0) {
@@ -1700,8 +1699,7 @@
                     parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: formatDate(nextDate), status: 'pendente' });
                 }
             } else if (valorFinanciado > 0) {
-                // A vista salva como parcela paga para constar no histórico
-                parcelasArray.push({ numero: 1, valor: valorFinanciado, vencimento: dataHoje, status: 'pago' });
+                parcelasArray.push({ numero: 1, valor: valorFinanciado, vencimento: dataHoje, status: 'pendente' });
             }
 
             await addDoc(collection(db, dbNameOp), {
@@ -1718,8 +1716,8 @@
             const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
             let updateCli = { total_compras: oldTotalCompras + totalVenda, ultima_compra: dataHoje };
             
-            if (!isCompra && numParcelas > 1 && valorFinanciado > 0) {
-                const novoC = creditoDisponivel - valorFinanciado;
+            if (!isCompra && totalVenda > 0) {
+                const novoC = creditoDisponivel - totalVenda;
                 updateCli.credito_disponivel = novoC;
                 window.pessoaSelecionada.credito_disponivel = novoC;
                 document.getElementById('stat-credito').innerText = `$${novoC.toFixed(2)}`;
@@ -1812,7 +1810,7 @@
             
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS
+                    // SAFEGUARD
                     if (Array.isArray(venda.parcelas) && venda.parcelas.length > 0) {
                         
                         if (filtro === 'CLIENT_ONLY') {
@@ -1845,7 +1843,7 @@
                         if(parcelasFiltradas.length > 0) {
                             temFatura = true;
                             
-                            // SAFEGUARD DE ITENS
+                            // SAFEGUARD
                             let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                             let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
                             
@@ -1930,7 +1928,6 @@
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
-            // Se for venda de cliente, devolve o limite de crédito. Se for de fornecedor, ignora limite.
             if(!isContas) {
                 const clienteRef = doc(db, "clientes", clienteDocId);
                 const clienteSnap = await getDoc(clienteRef);
