@@ -476,7 +476,7 @@
             <div class="payment-area" id="payment-box">
                 <label id="pay-label">Forma de Pagamento</label>
                 <select id="pay-method" class="pay-select" onchange="updateUI()">
-                    <option value="1">À VISTA</option>
+                    <option value="1">À VISTA (Pagamento Imediato)</option>
                     <option value="2">PARCELADO 2X</option>
                     <option value="3">PARCELADO 3X</option>
                     <option value="4">PARCELADO 4X</option>
@@ -565,6 +565,17 @@
 </div>
 
 <script>
+    // =====================================
+    // FUNÇÃO GLOBAL DE DATA
+    // Garante que a data sempre será DD/MM/YYYY com zeros
+    // =====================================
+    function formatDate(date) {
+        const d = date.getDate().toString().padStart(2, '0');
+        const m = (date.getMonth() + 1).toString().padStart(2, '0');
+        const y = date.getFullYear();
+        return `${d}/${m}/${y}`;
+    }
+
     // =====================================
     // UI DO SISTEMA (FRONT-END)
     // =====================================
@@ -699,7 +710,7 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false;
+            document.getElementById('in-id').disabled = false; // Mantém ID livre
             
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
@@ -934,13 +945,6 @@
         if(carts[currentMode][id]) carts[currentMode][id].stock = parseInt(value) || 0;
     }
 
-    function formatDate(date) {
-        const d = date.getDate().toString().padStart(2, '0');
-        const m = (date.getMonth() + 1).toString().padStart(2, '0');
-        const y = date.getFullYear();
-        return `${d}/${m}/${y}`;
-    }
-
     function updateUI() {
         if(currentMode === 'clientes' || currentMode === 'fornecedores' || currentMode === 'crediario' || currentMode === 'contas_pagar' || currentMode === 'gerenciamento' || currentMode === 'balanco') return;
 
@@ -1002,16 +1006,26 @@
         
         dateGroup.style.display = (numParcelas > 1 && (currentMode === 'vendas' || currentMode === 'compras')) ? "block" : "none";
 
-        if (numParcelas > 1 && totalRaw > 0 && (currentMode === 'vendas' || currentMode === 'compras')) {
+        if (totalRaw > 0 && (currentMode === 'vendas' || currentMode === 'compras')) {
             parcelBox.style.display = "block";
-            let pHTML = `<b>PLANO DE PAGAMENTO:</b><br>`;
-            if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA:</span><span>$${entryVal.toFixed(2)}</span></div>`;
-            const valorParcela = (totalRaw - entryVal) / numParcelas;
-            let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
-            for(let i=0; i < numParcelas; i++) {
-                let nextDate = new Date(baseDate);
-                nextDate.setDate(baseDate.getDate() + (i * 2)); 
-                pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+            let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (CAIXA):</b><br>`;
+            
+            const valorFinanciado = totalRaw - entryVal;
+
+            if(entryVal > 0) {
+                pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span>$${entryVal.toFixed(2)}</span></div>`;
+            }
+            
+            if (numParcelas > 1 && valorFinanciado > 0) {
+                const valorParcela = valorFinanciado / numParcelas;
+                let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
+                for(let i=0; i < numParcelas; i++) {
+                    let nextDate = new Date(baseDate);
+                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
+                    pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
+                }
+            } else if (valorFinanciado > 0) {
+                pHTML += `<div class="parcel-line"><span>PARC ÚNICA (Hoje):</span><span>$${valorFinanciado.toFixed(2)}</span></div>`;
             }
             parcelBox.innerHTML = pHTML;
         } else { parcelBox.style.display = "none"; }
@@ -1209,7 +1223,7 @@
                 username: user, password: pass, 
                 role: isFirstUser ? 'admin' : 'Pendente',
                 status: isFirstUser ? 'aprovado' : 'pendente',
-                data_registro: new Date().toLocaleDateString('pt-BR')
+                data_registro: window.formatDate(new Date())
             });
 
             if (isFirstUser) alert("✨ Você é o primeiro! Foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login.");
@@ -1567,7 +1581,7 @@
                 telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(),
                 conta: conta.toUpperCase(),
                 total_compras: 0, ultima_compra: "Nunca",
-                data_cadastro: new Date().toLocaleDateString('pt-BR'), hora_cadastro: new Date().toLocaleTimeString('pt-BR')
+                data_cadastro: window.formatDate(new Date())
             };
 
             if (isForn) {
@@ -1675,7 +1689,7 @@
         }));
 
         try {
-            const dataHoje = new Date().toLocaleDateString('pt-BR');
+            const dataHoje = window.formatDate(new Date());
             const anoAtual = new Date().getFullYear();
             const counterName = isCompra ? `compras_faturas_${anoAtual}` : `vendas_faturas_${anoAtual}`;
             const prefix = isCompra ? "COMPRA" : "FATURA";
@@ -1684,10 +1698,12 @@
 
             let parcelasArray = [];
             
+            // Entrada
             if (entryVal > 0) {
                 parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' });
             }
 
+            // Parcelas Restantes / A Vista
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorDaParcela = valorFinanciado / numParcelas;
                 const dataBaseInput = document.getElementById('first-payment-date').value;
@@ -1709,8 +1725,7 @@
                 cliente_nome: window.pessoaSelecionada.nome,
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
                 parcelas: parcelasArray,
-                data: dataHoje,
-                hora: new Date().toLocaleTimeString('pt-BR')
+                data: dataHoje
             });
             
             const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
@@ -1810,92 +1825,100 @@
             
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD
-                    if (Array.isArray(venda.parcelas) && venda.parcelas.length > 0) {
+                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS (Não dá erro, apenas renderiza com aviso)
+                    if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
+                        if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; // Ignora nos filtros globais
+                        // Cria uma parcela artificial só para a fatura antiga aparecer na tela do cliente!
+                        venda.parcelas = [{
+                            numero: "?", 
+                            valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, 
+                            vencimento: venda.data || "N/I", 
+                            status: "pendente" // Exibe para que você possa dar baixa manual
+                        }];
+                    }
                         
-                        if (filtro === 'CLIENT_ONLY') {
-                            venda.parcelas.forEach(p => {
-                                if (p && p.status !== 'pago') {
-                                    const val = parseFloat(p.valor || 0);
-                                    if (!isNaN(val)) {
-                                        totalReceber += val;
-                                        if (isAtrasada(p.vencimento)) totalAtraso += val;
-                                    }
+                    if (filtro === 'CLIENT_ONLY') {
+                        venda.parcelas.forEach(p => {
+                            if (p && p.status !== 'pago') {
+                                const val = parseFloat(p.valor || 0);
+                                if (!isNaN(val)) {
+                                    totalReceber += val;
+                                    if (isAtrasada(p.vencimento)) totalAtraso += val;
                                 }
-                            });
-                            let temPendente = false;
-                            venda.parcelas.forEach(p => { if (p && p.status !== 'pago') temPendente = true; });
-                            if (subFiltro === 'OPEN' && !temPendente) return; 
-                        }
-
-                        let parcelasFiltradas = [];
-                        venda.parcelas.forEach((p, index) => {
-                            if(!p) return;
-                            const isLate = isAtrasada(p.vencimento);
-                            if (filtro === 'CLIENT_ONLY') {
-                                parcelasFiltradas.push({p, index, isLate});
-                            } else if (p.status !== 'pago') {
-                                if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
-                                if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
                             }
                         });
+                        let temPendente = false;
+                        venda.parcelas.forEach(p => { if (p && p.status !== 'pago') temPendente = true; });
+                        if (subFiltro === 'OPEN' && !temPendente) return; 
+                    }
 
-                        if(parcelasFiltradas.length > 0) {
-                            temFatura = true;
-                            
-                            // SAFEGUARD
-                            let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
-                            let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
-                            
-                            let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
-                            if (window.hasPerm('fat_del')) {
-                                faturaBtns += `<button class="btn-del-fat" onclick="apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
-                            }
-                            faturaBtns += `<button class="btn-print-fat" onclick="imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
-                            faturaBtns += `</div>`;
-
-                            const corHeader = isContas ? "var(--contas)" : "var(--primary)";
-
-                            htmlList += `<div class="fatura-card" id="fatura-card-${venda.docId}" style="background: var(--card);">
-                                <div class="print-header" id="print-header-${venda.docId}">
-                                    <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
-                                    <h4 style="margin:5px 0 0 0; color:${corHeader};">FERRARIA CUSCO</h4>
-                                    <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
-                                        <b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome || 'N/I'}<br>
-                                        <b>FATURA:</b> ${venda.numero_pedido || 'N/I'}
-                                    </div>
-                                </div>
-
-                                <div class="fatura-header">
-                                    <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido || 'N/I'} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome || 'N/I'}</span>` : ''}</span>
-                                    <span class="fatura-date">${venda.data || ''}</span>
-                                </div>
-                                
-                                <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
-                                <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
-                                    <b>Itens:</b><br>${itensHtml}
-                                </div>
-                                `;
-                            
-                            parcelasFiltradas.forEach(obj => {
-                                const p = obj.p; const idx = obj.index;
-                                const isPago = p.status === 'pago';
-                                let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : `border-left: 3px solid ${corHeader};`;
-                                if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
-                                
-                                let badge = "";
-                                if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGO</span>`;
-                                else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
-                                
-                                const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
-                                
-                                htmlList += `<div class="fatura-parcela" style="${corCss}">
-                                    <span>Parc ${p.numero || '?'} - ${p.vencimento || '?'} - <b>$${parseFloat(p.valor||0).toFixed(2)}</b> ${labelLate}</span>
-                                    ${badge}
-                                </div>`;
-                            });
-                            htmlList += `${faturaBtns}</div>`;
+                    let parcelasFiltradas = [];
+                    venda.parcelas.forEach((p, index) => {
+                        if(!p) return;
+                        const isLate = isAtrasada(p.vencimento);
+                        if (filtro === 'CLIENT_ONLY') {
+                            parcelasFiltradas.push({p, index, isLate});
+                        } else if (p.status !== 'pago') {
+                            if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
+                            if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
                         }
+                    });
+
+                    if(parcelasFiltradas.length > 0) {
+                        temFatura = true;
+                        
+                        // SAFEGUARD DE ITENS
+                        let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
+                        let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i style='color:#ef4444'>Itens não registrados (Fatura Antiga)</i>";
+                        
+                        let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
+                        if (window.hasPerm('fat_del')) {
+                            faturaBtns += `<button class="btn-del-fat" onclick="apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
+                        }
+                        faturaBtns += `<button class="btn-print-fat" onclick="imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
+                        faturaBtns += `</div>`;
+
+                        const corHeader = isContas ? "var(--contas)" : "var(--primary)";
+
+                        htmlList += `<div class="fatura-card" id="fatura-card-${venda.docId}" style="background: var(--card);">
+                            <div class="print-header" id="print-header-${venda.docId}">
+                                <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
+                                <h4 style="margin:5px 0 0 0; color:${corHeader};">FERRARIA CUSCO</h4>
+                                <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
+                                    <b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome || 'N/I'}<br>
+                                    <b>FATURA:</b> ${venda.numero_pedido || 'N/I'}
+                                </div>
+                            </div>
+
+                            <div class="fatura-header">
+                                <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido || 'N/I'} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome || 'N/I'}</span>` : ''}</span>
+                                <span class="fatura-date">${venda.data || ''}</span>
+                            </div>
+                            
+                            <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
+                            <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
+                                <b>Itens:</b><br>${itensHtml}
+                            </div>
+                            `;
+                        
+                        parcelasFiltradas.forEach(obj => {
+                            const p = obj.p; const idx = obj.index;
+                            const isPago = p.status === 'pago';
+                            let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : `border-left: 3px solid ${corHeader};`;
+                            if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
+                            
+                            let badge = "";
+                            if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGO</span>`;
+                            else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
+                            
+                            const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
+                            
+                            htmlList += `<div class="fatura-parcela" style="${corCss}">
+                                <span>Parc ${p.numero || '?'} - ${p.vencimento || '?'} - <b>$${parseFloat(p.valor||0).toFixed(2)}</b> ${labelLate}</span>
+                                ${badge}
+                            </div>`;
+                        });
+                        htmlList += `${faturaBtns}</div>`;
                     }
                 } catch(errFatura) {
                     console.warn("Fatura ignorada por erro de formato antigo:", errFatura);
@@ -1928,6 +1951,7 @@
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
+            // Se for venda de cliente, devolve o limite de crédito. Se for de fornecedor, ignora limite.
             if(!isContas) {
                 const clienteRef = doc(db, "clientes", clienteDocId);
                 const clienteSnap = await getDoc(clienteRef);
