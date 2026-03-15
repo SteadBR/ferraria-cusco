@@ -5,34 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ferraria Cusco - ERP Integrado</title>
     <link rel="icon" type="image/png" href="https://i.imgur.com/bQAy1gG.png">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
         :root {
-            --primary: #f59e0b; /* Vendas */
-            --secondary: #3b82f6; /* Produção */
-            --buy: #10b981; /* Compras */
-            --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores */
-            --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar */
-            --balanco: #eab308; /* Balanço */
-            --admin: #ef4444; /* Admin */
-            --bg: #121212;
-            --card: #1e1e1e;
-            --text: #ffffff;
-            --item-bg: #2a2a2a;
+            --primary: #f59e0b; --secondary: #3b82f6; --buy: #10b981; --clientes: #8b5cf6; 
+            --fornecedores: #ec4899; --crediario: #14b8a6; --contas: #f43f5e; 
+            --balanco: #eab308; --admin: #ef4444; --bg: #121212; --card: #1e1e1e; 
+            --text: #ffffff; --item-bg: #2a2a2a;
         }
-
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh;}
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh; -webkit-user-select: none; user-select: none; }
+        input, select, textarea { -webkit-user-select: text; user-select: text; }
         
-        /* BLOQUEIOS ANTI-CÓPIA */
-        body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
-        input, select, textarea { -webkit-user-select: text; -ms-user-select: text; user-select: text; }
-
-        /* TELA DE LOGIN E REGISTRO */
         #auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(18,18,18,0.95); display: flex; justify-content: center; align-items: center; z-index: 9999; backdrop-filter: blur(5px); }
         .auth-box { background: var(--card); padding: 40px; border-radius: 12px; border-top: 5px solid var(--primary); width: 320px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
         .auth-logo { width: 100px; margin-bottom: 10px; }
@@ -41,45 +25,27 @@
         .auth-btn-main:hover { background: #d97706; }
         .auth-link { color: #aaa; font-size: 0.8rem; margin-top: 15px; cursor: pointer; text-decoration: underline; }
         
-        /* SISTEMA PRINCIPAL */
         #main-app { width: 100%; max-width: 1250px; display: none; flex-direction: column; align-items: center; }
-
         .nav-tabs { width: 100%; display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;}
         .tab-btn { padding: 12px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; transition: 0.3s; color: white; opacity: 0.4; border: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem;}
         .tab-btn.active { opacity: 1; border: 1px solid white; }
         
-        .btn-vendas { background: var(--primary); color: black; }
-        .btn-producao { background: var(--secondary); }
-        .btn-compras { background: var(--buy); color: black;}
-        .btn-clientes { background: var(--clientes); }
-        .btn-fornecedores { background: var(--fornecedores); }
-        .btn-crediario { background: var(--crediario); color: black; }
-        .btn-contas_pagar { background: var(--contas); }
-        .btn-balanco { background: var(--balanco); color: black; display: none; }
-        .btn-admin { background: var(--admin); display: none; }
-
+        .btn-vendas { background: var(--primary); color: black; } .btn-producao { background: var(--secondary); } .btn-compras { background: var(--buy); color: black;} .btn-clientes { background: var(--clientes); } .btn-fornecedores { background: var(--fornecedores); } .btn-crediario { background: var(--crediario); color: black; } .btn-contas_pagar { background: var(--contas); } .btn-balanco { background: var(--balanco); color: black; display: none; } .btn-admin { background: var(--admin); display: none; }
+        
         .shop-container { width: 100%; display: grid; grid-template-columns: 1fr 420px; gap: 20px; transition: 0.3s; align-items: start;}
         .centered-mode { display: flex !important; flex-direction: column; align-items: center; }
         .centered-mode .cart-panel { width: 100%; max-width: 750px; }
         
         header { width: 100%; box-sizing: border-box; background: var(--card); padding: 15px; border-radius: 10px; border-left: 5px solid var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
         .header-left { display: flex; align-items: center; gap: 20px; }
-        .header-producao { border-left-color: var(--secondary) !important; }
-        .header-compras { border-left-color: var(--buy) !important; }
-        .header-clientes { border-left-color: var(--clientes) !important; }
-        .header-fornecedores { border-left-color: var(--fornecedores) !important; }
-        .header-crediario { border-left-color: var(--crediario) !important; }
-        .header-contas_pagar { border-left-color: var(--contas) !important; }
-        .header-balanco { border-left-color: var(--balanco) !important; }
-        .header-admin { border-left-color: var(--admin) !important; }
-
+        .header-producao { border-left-color: var(--secondary) !important; } .header-compras { border-left-color: var(--buy) !important; } .header-clientes { border-left-color: var(--clientes) !important; } .header-fornecedores { border-left-color: var(--fornecedores) !important; } .header-crediario { border-left-color: var(--crediario) !important; } .header-contas_pagar { border-left-color: var(--contas) !important; } .header-balanco { border-left-color: var(--balanco) !important; } .header-admin { border-left-color: var(--admin) !important; }
+        
         .logo-ferraria { width: 80px; height: 80px; object-fit: contain; }
         .header-text h1 { margin: 0; text-transform: uppercase; letter-spacing: 2px; }
         .header-text small { color: var(--primary); font-weight: bold; text-transform: uppercase; }
         .user-badge { background: #333; padding: 8px 15px; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 10px; border: 1px solid #555;}
         .logout-btn { background: #ef4444; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; font-weight: bold;}
-
-        /* Telas Principais */
+        
         .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; width: 100%; }
         .item-card { background: var(--item-bg); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #333; transition: 0.2s; }
         .product-img { width: 100px; height: 100px; object-fit: contain; margin-bottom: 10px; border-radius: 4px; }
@@ -88,24 +54,22 @@
         .input-row label { font-size: 0.65rem; font-weight: bold; color: #999; text-transform: uppercase; }
         .qty-input { width: 70px; background: #121212; border: 1px solid #444; color: white; padding: 5px; border-radius: 4px; text-align: center; font-size: 0.8rem; }
         .add-btn { border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; color: black; text-transform: uppercase; }
-
+        
         .filter-container { grid-column: 1 / -1; width: 100%; box-sizing: border-box; background: var(--card); padding: 15px; border-radius: 8px; margin-bottom: 15px; display: none; align-items: center; gap: 15px; border: 1px solid #333; }
         .filter-container label { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; color: var(--buy); }
         .category-select { background: #121212; color: white; border: 1px solid var(--buy); padding: 10px; border-radius: 5px; outline: none; flex: 1; cursor: pointer; }
-
-        /* Painel Lateral (Cart/Ficha) */
+        
         .cart-panel { background: var(--card); padding: 25px; border-radius: 10px; border: 1px solid #333; height: fit-content; position: sticky; top: 20px; width: 100%; box-sizing: border-box; }
         .cart-header-internal { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
         .logo-cart { width: 100px; height: 100px; object-fit: contain; margin-bottom: 5px; }
         .title-cart { font-weight: bold; letter-spacing: 2px; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; }
         .subtitle-cart { font-size: 0.75rem; color: #aaa; letter-spacing: 1px; margin-top: 2px; }
-
+        
         .client-info { margin-bottom: 20px; display: flex; flex-direction: column; gap: 12px; }
         .client-info input, .display-data { text-transform: uppercase; background: #121212; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; width: 100%; box-sizing: border-box; }
         .display-data { display: none; border: none; border-bottom: 1px solid #444; font-weight: bold; padding: 5px 0; }
         .info-group label { font-size: 0.75rem; color: #ccc; margin-bottom: 3px; display: block; font-weight: bold;}
-
-        /* Estatísticas da Pessoa & Gráfico */
+        
         .client-stats { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 5px; border-left: 3px solid var(--clientes); display: none; margin-top: 5px; }
         .stat-line { font-size: 0.8rem; color: #aaa; margin-bottom: 6px; display: flex; justify-content: space-between; }
         .stat-val { color: white; font-weight: bold; }
@@ -115,7 +79,7 @@
         .chart-container { margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px; display: none; }
         .chart-filters { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .chart-select { background: #121212; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; font-size: 0.7rem; }
-
+        
         .all-clients-panel { margin-top: 25px; border-top: 2px solid #444; padding-top: 20px; display: none; flex-direction: column; gap: 10px; }
         .client-list-item { background: rgba(0,0,0,0.3); border: 1px solid #333; padding: 10px 15px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;}
         .client-list-item:hover { background: rgba(0,0,0,0.6); border-color: var(--clientes); }
@@ -130,26 +94,24 @@
         .entry-input { width: 100%; margin-top: 5px; display: none; }
         .parcel-info { font-size: 0.75rem; color: #aaa; margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 4px; border-left: 3px solid var(--primary); }
         .parcel-line { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
-
+        
         .cart-items { list-style: none; padding: 0; margin: 15px 0; border-top: 1px solid #444; padding-top: 15px; }
         .cart-category-divider { background: rgba(16, 185, 129, 0.1); color: var(--buy); padding: 5px 10px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; border-left: 3px solid var(--buy); margin: 10px 0 5px 0; }
         .cart-item { border-bottom: 1px solid #333; padding: 12px 0; display: flex; flex-direction: column; gap: 8px; }
         .cart-item-header { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; font-weight: bold; }
         .cart-item-img { width: 50px; height: 50px; object-fit: contain; background: transparent; border: none; }
         .cart-item-info { flex: 1; display: flex; justify-content: space-between; align-items: center; }
-
+        
         .insumos-list { font-size: 0.8rem; color: #fbbf24; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px; border-left: 3px solid var(--secondary); line-height: 1.8; }
         .insumo-line { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
         .prod-checkbox { width: 16px; height: 16px; cursor: pointer; margin-left: 10px; accent-color: var(--secondary); }
         
         .total-box { border-top: 2px solid var(--primary); padding-top: 15px; display: flex; justify-content: space-between; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
-        
         .action-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
         .btn-solid { color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;}
         .btn-outline { background: transparent; border: 1px solid; width: 100%; padding: 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem;}
         .btn-outline:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* Lista de Crediário / Contas a Pagar */
+        
         .crediario-filters { background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px; display: none; }
         .crediario-filters label { font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: var(--crediario); display: block; margin-bottom: 8px; }
         .crediario-list { display: none; flex-direction: column; gap: 15px; margin-top: 15px; border-top: 1px solid #444; padding-top: 15px;}
@@ -164,28 +126,22 @@
         .btn-pay { background: var(--buy); color: black; border: none; border-radius: 3px; padding: 4px 8px; cursor: pointer; font-size: 0.7rem; font-weight: bold; }
         
         .print-header { display: none; flex-direction: column; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 15px; }
-
-        /* ABA BALANÇO FINANCEIRO */
-        .balanco-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
         
-        /* Box do Saldo do Banco */
+        /* Balanço & Admin */
+        .balanco-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
         .bank-box { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #555; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:10px;}
         .bank-box input { background: #121212; color: white; border: 1px solid #777; padding: 8px; border-radius: 4px; text-align: center; font-size: 1rem; width: 150px;}
-        
         .balanco-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .balanco-card { background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; border-left: 4px solid #555; text-align: center; }
         .balanco-card h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase; }
         .balanco-card h2 { margin: 0; font-size: 2rem; color: white; }
-        
         .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
         .chart-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid #444; }
         @media(max-width: 768px) { .charts-grid { grid-template-columns: 1fr; } }
-
-        /* ABA GERENCIAMENTO (Admin) */
+        
         .admin-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
         .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
         @media(max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
-        
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         .admin-table th, .admin-table td { padding: 12px; text-align: left; border-bottom: 1px solid #333; font-size: 0.85rem;}
         .admin-table th { color: var(--admin); text-transform: uppercase; }
@@ -197,23 +153,17 @@
         .role-check-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
         .role-check-group label { font-size: 0.85rem; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #ccc;}
         .role-title { color: var(--secondary); font-size: 0.9rem; border-bottom: 1px dashed #555; padding-bottom: 5px; margin: 15px 0 10px 0; text-transform: uppercase;}
-
         .extrato-table th { color: var(--balanco); font-size: 0.8rem; }
         .extrato-table td { font-size: 0.8rem; }
     </style>
     
     <script>
-        // Trava para evitar o F12 e Seleção (Segurança do Sistema)
+        // Trava para evitar o F12 e Seleção
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
-            if(e.keyCode === 123) { return false; } 
-            if(e.ctrlKey && e.shiftKey && e.keyCode === 73) { return false; } 
-            if(e.ctrlKey && e.shiftKey && e.keyCode === 74) { return false; } 
-            if(e.ctrlKey && e.keyCode === 85) { return false; } 
-            if(e.ctrlKey && e.keyCode === 83) { return false; } 
+            if(e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83))) { return false; } 
         };
 
-        // Funções Globais Iniciais para evitar erros de leitura "undefined"
         window.hasPerm = window.hasPerm || function() { return false; };
         
         window.formatDate = function(date) {
@@ -238,23 +188,18 @@
         <img src="https://i.imgur.com/bQAy1gG.png" class="auth-logo">
         <h2 style="margin:0 0 5px 0; color: var(--primary);">ACESSO RESTRITO</h2>
         <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 20px;">Ferraria Cusco - Oficial</p>
-        
         <input type="text" id="login-user" placeholder="Nome de Usuário">
         <input type="password" id="login-pass" placeholder="Senha">
         <button class="auth-btn-main" onclick="window.authLogin()">ENTRAR NO SISTEMA</button>
-        
         <div class="auth-link" onclick="window.toggleAuthMode()">Não tem cadastro? Solicitar acesso.</div>
     </div>
-    
     <div class="auth-box" id="register-box" style="display: none;">
         <img src="https://i.imgur.com/bQAy1gG.png" class="auth-logo" style="width: 70px;">
         <h2 style="margin:0 0 5px 0; color: var(--secondary);">NOVO VENDEDOR</h2>
         <p style="font-size: 0.75rem; color: #aaa; margin-bottom: 20px;">O 1º a se cadastrar será o Administrador.</p>
-        
         <input type="text" id="reg-user" placeholder="Crie um Usuário">
         <input type="password" id="reg-pass" placeholder="Crie uma Senha">
         <button class="auth-btn-main" style="background: var(--secondary);" onclick="window.authRegister()">ENVIAR SOLICITAÇÃO</button>
-        
         <div class="auth-link" onclick="window.toggleAuthMode()">Já tem conta? Fazer Login.</div>
     </div>
 </div>
@@ -265,15 +210,11 @@
         <button class="tab-btn btn-producao" onclick="window.switchSystem('producao')">Produção</button>
         <button class="tab-btn btn-clientes" onclick="window.switchSystem('clientes')">Clientes</button>
         <button class="tab-btn btn-crediario" onclick="window.switchSystem('crediario')">Crediário (A Receber)</button>
-        
         <div style="width: 1px; background: #333; margin: 0 5px;"></div>
-        
         <button class="tab-btn btn-compras" onclick="window.switchSystem('compras')">Compras</button>
         <button class="tab-btn btn-fornecedores" onclick="window.switchSystem('fornecedores')">Fornecedores</button>
         <button class="tab-btn btn-contas_pagar" onclick="window.switchSystem('contas_pagar')">Contas a Pagar</button>
-        
         <div style="width: 1px; background: #333; margin: 0 5px;"></div>
-
         <button class="tab-btn btn-balanco" id="tab-balanco" onclick="window.switchSystem('balanco')">Balanço</button>
         <button class="tab-btn btn-admin" id="tab-admin" onclick="window.switchSystem('gerenciamento')">Admin</button>
     </div>
@@ -362,9 +303,7 @@
                             <th style="color: var(--balanco);">Lucro</th>
                         </tr>
                     </thead>
-                    <tbody id="balanco-table-body">
-                        <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
-                    </tbody>
+                    <tbody id="balanco-table-body"><tr><td colspan="4" style="text-align:center;">Carregando...</td></tr></tbody>
                 </table>
             </div>
             
@@ -380,9 +319,7 @@
                                 <th>Valor</th>
                             </tr>
                         </thead>
-                        <tbody id="extrato-table-body">
-                            <tr><td colspan="4" style="text-align:center;">Carregando...</td></tr>
-                        </tbody>
+                        <tbody id="extrato-table-body"><tr><td colspan="4" style="text-align:center;">Carregando...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -391,7 +328,7 @@
 
     <div class="admin-panel" id="admin-panel">
         <h2 style="color: var(--admin); margin-top: 0; margin-bottom: 5px;">Painel de Controle Empresarial</h2>
-        <p style="color: #aaa; font-size: 0.9rem; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">Gerencie acessos e crie cargos com permissões customizadas para a equipe.</p>
+        <p style="color: #aaa; font-size: 0.9rem; border-bottom: 1px solid #333; padding-bottom: 15px; margin-bottom: 20px;">Gerencie acessos e crie cargos com permissões customizadas.</p>
         
         <div class="admin-grid">
             <div>
@@ -412,32 +349,26 @@
                     <label><input type="checkbox" id="perm_cli_edit"> Editar Clientes/Fornecedores</label>
                     <label><input type="checkbox" id="perm_cli_del"> Excluir Clientes/Fornecedores</label>
                 </div>
-
                 <div class="role-title">Gerenciamento de Faturas (Crediário / Contas a Pagar)</div>
                 <div class="role-check-group">
                     <label><input type="checkbox" id="perm_fat_pay"> Dar Baixa / Pagar parcela</label>
                     <label><input type="checkbox" id="perm_fat_del"> Apagar fatura inteira</label>
                 </div>
-
                 <div class="role-title">Gerenciamento Financeiro</div>
                 <div class="role-check-group">
                     <label><input type="checkbox" id="perm_ver_balanco"> Visualizar Balanço da Empresa</label>
                 </div>
-
                 <div class="role-title">Gerenciamento de Pessoal</div>
                 <div class="role-check-group">
                     <label><input type="checkbox" id="perm_user_approve"> Aprovação de usuário</label>
                     <label><input type="checkbox" id="perm_user_edit"> Alteração de usuário</label>
                     <label><input type="checkbox" id="perm_user_del"> Demissão de usuário</label>
                 </div>
-
                 <button class="btn-solid" style="background: var(--buy); margin-top: 10px;" onclick="window.salvarNovoCargo()">SALVAR CARGO</button>
                 
                 <div style="margin-top: 25px; border-top: 1px dashed #555; padding-top: 15px;">
                     <h4 style="color: var(--admin); margin-top: 0; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85rem;">Cargos Existentes</h4>
-                    <ul id="admin-role-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #ccc; display: flex; flex-direction: column; gap: 5px;">
-                        <li>Carregando...</li>
-                    </ul>
+                    <ul id="admin-role-list" style="list-style: none; padding: 0; margin: 0; font-size: 0.85rem; color: #ccc; display: flex; flex-direction: column; gap: 5px;"></ul>
                 </div>
             </div>
         </div>
@@ -459,9 +390,7 @@
                         <th style="color:var(--primary);">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="comissoes-table-body">
-                    <tr><td colspan="6" style="text-align:center;">Carregando...</td></tr>
-                </tbody>
+                <tbody id="comissoes-table-body"><tr><td colspan="6" style="text-align:center;">Carregando...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -531,7 +460,7 @@
                     <label id="lbl-pesquisa-nome">Pesquisar Cliente (Nome ou ID)</label>
                     <div style="display: flex; gap: 5px; width: 100%; position: relative;">
                         <input type="text" id="in-name" placeholder="NOME" style="flex: 1;">
-                        <button id="search-client-btn" onclick="window.buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar">🔍</button>
+                        <button id="search-client-btn" onclick="window.buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;">🔍</button>
                         <div id="search-results-box" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; z-index: 1000; max-height: 180px; overflow-y: auto; margin-top: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"></div>
                     </div>
                     <span id="out-name" class="display-data"></span>
@@ -541,7 +470,7 @@
                     <label id="lbl-pesquisa-id">ID do Cliente</label>
                     <div style="display: flex; gap: 5px; width: 100%;">
                         <input type="text" id="in-id" placeholder="Ex: 1234" style="flex: 1;">
-                        <button id="search-id-btn" onclick="window.buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar por ID">🔍</button>
+                        <button id="search-id-btn" onclick="window.buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;">🔍</button>
                     </div>
                     <span id="out-id" class="display-data"></span>
                 </div>
@@ -580,14 +509,7 @@
                 <div class="info-group" id="group-nivel" style="display: none;">
                     <label style="color: var(--clientes)">Nível do Cliente</label>
                     <select id="in-nivel" class="pay-select" style="margin-bottom: 5px; border-color: var(--clientes);">
-                        <option value="FERRO">FERRO ($1.000)</option>
-                        <option value="COBRE">COBRE ($2.000)</option>
-                        <option value="AÇO">AÇO ($4.000)</option>
-                        <option value="BRONZE">BRONZE ($8.000)</option>
-                        <option value="PRATA">PRATA ($10.000)</option>
-                        <option value="OURO">OURO ($15.000)</option>
-                        <option value="PLATINA">PLATINA ($20.000)</option>
-                        <option value="DIAMANTE">DIAMANTE ($50.000)</option>
+                        <option value="FERRO">FERRO ($1.000)</option><option value="COBRE">COBRE ($2.000)</option><option value="AÇO">AÇO ($4.000)</option><option value="BRONZE">BRONZE ($8.000)</option><option value="PRATA">PRATA ($10.000)</option><option value="OURO">OURO ($15.000)</option><option value="PLATINA">PLATINA ($20.000)</option><option value="DIAMANTE">DIAMANTE ($50.000)</option>
                     </select>
                     <span id="out-nivel" class="display-data" style="color: var(--clientes)"></span>
                 </div>
@@ -617,8 +539,7 @@
                         <div class="chart-filters">
                             <span style="color:#aaa; font-size:0.8rem; text-transform:uppercase;">Evolução de Operações</span>
                             <div style="display:flex; gap:5px;">
-                                <select id="chart-year" class="chart-select" onchange="window.renderClientChart()">
-                                    </select>
+                                <select id="chart-year" class="chart-select" onchange="window.renderClientChart()"></select>
                             </div>
                         </div>
                         <canvas id="clientChart" width="100" height="50"></canvas>
@@ -716,15 +637,15 @@
         </aside>
     </div>
 </div>
+
 <script>
     // =====================================
-    // UI DO SISTEMA (FRONT-END)
+    // UI JS E LÓGICA DE INTERFACE
     // =====================================
     let currentMode = 'vendas';
     let carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
     window.pessoaSelecionada = null; 
     
-    // Variáveis de Paginação e Gráficos
     window.allPessoasData = [];
     window.currentPage = 1;
     window.itemsPerPage = 10;
@@ -735,27 +656,7 @@
     window.salesBarChart = null;
 
     window.vendasAtuaisDoCliente = [];
-    window.todasVendasGerais = []; // Usado para o gráfico de Vendas Geral
-
-    function uiHasPerm(permKey) {
-        if(typeof window.hasPerm === 'function') return window.hasPerm(permKey);
-        return false;
-    }
-    
-    function toggleAuthMode() {
-        const login = document.getElementById('login-box');
-        const reg = document.getElementById('register-box');
-        if (login.style.display === 'none') {
-            login.style.display = 'block'; reg.style.display = 'none';
-        } else {
-            login.style.display = 'none'; reg.style.display = 'block';
-        }
-    }
-
-    const tierCredits = {
-        'FERRO': 1000, 'COBRE': 2000, 'AÇO': 4000, 'BRONZE': 8000,
-        'PRATA': 10000, 'OURO': 15000, 'PLATINA': 20000, 'DIAMANTE': 50000
-    };
+    window.todasVendasGerais = []; 
 
     const inventory = [
         { id: 1, name: "Cápsula de Munição", price: 0.86, img: "https://i.imgur.com/pYci4DW.png", recipe: { yield: 20, materials: [{n: "Lingote de Cobre", q: 3}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 2}] } },
@@ -790,28 +691,33 @@
         { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png", defaultPrice: 0.43 }
     ];
 
-    function toggleEntryField() {
+    window.toggleAuthMode = function() {
+        const login = document.getElementById('login-box');
+        const reg = document.getElementById('register-box');
+        if (login.style.display === 'none') {
+            login.style.display = 'block'; reg.style.display = 'none';
+        } else {
+            login.style.display = 'none'; reg.style.display = 'block';
+        }
+    };
+
+    window.toggleEntryField = function() {
         const checkbox = document.getElementById('has-entry');
         document.getElementById('entry-val').style.display = checkbox.checked ? "block" : "none";
         if(!checkbox.checked) document.getElementById('entry-val').value = "";
-        updateUI();
-    }
+        window.updateUI();
+    };
 
-    function switchSystem(mode) {
+    window.switchSystem = function(mode) {
         currentMode = mode;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         const tabBtn = document.querySelector(`.btn-${mode}`);
         if(tabBtn) tabBtn.classList.add('active');
         
-        const isVend = mode === 'vendas';
-        const isProd = mode === 'producao';
-        const isBuy = mode === 'compras';
-        const isCli = mode === 'clientes'; 
-        const isForn = mode === 'fornecedores'; 
-        const isCred = mode === 'crediario';
-        const isCont = mode === 'contas_pagar';
-        const isBal = mode === 'balanco';
-        const isAdm = mode === 'gerenciamento';
+        const isVend = mode === 'vendas'; const isProd = mode === 'producao'; const isBuy = mode === 'compras';
+        const isCli = mode === 'clientes'; const isForn = mode === 'fornecedores'; 
+        const isCred = mode === 'crediario'; const isCont = mode === 'contas_pagar';
+        const isBal = mode === 'balanco'; const isAdm = mode === 'gerenciamento';
         
         const header = document.getElementById('main-header');
         const internalTitle = document.getElementById('internal-title');
@@ -850,7 +756,6 @@
         if (isCli || isCred || isForn || isCont) cont.classList.add('centered-mode');
         else cont.classList.remove('centered-mode');
 
-        // Dynamic Labels
         const isSupplierMode = (isBuy || isForn || isCont);
         document.getElementById('lbl-pesquisa-nome').innerText = isSupplierMode ? "Pesquisar Fornecedor (Nome/ID)" : "Pesquisar Cliente (Nome/ID)";
         document.getElementById('lbl-pesquisa-id').innerText = isSupplierMode ? "ID do Fornecedor" : "ID do Cliente";
@@ -860,7 +765,7 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false; // Mantém ID livre para Vendas/Compras
+            document.getElementById('in-id').disabled = false; 
             
             if (isVend || isBuy) {
                 document.getElementById('custom-item-bar').style.display = "flex";
@@ -897,7 +802,7 @@
         else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false; // Mantém ID Livre
+            document.getElementById('in-id').disabled = false;
             
             if (isCli) {
                 document.getElementById('group-nivel').style.display = "block";
@@ -952,7 +857,6 @@
             document.getElementById('admin-panel').style.display = "block";
             document.getElementById('cart-capture').style.display = "none";
             
-            // Popula os meses de comissões
             const selMes = document.getElementById('comissao-mes');
             if(selMes) {
                 selMes.innerHTML = "";
@@ -964,13 +868,10 @@
                     date.setMonth(date.getMonth() - 1);
                 }
             }
-            
             if(typeof window.carregarUsuariosAdmin === 'function') window.carregarUsuariosAdmin();
-            if(typeof window.carregarCargosAdmin === 'function') window.carregarCargosAdmin();
             if(typeof window.carregarComissoes === 'function') window.carregarComissoes();
         }
 
-        // Títulos e Cores do Header
         if(isProd) { header.classList.add('header-producao'); internalTitle.style.color = "var(--secondary)"; document.getElementById('cart-title').innerText = "📦 MATERIAIS PARA PRODUÇÃO"; } 
         else if(isBuy) { header.classList.add('header-compras'); internalTitle.style.color = "var(--buy)"; document.getElementById('cart-title').innerText = "🛒 RECEBIMENTO DE ENCOMENDA"; } 
         else if(isCli) { header.classList.add('header-clientes'); internalTitle.style.color = "var(--clientes)"; document.getElementById('cart-title').innerText = "👥 CADASTRO DE CLIENTES"; } 
@@ -992,12 +893,12 @@
         document.getElementById('total-border').style.borderTopColor = borderColor;
         document.getElementById('total-border').style.color = borderColor;
 
-        if(!isCli && !isForn && !isCred && !isCont && !isAdm && !isBal) renderCatalog();
-        if(isVend || isBuy || isProd) updateUI(); 
+        if(!isCli && !isForn && !isCred && !isCont && !isAdm && !isBal) window.renderCatalog();
+        if(isVend || isBuy || isProd) window.updateUI(); 
         if((isCred || isCont) && typeof window.aplicarFiltroCrediario === 'function') window.aplicarFiltroCrediario();
-    }
+    };
 
-    function renderCatalog() {
+    window.renderCatalog = function() {
         const grid = document.getElementById('catalog');
         const accent = currentMode === 'compras' ? 'var(--buy)' : (currentMode === 'producao' ? 'var(--secondary)' : 'var(--primary)');
         let displayList = currentMode === 'compras' ? supplyInventory : inventory;
@@ -1019,11 +920,11 @@
                     <div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>
                 </div>`;
             }
-            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="addToCart(${item.id})">ADD</button></div>`;
+            return `<div class="item-card" style="border-color: ${currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="window.addToCart(${item.id})">ADD</button></div>`;
         }).join('');
-    }
+    };
 
-    function addToCart(id) {
+    window.addToCart = function(id) {
         const inv = currentMode === 'compras' ? supplyInventory : inventory;
         const prod = inv.find(i => i.id === id);
         const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
@@ -1052,8 +953,8 @@
         } else { 
             carts[currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice, stock: stockVal }; 
         }
-        updateUI();
-    }
+        window.updateUI();
+    };
 
     window.addCustomToCart = function() {
         const name = document.getElementById('custom-name').value.trim();
@@ -1067,24 +968,18 @@
 
         const id = 'custom_' + Date.now();
         const customItem = {
-            id: id,
-            name: name,
-            price: price,
-            defaultPrice: price,
-            img: "https://i.imgur.com/bQAy1gG.png", // Logo genérica
-            category: category,
-            quantity: qty,
-            stock: 0
+            id: id, name: name, price: price, defaultPrice: price,
+            img: "https://i.imgur.com/bQAy1gG.png", category: category, quantity: qty, stock: 0
         };
 
         carts[currentMode][id] = customItem;
         document.getElementById('custom-name').value = "";
         document.getElementById('custom-price').value = "";
         document.getElementById('custom-qty').value = "1";
-        updateUI();
+        window.updateUI();
     };
 
-    function transferToCompras() {
+    window.transferToCompras = function() {
         const prodCart = carts['producao'];
         if (Object.keys(prodCart).length === 0) return alert("A lista de produção está vazia!");
         
@@ -1105,29 +1000,22 @@
             }
         });
         alert("Insumos transferidos para aba Compras!");
-    }
+    };
 
-    function removeItem(id) { delete carts[currentMode][id]; updateUI(); }
+    window.removeItem = function(id) { delete carts[currentMode][id]; window.updateUI(); };
     
-    function clearCart() { 
+    window.clearCart = function() { 
         if(carts[currentMode]) carts[currentMode] = {}; 
-        
         document.getElementById('pay-method').value = "1";
         document.getElementById('first-payment-date').value = "";
-        
         document.getElementById('in-name').value = ""; 
         document.getElementById('in-id').value = ""; 
         document.getElementById('in-tele').value = ""; 
         document.getElementById('in-disc').value = "";
         document.getElementById('in-conta').value = "";
         
-        if (currentMode === 'clientes') {
-            document.getElementById('in-nivel').value = "FERRO";
-            document.getElementById('in-bonus').value = "0";
-        }
-        if (currentMode === 'fornecedores') {
-            document.getElementById('in-categoria').value = "Fazendas";
-        }
+        if (currentMode === 'clientes') { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; }
+        if (currentMode === 'fornecedores') { document.getElementById('in-categoria').value = "Fazendas"; }
         
         document.getElementById('has-entry').checked = false; 
         document.getElementById('entry-val').value = ""; 
@@ -1146,14 +1034,14 @@
         window.pessoaSelecionada = null;
         if(clientChartInstance) { clientChartInstance.destroy(); clientChartInstance = null; }
         
-        switchSystem(currentMode);
-    }
+        window.switchSystem(currentMode);
+    };
 
-    function updateStockFromResumo(id, value) {
+    window.updateStockFromResumo = function(id, value) {
         if(carts[currentMode][id]) carts[currentMode][id].stock = parseInt(value) || 0;
-    }
+    };
 
-    function updateUI() {
+    window.updateUI = function() {
         if(currentMode === 'clientes' || currentMode === 'fornecedores' || currentMode === 'crediario' || currentMode === 'contas_pagar' || currentMode === 'gerenciamento' || currentMode === 'balanco') return;
 
         const cartList = document.getElementById('cart-items');
@@ -1189,7 +1077,7 @@
                 priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
             } else if(currentMode === 'compras') {
                 const needsToBuy = item.quantity - item.stock;
-                const stockInputHTML = String(item.id).startsWith('custom_') ? '' : `<div class="client-info-static" style="margin-top:5px"><label style="font-size:0.6rem; color:#999">ESTOQUE:</label><input type="number" class="resumo-stock-input" value="${item.stock}" onchange="updateStockFromResumo(${item.id}, this.value)"></div>`;
+                const stockInputHTML = String(item.id).startsWith('custom_') ? '' : `<div class="client-info-static" style="margin-top:5px"><label style="font-size:0.6rem; color:#999">ESTOQUE:</label><input type="number" class="resumo-stock-input" value="${item.stock}" onchange="window.updateStockFromResumo('${item.id}', this.value)"></div>`;
                 if(needsToBuy <= 0 && !String(item.id).startsWith('custom_')) {
                     priceColHTML = `<div style="text-align:right"><span>ESTOQUE OK</span>${stockInputHTML}</div>`;
                     qtyFinalLabel = `<small style="color:#10b981">Disponível</small>`;
@@ -1205,17 +1093,14 @@
                 qtyFinalLabel = `<small style="color:#aaa">Qtd: ${item.quantity} un. | Unit: $${item.price.toFixed(2)}</small>`;
             }
 
-            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()}<br>${qtyFinalLabel}</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="removeItem('${item.id}')" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
+            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()}<br>${qtyFinalLabel}</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="window.removeItem('${item.id}')" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
         });
         cartList.innerHTML = htmlContent;
 
         const numParcelas = parseInt(document.getElementById('pay-method').value);
         let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
         
-        if (entryVal > totalRaw) {
-            entryVal = totalRaw;
-            document.getElementById('entry-val').value = entryVal.toFixed(2);
-        }
+        if (entryVal > totalRaw) { entryVal = totalRaw; document.getElementById('entry-val').value = entryVal.toFixed(2); }
 
         const parcelBox = document.getElementById('parcel-details');
         const firstDateInput = document.getElementById('first-payment-date').value;
@@ -1226,12 +1111,9 @@
         if (totalRaw > 0 && (currentMode === 'vendas' || currentMode === 'compras')) {
             parcelBox.style.display = "block";
             let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (CAIXA):</b><br>`;
-            
             const valorFinanciado = totalRaw - entryVal;
 
-            if(entryVal > 0) {
-                pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
-            }
+            if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
             
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorParcela = valorFinanciado / numParcelas;
@@ -1248,7 +1130,7 @@
         } else { parcelBox.style.display = "none"; }
         
         document.getElementById('total-val').innerText = totalRaw.toFixed(2);
-    }
+    };
 
     window.generateImage = async function() {
         if((currentMode === 'vendas' || currentMode === 'compras' || currentMode === 'producao') && Object.keys(carts[currentMode]).length === 0) {
@@ -1291,7 +1173,6 @@
         paySelect.style.display = 'none';
         payDisplay.style.display = 'block';
         
-        // Esconder UI
         document.getElementById('ui-buttons').style.display = 'none';
         document.getElementById('date-group').style.display = 'none';
         document.getElementById('entry-checkbox-group').style.display = 'none';
@@ -1302,7 +1183,6 @@
         document.getElementById('search-results-box').style.display = 'none';
         document.getElementById('all-clients-panel').style.display = 'none';
         
-        // Esconder Botões no Print
         if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
             document.getElementById('crediario-filters').style.display = 'none';
             document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
@@ -1317,13 +1197,11 @@
         document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'none');
         document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'none');
 
-        // Capturar
         const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
         const link = document.createElement('a');
         link.download = `CUSCO_${currentMode.toUpperCase()}_${Date.now()}.png`;
         link.href = canvas.toDataURL(); link.click();
         
-        // Restaurar UI
         paySelect.style.display = 'block';
         payDisplay.style.display = 'none';
         document.getElementById('ui-buttons').style.display = 'flex';
@@ -1346,7 +1224,7 @@
         document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
         if(document.getElementById('chart-container') && clientChartInstance) document.getElementById('chart-container').style.display = 'block';
         
-        switchSystem(currentMode); 
+        window.switchSystem(currentMode); 
     };
 
     window.toggleItens = function(id) {
@@ -1356,7 +1234,7 @@
     };
 
     // =====================================
-    // GRÁFICOS DO CLIENTE (CHART.JS)
+    // GRÁFICOS DO CLIENTE E VENDAS
     // =====================================
     window.renderClientChart = function() {
         const ctx = document.getElementById('clientChart').getContext('2d');
@@ -1385,32 +1263,67 @@
 
         clientChartInstance = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: monthNames,
-                datasets: [{
-                    label: 'Movimentação ($)',
-                    data: dataValues,
-                    backgroundColor: corFundo,
-                    borderColor: corLinha,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: { 
-                    y: { beginAtZero: true, ticks: { color: '#aaa', font: {size: 10} } },
-                    x: { ticks: { color: '#aaa', font: {size: 10} } }
-                },
-                plugins: { legend: { display: false } }
+            data: { labels: monthNames, datasets: [{ label: 'Movimentação ($)', data: dataValues, backgroundColor: corFundo, borderColor: corLinha, borderWidth: 1 }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#aaa', font: {size: 10} } }, x: { ticks: { color: '#aaa', font: {size: 10} } } }, plugins: { legend: { display: false } } }
+        });
+    };
+
+    window.renderSalesChart = function() {
+        if(!window.todasVendasGerais || window.todasVendasGerais.length === 0) return;
+        
+        const filtro = document.getElementById('sales-chart-filter').value;
+        let groups = {};
+        
+        const dataHoje = new Date();
+        dataHoje.setHours(0,0,0,0);
+        const limite30Dias = new Date(dataHoje);
+        limite30Dias.setDate(dataHoje.getDate() - 30);
+
+        window.todasVendasGerais.forEach(v => {
+            if(!v.data) return;
+            const parts = v.data.split('/');
+            if(parts.length !== 3) return;
+            const totalVal = parseFloat(v.pedido.total || 0);
+            
+            if (filtro === 'diario') {
+                const dVenda = new Date(parts[2], parts[1]-1, parts[0]);
+                if(dVenda >= limite30Dias) {
+                    const key = `${parts[0]}/${parts[1]}`;
+                    groups[key] = (groups[key] || 0) + totalVal;
+                }
+            } else if (filtro === 'mensal') {
+                const key = `${parts[1]}/${parts[2]}`;
+                groups[key] = (groups[key] || 0) + totalVal;
+            } else if (filtro === 'anual') {
+                const key = `${parts[2]}`;
+                groups[key] = (groups[key] || 0) + totalVal;
             }
+        });
+
+        const sortedKeys = Object.keys(groups).sort((a,b) => {
+            if(filtro === 'diario' || filtro === 'mensal') {
+                const pA = a.split('/'); const pB = b.split('/');
+                if(pA[1] !== pB[1]) return parseInt(pA[1]) - parseInt(pB[1]);
+                return parseInt(pA[0]) - parseInt(pB[0]);
+            }
+            return parseInt(a) - parseInt(b);
+        });
+
+        const labels = sortedKeys; const data = sortedKeys.map(k => groups[k]);
+        const ctx = document.getElementById('salesBarChart').getContext('2d');
+        if (window.salesBarChart) window.salesBarChart.destroy();
+        window.salesBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: 'Volume de Vendas ($)', data: data, backgroundColor: 'rgba(245, 158, 11, 0.5)', borderColor: 'var(--primary)', borderWidth: 1 }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true, ticks: {color: '#aaa'} }, x: { ticks: {color: '#aaa'} } }, plugins: { legend: { display: false } } }
         });
     };
 </script>
+
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Substitua pelas suas credenciais reais do Firebase se precisar, mas mantive as que você usava
     const firebaseConfig = {
           apiKey: "AIzaSyBoX_SoV36u9DHTxRxrdnNceZe9J-EbCWM",
           authDomain: "ferrariacusco.firebaseapp.com",
@@ -1455,9 +1368,7 @@
             if (userData.role !== 'admin') {
                 const roleSnap = await getDoc(doc(db, "cargos", userData.role));
                 if (roleSnap.exists()) permissoes = roleSnap.data().permissoes || {};
-            } else {
-                permissoes = { admin: true };
-            }
+            } else { permissoes = { admin: true }; }
 
             window.usuarioLogado = { ...userData, id: userId, permissoes: permissoes };
             
@@ -1472,9 +1383,7 @@
             if (window.hasPerm('ver_balanco')) {
                 document.getElementById('tab-balanco').style.display = "block";
             }
-            
-            // Força a renderização inicial
-            if(typeof window.switchSystem === 'function') window.switchSystem('vendas'); 
+            window.switchSystem('vendas'); 
         } catch (error) { console.log(error); alert("Erro ao conectar."); }
     };
 
@@ -1495,13 +1404,12 @@
                 username: user, password: pass, 
                 role: isFirstUser ? 'admin' : 'Pendente',
                 status: isFirstUser ? 'aprovado' : 'pendente',
-                comissao: 0,
-                data_registro: window.formatDate(new Date())
+                comissao: 0, data_registro: window.formatDate(new Date())
             });
 
             if (isFirstUser) alert("✨ Você é o primeiro! Foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login.");
             else alert("Solicitação enviada! Aguarde a aprovação.");
-            if(typeof window.toggleAuthMode === 'function') window.toggleAuthMode();
+            window.toggleAuthMode();
         } catch (error) { console.error(error); alert("Erro ao registrar."); }
     };
 
@@ -1533,7 +1441,7 @@
                 });
                 list.innerHTML = html || "<li style='text-align:center;'>Nenhum cargo extra criado.</li>";
             }
-        } catch(e) { console.error("Erro ao carregar cargos", e); }
+        } catch(e) {}
     };
 
     window.carregarUsuariosAdmin = async function() {
@@ -1546,14 +1454,12 @@
             let html = "";
             window.todosVendedoresDb = []; 
             snap.forEach(docSnap => {
-                const u = docSnap.data();
-                const uId = docSnap.id;
+                const u = docSnap.data(); const uId = docSnap.id;
                 window.todosVendedoresDb.push({ id: uId, ...u });
                 
                 if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
 
                 const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
-                
                 let options = `<option value="admin" ${u.role==='admin'?'selected':''}>Admin Supremo</option>`;
                 window.todosCargos.forEach(c => { options += `<option value="${c.id}" ${u.role===c.id?'selected':''}>${c.nome}</option>`; });
                 const selCargo = `<select id="cargo-${uId}" class="pay-select" style="margin:0; padding:4px;">${options}</select>`;
@@ -1567,7 +1473,6 @@
                     if (window.hasPerm('user_edit')) acoes += `<button style="background:var(--secondary); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="window.alterarCargoVendedor('${uId}')">Salvar Edição</button> `;
                     if (window.hasPerm('user_del')) acoes += `<button style="background:var(--admin); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="window.excluirVendedor('${uId}')">Revogar</button>`;
                 }
-
                 html += `<tr><td style="color:white; font-weight:bold;">${u.username}</td><td>${window.hasPerm('user_edit') ? selCargo : u.role.toUpperCase()}</td><td>${window.hasPerm('user_edit') ? inpComissao : (u.comissao||0) + '%'}</td><td><span class="badge-status ${badgeClass}">${u.status.toUpperCase()}</span></td><td>${acoes}</td></tr>`;
             });
             tbody.innerHTML = html || "<tr><td colspan='5' style='text-align:center; color:#aaa;'>Nenhum outro usuário.</td></tr>";
@@ -1577,10 +1482,8 @@
     window.alterarCargoVendedor = async function(docId) {
         const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
         const comissaoVal = parseFloat(document.getElementById(`comissao-${docId}`).value) || 0;
-        try { 
-            await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado, comissao: comissaoVal }); 
-            alert("Ficha do funcionário atualizada!"); 
-        } catch(e) { alert("Erro ao atualizar funcionário."); }
+        try { await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado, comissao: comissaoVal }); alert("Ficha atualizada!"); } 
+        catch(e) { alert("Erro ao atualizar."); }
     };
 
     window.carregarComissoes = async function() {
@@ -1593,7 +1496,6 @@
         try {
             const snapVendas = await getDocs(collection(db, "vendas"));
             let vendasFunc = {};
-            
             snapVendas.forEach(docV => {
                 const v = docV.data();
                 if(v.data && v.data.endsWith(mesFiltro) && v.vendedor) {
@@ -1604,15 +1506,12 @@
 
             const snapCompras = await getDocs(query(collection(db, "compras"), where("is_comissao", "==", true)));
             let valesFunc = {};
-            
             snapCompras.forEach(docC => {
                 const c = docC.data();
                 if(c.data && c.data.endsWith(mesFiltro) && c.vendedor_ref) {
                     if(!valesFunc[c.vendedor_ref]) valesFunc[c.vendedor_ref] = 0;
                     if(c.parcelas && Array.isArray(c.parcelas)) {
-                        c.parcelas.forEach(p => {
-                            if(p && p.status === 'pago') valesFunc[c.vendedor_ref] += parseFloat(p.valor || 0);
-                        });
+                        c.parcelas.forEach(p => { if(p && p.status === 'pago') valesFunc[c.vendedor_ref] += parseFloat(p.valor || 0); });
                     }
                 }
             });
@@ -1620,13 +1519,8 @@
             let html = "";
             window.todosVendedoresDb.forEach(u => {
                 if(u.status !== 'aprovado') return; 
-                
-                const nome = u.username;
-                const pct = parseFloat(u.comissao || 0);
-                const totalVendido = vendasFunc[nome] || 0;
-                const comissaoBruta = totalVendido * (pct / 100);
-                const valesTirados = valesFunc[nome] || 0;
-                const restante = comissaoBruta - valesTirados;
+                const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0;
+                const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
                 
                 html += `<tr>
                     <td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td>
@@ -1634,20 +1528,13 @@
                     <td style="color:white;">$${comissaoBruta.toFixed(2)}</td>
                     <td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td>
                     <td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td>
-                    <td>
-                        <button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button>
-                    </td>
+                    <td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td>
                 </tr>`;
             });
             
             if (window.usuarioLogado && !window.todosVendedoresDb.find(x => x.username === window.usuarioLogado.username)) {
-                const u = window.usuarioLogado;
-                const nome = u.username;
-                const pct = parseFloat(u.comissao || 0);
-                const totalVendido = vendasFunc[nome] || 0;
-                const comissaoBruta = totalVendido * (pct / 100);
-                const valesTirados = valesFunc[nome] || 0;
-                const restante = comissaoBruta - valesTirados;
+                const u = window.usuarioLogado; const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0;
+                const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
                 
                 html += `<tr>
                     <td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td>
@@ -1655,100 +1542,68 @@
                     <td style="color:white;">$${comissaoBruta.toFixed(2)}</td>
                     <td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td>
                     <td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td>
-                    <td>
-                        <button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button>
-                    </td>
+                    <td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td>
                 </tr>`;
             }
-
             tbody.innerHTML = html || "<tr><td colspan='6' style='text-align:center; color:#aaa;'>Sem dados para exibir.</td></tr>";
-
         } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='6' style='color:red;'>Erro ao calcular comissões.</td></tr>"; }
     };
 
     window.lancarValeFuncionario = async function(vendedorUsername) {
         if(!window.hasPerm('admin')) return alert("Apenas admins podem lançar vales.");
-        const val = prompt(`Lançamento de Vale / Pagamento de Comissão para ${vendedorUsername}.\nDigite o valor ($):`);
+        const val = prompt(`Lançamento de Vale/Pagamento para ${vendedorUsername}.\nDigite o valor ($):`);
         if(!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) return;
         
         const dataHoje = window.formatDate(new Date());
-        
         try {
             await addDoc(collection(db, "compras"), {
-                numero_pedido: `VALE ${Date.now()}`,
-                vendedor: window.usuarioLogado.username,
-                cliente_doc_id: 'interno',
-                cliente_nome: `FUNCIONÁRIO: ${vendedorUsername}`,
-                vendedor_ref: vendedorUsername, 
-                is_comissao: true,
-                conta: 'Caixa Geral',
-                pedido: { 
-                    itens: [{nome_produto: "Vale/Comissão de Vendas", quantidade: 1, valor_unitario: parseFloat(val), subtotal: parseFloat(val), category: "Salários/Comissões"}], 
-                    total: parseFloat(val), pagamento: 'À VISTA', entrada: 0, financiado: 0 
-                },
+                numero_pedido: `VALE ${Date.now()}`, vendedor: window.usuarioLogado.username,
+                cliente_doc_id: 'interno', cliente_nome: `FUNCIONÁRIO: ${vendedorUsername}`,
+                vendedor_ref: vendedorUsername, is_comissao: true, conta: 'Caixa Geral',
+                pedido: { itens: [{nome_produto: "Vale/Comissão", quantidade: 1, valor_unitario: parseFloat(val), subtotal: parseFloat(val), category: "Salários/Comissões"}], total: parseFloat(val), pagamento: 'À VISTA', entrada: 0, financiado: 0 },
                 parcelas: [{ numero: "1 (Pago)", valor: parseFloat(val), vencimento: dataHoje, data_pagamento: dataHoje, status: 'pago' }],
                 data: dataHoje
             });
-            alert("Lançamento efetuado! O valor já foi abatido no saldo do funcionário e constará no Balanço.");
-            window.carregarComissoes();
+            alert("Lançamento efetuado! Constará no Balanço."); window.carregarComissoes();
         } catch(e) { alert("Erro ao lançar vale."); }
     };
 
     window.salvarNovoCargo = async function() {
-        if (!window.hasPerm('admin')) return alert("Apenas admins podem criar níveis de acesso.");
+        if (!window.hasPerm('admin')) return alert("Apenas admins.");
         const nome = document.getElementById('role-name-input').value.trim();
         if (!nome) return alert("Digite o nome do cargo!");
         
         const permissoes = {
-            cli_add: document.getElementById('perm_cli_add').checked,
-            cli_edit: document.getElementById('perm_cli_edit').checked,
-            cli_del: document.getElementById('perm_cli_del').checked,
-            fat_pay: document.getElementById('perm_fat_pay').checked,
-            fat_del: document.getElementById('perm_fat_del').checked,
-            ver_balanco: document.getElementById('perm_ver_balanco').checked,
-            user_approve: document.getElementById('perm_user_approve').checked,
-            user_edit: document.getElementById('perm_user_edit').checked,
-            user_del: document.getElementById('perm_user_del').checked
+            cli_add: document.getElementById('perm_cli_add').checked, cli_edit: document.getElementById('perm_cli_edit').checked, cli_del: document.getElementById('perm_cli_del').checked,
+            fat_pay: document.getElementById('perm_fat_pay').checked, fat_del: document.getElementById('perm_fat_del').checked, ver_balanco: document.getElementById('perm_ver_balanco').checked,
+            user_approve: document.getElementById('perm_user_approve').checked, user_edit: document.getElementById('perm_user_edit').checked, user_del: document.getElementById('perm_user_del').checked
         };
-
         try {
-            await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes });
-            alert("Cargo Criado!");
-            document.getElementById('role-name-input').value = "";
-            document.querySelectorAll('.role-check-group input[type="checkbox"]').forEach(cb => cb.checked = false);
-            window.carregarUsuariosAdmin(); 
+            await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes }); alert("Cargo Criado!"); document.getElementById('role-name-input').value = "";
+            document.querySelectorAll('.role-check-group input[type="checkbox"]').forEach(cb => cb.checked = false); window.carregarUsuariosAdmin(); 
         } catch(e) { alert("Erro ao criar cargo."); }
     };
 
     window.deletarCargo = async function(cargoId) {
         if(!window.hasPerm('admin')) return;
-        if(!confirm("⚠️ Atenção!\nTem certeza que deseja apagar este cargo? Certifique-se de que nenhum funcionário está utilizando ele antes!")) return;
-        try {
-            await deleteDoc(doc(db, "cargos", cargoId));
-            alert("Cargo apagado com sucesso!");
-            window.carregarUsuariosAdmin(); 
-        } catch(e) { alert("Erro ao apagar cargo."); }
+        if(!confirm("⚠️ Atenção!\nTem certeza que deseja apagar este cargo?")) return;
+        try { await deleteDoc(doc(db, "cargos", cargoId)); alert("Cargo apagado!"); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
-
     window.aprovarVendedor = async function(docId) {
         const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
         if(!confirm("Deseja APROVAR este vendedor?")) return;
-        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado', role: cargoSelecionado }); window.carregarUsuariosAdmin(); } 
-        catch(e) { alert("Erro."); }
+        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado', role: cargoSelecionado }); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
-
     window.excluirVendedor = async function(docId) {
         if(!confirm("Deseja EXCLUIR este usuário?")) return;
-        try { await deleteDoc(doc(db, "vendedores", docId)); window.carregarUsuariosAdmin(); } 
-        catch(e) { alert("Erro."); }
+        try { await deleteDoc(doc(db, "vendedores", docId)); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
 
     // =====================================
     // 1. BUSCA E LISTAGEM CLIENTE/FORN
     // =====================================
     async function getNextSequence(counterName) {
-        const counterRef = doc(db, "counters", counterName);
-        const counterSnap = await getDoc(counterRef);
+        const counterRef = doc(db, "counters", counterName); const counterSnap = await getDoc(counterRef);
         let nextNum = 1;
         if (counterSnap.exists()) { nextNum = (counterSnap.data().seq || 0) + 1; await updateDoc(counterRef, { seq: nextNum });
         } else { await setDoc(counterRef, { seq: nextNum }); }
@@ -1756,100 +1611,103 @@
     }
 
     window.loadAllPessoas = async function() {
-        const isForn = (currentMode === 'fornecedores');
-        const dbName = isForn ? "fornecedores" : "clientes";
-        const listDiv = document.getElementById('full-client-list-render');
-        listDiv.innerHTML = "<span style='color:#aaa'>Carregando registros...</span>";
-        
+        const isForn = (currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
+        const listDiv = document.getElementById('full-client-list-render'); listDiv.innerHTML = "<span style='color:#aaa'>Carregando registros...</span>";
         try {
-            const snap = await getDocs(collection(db, dbName));
-            let allC = [];
+            const snap = await getDocs(collection(db, dbName)); let allC = [];
             snap.forEach(d => allC.push({ ...d.data(), firebase_doc_id: d.id }));
             
             const sort = document.getElementById('client-sort').value;
             if(sort === 'nome') allC.sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
             if(sort === 'id') allC.sort((a,b) => (a.id_cliente||"").localeCompare(b.id_cliente||""));
             if(sort === 'credito' && !isForn) allC.sort((a,b) => parseFloat(b.limite_credito||0) - parseFloat(a.limite_credito||0));
-            if(sort === 'data') allC.sort((a,b) => {
-                const da = window.isoDate(a.data_cadastro);
-                const db = window.isoDate(b.data_cadastro);
-                return db.localeCompare(da); 
-            });
+            if(sort === 'data') allC.sort((a,b) => { const da = window.isoDate(a.data_cadastro); const db = window.isoDate(b.data_cadastro); return db.localeCompare(da); });
 
-            window.allPessoasData = allC;
-            window.resultadosBuscaFirebase = allC; 
-            window.currentPage = 1;
-            if(typeof window.renderClientPage === 'function') window.renderClientPage();
+            window.allPessoasData = allC; window.resultadosBuscaFirebase = allC; window.currentPage = 1; window.renderClientPage();
         } catch(e) { listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar dados.</span>"; }
-    };
+    }
 
     window.buscarPessoaFirebase = async function() {
         const isForn = (currentMode === 'fornecedores' || currentMode === 'compras' || currentMode === 'contas_pagar');
         const dbName = isForn ? "fornecedores" : "clientes";
-        
-        const nomeInput = document.getElementById('in-name').value.trim().toUpperCase();
-        const idInput = document.getElementById('in-id').value.trim().toUpperCase();
+        const nomeInput = document.getElementById('in-name').value.trim().toUpperCase(); const idInput = document.getElementById('in-id').value.trim().toUpperCase();
         const resultsBox = document.getElementById('search-results-box');
-        
         if (!nomeInput && !idInput) return alert("Preencha NOME ou ID para buscar!");
 
-        resultsBox.innerHTML = "<div style='padding: 10px; color: #aaa; text-align: center;'>Buscando no banco...</div>";
-        resultsBox.style.display = "block";
-        window.resultadosBuscaFirebase = []; 
-        window.pessoaSelecionada = null; 
+        resultsBox.innerHTML = "<div style='padding: 10px; color: #aaa; text-align: center;'>Buscando no banco...</div>"; resultsBox.style.display = "block";
+        window.resultadosBuscaFirebase = []; window.pessoaSelecionada = null; 
 
         try {
-            const querySnapshot = await getDocs(collection(db, dbName));
-            let htmlList = "";
-            
+            const querySnapshot = await getDocs(collection(db, dbName)); let htmlList = "";
             querySnapshot.forEach((documento) => {
-                const dados = documento.data();
-                dados.firebase_doc_id = documento.id; 
-                
-                const dbNome = (dados.nome || "").toUpperCase();
-                const dbId = (dados.id_cliente || "").toUpperCase();
-                
+                const dados = documento.data(); dados.firebase_doc_id = documento.id; 
+                const dbNome = (dados.nome || "").toUpperCase(); const dbId = (dados.id_cliente || "").toUpperCase();
                 let matchNome = true; let matchId = true;
                 if (nomeInput && !dbNome.includes(nomeInput)) matchNome = false;
                 if (idInput && !dbId.includes(idInput)) matchId = false;
 
                 if (matchNome && matchId) {
-                    window.resultadosBuscaFirebase.push(dados);
-                    const index = window.resultadosBuscaFirebase.length - 1;
-                    
-                    const tColor = isForn ? "var(--fornecedores)" : "var(--clientes)";
-                    const subLabel = isForn ? (dados.categoria || 'OUTROS') : (dados.nivel || 'FERRO');
+                    window.resultadosBuscaFirebase.push(dados); const index = window.resultadosBuscaFirebase.length - 1;
+                    const tColor = isForn ? "var(--fornecedores)" : "var(--clientes)"; const subLabel = isForn ? (dados.categoria || 'OUTROS') : (dados.nivel || 'FERRO');
 
                     htmlList += `<div onclick="window.selecionarPessoaNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
-                        <strong style="color: var(--primary)">${dados.nome}</strong><br>
-                        <small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small>
-                    </div>`;
+                        <strong style="color: var(--primary)">${dados.nome}</strong><br><small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small></div>`;
                 }
             });
-            
             if (window.resultadosBuscaFirebase.length > 0) {
                 htmlList += `<div onclick="document.getElementById('search-results-box').style.display='none'" style="padding: 8px; text-align: center; color: #ef4444; cursor: pointer; font-size: 0.8rem; background: #121212;">FECHAR ✕</div>`;
                 resultsBox.innerHTML = htmlList;
             } else {
-                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado.</div>";
-                setTimeout(() => resultsBox.style.display = "none", 3000);
+                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000);
             }
         } catch (error) { resultsBox.innerHTML = "<div style='padding:10px; color:red;'>Erro ao buscar.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000); }
     };
 
+    window.selecionarPessoaNaLista = async function(index) {
+        const dados = window.resultadosBuscaFirebase[index]; if(!dados) return;
+        window.pessoaSelecionada = dados; 
+        const isForn = (currentMode === 'fornecedores' || currentMode === 'compras' || currentMode === 'contas_pagar');
+        
+        document.getElementById('in-name').value = dados.nome; document.getElementById('in-id').value = dados.id_cliente || ''; document.getElementById('in-tele').value = dados.telegrama; document.getElementById('in-disc').value = dados.discord; document.getElementById('in-conta').value = dados.conta || '';
+        document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I"); document.getElementById('stat-desde').innerText = dados.data_cadastro || "N/I"; document.getElementById('stat-ultima').innerText = dados.ultima_compra || "Nunca"; document.getElementById('stat-totalcompras').innerText = parseFloat(dados.total_compras || 0).toFixed(2);
+
+        if (isForn) { if(currentMode === 'fornecedores') { document.getElementById('in-categoria').value = dados.categoria || 'Fazendas'; }
+        } else {
+            if(currentMode === 'clientes') { document.getElementById('in-nivel').value = dados.nivel || 'FERRO'; document.getElementById('in-bonus').value = dados.bonus || 0; }
+            document.getElementById('stat-nivel').innerText = dados.nivel || "FERRO"; document.getElementById('stat-bonus').innerText = parseFloat(dados.bonus || 0).toFixed(2);
+            const limTotal = parseFloat(dados.limite_credito || tierCredits['FERRO']); const credDisp = parseFloat(dados.credito_disponivel !== undefined ? dados.credito_disponivel : limTotal);
+            document.getElementById('stat-limite').innerText = limTotal.toFixed(2); const elDisp = document.getElementById('stat-credito'); elDisp.innerText = `$${credDisp.toFixed(2)}`;
+            if(credDisp < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
+        }
+        
+        document.getElementById('client-stats').style.display = "block"; document.getElementById('search-results-box').style.display = "none";
+        
+        // GRÁFICO DA PESSOA
+        const dbNameOp = isForn ? "compras" : "vendas";
+        const q = query(collection(db, dbNameOp), where("cliente_doc_id", "==", dados.firebase_doc_id));
+        try {
+            const snap = await getDocs(q); window.vendasAtuaisDoCliente = []; let anosEncontrados = new Set(); anosEncontrados.add("ALL");
+            snap.forEach(doc => { 
+                const d = doc.data(); window.vendasAtuaisDoCliente.push(d); 
+                if(d.data) { const parts = d.data.split('/'); if (parts.length === 3) anosEncontrados.add(parts[2]); }
+            });
+            const selAnos = document.getElementById('chart-year'); selAnos.innerHTML = "";
+            [...anosEncontrados].sort((a,b)=>b-a).forEach(ano => { const text = ano === "ALL" ? "Todos os Anos" : ano; selAnos.innerHTML += `<option value="${ano}">${text}</option>`; });
+            document.getElementById('chart-container').style.display = 'block'; window.renderClientChart();
+        } catch (e) { console.error("Erro ao puxar dados pro gráfico", e); }
+
+        if (currentMode === 'crediario' || currentMode === 'contas_pagar') { document.getElementById('crediario-filter-select').value = "CLIENT_ONLY"; document.getElementById('crediario-filter-select').dispatchEvent(new Event('change'));
+        } else { window.switchSystem(currentMode); }
+    };
+
     // =====================================
-    // 2. ABA CLIENTES / FORNECEDORES (CRUD)
+    // 2. ABA CLIENTES E FORNECEDORES (CRUD)
     // =====================================
     window.salvarPessoaFirebase = async function() {
         if(!window.hasPerm('cli_add')) return alert("Sem permissão para Cadastrar.");
-        const isForn = (currentMode === 'fornecedores');
-        const dbName = isForn ? "fornecedores" : "clientes";
-
-        const nome = document.getElementById('in-name').value.trim();
-        const id_cliente = document.getElementById('in-id').value.trim(); 
-        const telegrama = document.getElementById('in-tele').value.trim();
-        const discord = document.getElementById('in-disc').value.trim();
-        const conta = document.getElementById('in-conta').value.trim();
+        const isForn = (currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
+        const nome = document.getElementById('in-name').value.trim(); const id_cliente = document.getElementById('in-id').value.trim(); 
+        const telegrama = document.getElementById('in-tele').value.trim(); const discord = document.getElementById('in-disc').value.trim(); const conta = document.getElementById('in-conta').value.trim();
         
         if(!nome || !id_cliente) return alert("Preencha Nome e ID para cadastrar!");
 
@@ -1858,71 +1716,33 @@
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) return alert(`ERRO: ID "${id_cliente.toUpperCase()}" já em uso!`);
             
-            let objSalvar = {
-                nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(),
-                telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(),
-                conta: conta.toUpperCase(),
-                total_compras: 0, ultima_compra: "Nunca",
-                data_cadastro: window.formatDate(new Date())
-            };
+            let objSalvar = { nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(), telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(), conta: conta.toUpperCase(), total_compras: 0, ultima_compra: "Nunca", data_cadastro: window.formatDate(new Date()) };
+            if (isForn) { objSalvar.categoria = document.getElementById('in-categoria').value;
+            } else { const n = 'FERRO'; const b = 0; const lim = tierCredits[n] + b; objSalvar.nivel = n; objSalvar.bonus = b; objSalvar.limite_credito = lim; objSalvar.credito_disponivel = lim; }
 
-            if (isForn) {
-                objSalvar.categoria = document.getElementById('in-categoria').value;
-            } else {
-                const n = 'FERRO'; const b = 0; const lim = tierCredits[n] + b;
-                objSalvar.nivel = n; objSalvar.bonus = b; objSalvar.limite_credito = lim; objSalvar.credito_disponivel = lim;
-            }
-
-            await addDoc(collection(db, dbName), objSalvar);
-            alert(`Sucesso! Cadastro realizado com ID #${id_cliente.toUpperCase()}`);
-            if(typeof window.clearCart === 'function') window.clearCart();
+            await addDoc(collection(db, dbName), objSalvar); alert(`Sucesso! Cadastro realizado com ID #${id_cliente.toUpperCase()}`); window.clearCart();
         } catch (error) { alert("Erro ao salvar!"); }
     };
 
     window.atualizarPessoaFirebase = async function() {
         if(!window.hasPerm('cli_edit')) return alert("Sem permissão para Editar.");
         if (!window.pessoaSelecionada) return alert("Nenhum cadastro selecionado.");
-        
-        const isForn = (currentMode === 'fornecedores');
-        const dbName = isForn ? "fornecedores" : "clientes";
-
-        const nome = document.getElementById('in-name').value.trim();
-        const id_cliente = document.getElementById('in-id').value.trim(); 
-        const conta = document.getElementById('in-conta').value.trim();
-        
+        const isForn = (currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
+        const nome = document.getElementById('in-name').value.trim(); const id_cliente = document.getElementById('in-id').value.trim(); const conta = document.getElementById('in-conta').value.trim();
         if(!nome || !id_cliente) return alert("Nome e ID não podem ficar em branco!");
 
         try {
-            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase()));
-            const querySnapshot = await getDocs(q);
-            let conflito = false;
-            querySnapshot.forEach((doc) => { if (doc.id !== window.pessoaSelecionada.firebase_doc_id) conflito = true; });
+            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase())); const querySnapshot = await getDocs(q);
+            let conflito = false; querySnapshot.forEach((doc) => { if (doc.id !== window.pessoaSelecionada.firebase_doc_id) conflito = true; });
             if (conflito) return alert(`ERRO: O ID "${id_cliente.toUpperCase()}" já pertence a outro.`);
 
-            let objAtualizar = {
-                nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(),
-                telegrama: document.getElementById('in-tele').value.trim().toUpperCase(),
-                discord: document.getElementById('in-disc').value.trim().toUpperCase(),
-                conta: conta.toUpperCase()
-            };
-
-            if (isForn) {
-                objAtualizar.categoria = document.getElementById('in-categoria').value;
+            let objAtualizar = { nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(), telegrama: document.getElementById('in-tele').value.trim().toUpperCase(), discord: document.getElementById('in-disc').value.trim().toUpperCase(), conta: conta.toUpperCase() };
+            if (isForn) { objAtualizar.categoria = document.getElementById('in-categoria').value;
             } else {
-                const nivel = document.getElementById('in-nivel').value;
-                const bonus = parseFloat(document.getElementById('in-bonus').value) || 0;
-                const limiteAntigo = parseFloat(window.pessoaSelecionada.limite_credito || tierCredits['FERRO']);
-                const novoLimiteTotal = tierCredits[nivel] + bonus;
-                const diffLimite = novoLimiteTotal - limiteAntigo;
-                const novoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0) + diffLimite;
-
-                objAtualizar.nivel = nivel; objAtualizar.bonus = bonus;
-                objAtualizar.limite_credito = novoLimiteTotal; objAtualizar.credito_disponivel = novoDisponivel;
+                const nivel = document.getElementById('in-nivel').value; const bonus = parseFloat(document.getElementById('in-bonus').value) || 0; const limiteAntigo = parseFloat(window.pessoaSelecionada.limite_credito || tierCredits['FERRO']); const novoLimiteTotal = tierCredits[nivel] + bonus; const diffLimite = novoLimiteTotal - limiteAntigo; const novoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0) + diffLimite;
+                objAtualizar.nivel = nivel; objAtualizar.bonus = bonus; objAtualizar.limite_credito = novoLimiteTotal; objAtualizar.credito_disponivel = novoDisponivel;
             }
-
-            await updateDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id), objAtualizar);
-            alert("Ficha ATUALIZADA com sucesso!"); 
-            if(typeof window.clearCart === 'function') window.clearCart();
+            await updateDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id), objAtualizar); alert("Ficha ATUALIZADA com sucesso!"); window.clearCart();
         } catch (error) { alert("Ocorreu um erro ao atualizar."); }
     };
 
@@ -1930,13 +1750,8 @@
         if(!window.hasPerm('cli_del')) return alert("Sem permissão para Excluir.");
         if (!window.pessoaSelecionada) return;
         const dbName = (currentMode === 'fornecedores') ? "fornecedores" : "clientes";
-
         if (confirm(`⚠️ ATENÇÃO!\n\nDeseja APAGAR PERMANENTEMENTE o cadastro de "${window.pessoaSelecionada.nome}"?`)) {
-            try { 
-                await deleteDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id)); 
-                alert("Cadastro excluído!"); 
-                if(typeof window.clearCart === 'function') window.clearCart(); 
-            } catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
+            try { await deleteDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id)); alert("Cadastro excluído!"); window.clearCart(); } catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
         }
     };
 
@@ -1953,18 +1768,11 @@
         const totalVendaRaw = document.getElementById('total-val').innerText;
         const totalVenda = parseFloat(totalVendaRaw);
         
-        // Verifica se a variável do carrinho global é acessível e possui itens
         let cartItemsForCurrentMode = null;
-        if(typeof carts !== 'undefined' && carts[currentMode]) {
-            cartItemsForCurrentMode = carts[currentMode];
-        } else if (typeof window.carts !== 'undefined' && window.carts[currentMode]) {
-            cartItemsForCurrentMode = window.carts[currentMode];
-        }
+        if(typeof carts !== 'undefined' && carts[currentMode]) { cartItemsForCurrentMode = carts[currentMode];
+        } else if (typeof window.carts !== 'undefined' && window.carts[currentMode]) { cartItemsForCurrentMode = window.carts[currentMode]; }
 
-        if (totalVenda <= 0 || !cartItemsForCurrentMode || Object.keys(cartItemsForCurrentMode).length === 0) {
-            return alert("O carrinho está vazio!");
-        }
-
+        if (totalVenda <= 0 || !cartItemsForCurrentMode || Object.keys(cartItemsForCurrentMode).length === 0) { return alert("O carrinho está vazio!"); }
         if (!window.pessoaSelecionada) return alert(`Para registrar, BUSQUE e SELECIONE o ${strPessoa} na Lupa 🔍 primeiro!`);
 
         const paySelect = document.getElementById('pay-method');
@@ -1972,10 +1780,7 @@
         const formaPagamento = paySelect.options[paySelect.selectedIndex].text;
         
         let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
-        if (entryVal > totalVenda) {
-            alert("O valor da entrada não pode ser maior do que o total da operação!");
-            return;
-        }
+        if (entryVal > totalVenda) { alert("O valor da entrada não pode ser maior do que o total da operação!"); return; }
         
         const valorFinanciado = totalVenda - entryVal;
         let creditoDisponivel = 0;
@@ -1989,11 +1794,7 @@
         }
 
         const itensComprados = Object.values(cartItemsForCurrentMode).map(item => ({
-            nome_produto: item.name, 
-            quantidade: item.quantity, 
-            valor_unitario: item.price, 
-            subtotal: (item.quantity * item.price).toFixed(2),
-            category: item.category || "Estoque" 
+            nome_produto: item.name, quantidade: item.quantity, valor_unitario: item.price, subtotal: (item.quantity * item.price).toFixed(2), category: item.category || "Estoque" 
         }));
 
         try {
@@ -2006,9 +1807,7 @@
 
             let parcelasArray = [];
             
-            if (entryVal > 0) {
-                parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' });
-            }
+            if (entryVal > 0) { parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' }); }
 
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorDaParcela = valorFinanciado / numParcelas;
@@ -2025,15 +1824,10 @@
             }
 
             await addDoc(collection(db, dbNameOp), {
-                numero_pedido: numPedido,
-                vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
-                cliente_doc_id: window.pessoaSelecionada.firebase_doc_id,
-                cliente_nome: window.pessoaSelecionada.nome,
-                conta: window.pessoaSelecionada.conta || 'N/I',
+                numero_pedido: numPedido, vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
+                cliente_doc_id: window.pessoaSelecionada.firebase_doc_id, cliente_nome: window.pessoaSelecionada.nome, conta: window.pessoaSelecionada.conta || 'N/I',
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
-                parcelas: parcelasArray,
-                data: dataHoje,
-                hora: new Date().toLocaleTimeString('pt-BR')
+                parcelas: parcelasArray, data: dataHoje, hora: new Date().toLocaleTimeString('pt-BR')
             });
             
             const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
@@ -2061,13 +1855,11 @@
         const parts = dataStr.split('/');
         if(parts.length !== 3) return false;
         const vencimento = new Date(parts[2], parts[1] - 1, parts[0]);
-        const hoje = new Date();
-        hoje.setHours(0,0,0,0);
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
         return vencimento < hoje;
     }
 
     window.aplicarFiltroCrediario = async function() {
-        // Garantir que as abas que acessam isso tenham o state correto
         let cMode = typeof currentMode !== 'undefined' ? currentMode : 'crediario';
         const isContas = (cMode === 'contas_pagar');
         const dbName = isContas ? "compras" : "vendas";
@@ -2078,30 +1870,24 @@
         const placar = document.getElementById('crediario-placar');
         
         listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Buscando no servidor...</div>";
-        listContainer.style.display = "flex";
-        placar.style.display = "none";
+        listContainer.style.display = "flex"; placar.style.display = "none";
 
         if(filtro === 'CLIENT_ONLY') {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('sub-filter-crediario').style.display = "block";
             if(!window.pessoaSelecionada) {
                 listContainer.innerHTML = `<div style='color: #aaa; text-align:center;'>Busque um ${isContas?'Fornecedor':'Cliente'} na lupa acima.</div>`;
-                document.getElementById('btn-img-only').style.display = "none";
-                return;
+                document.getElementById('btn-img-only').style.display = "none"; return;
             }
             document.getElementById('btn-img-only').style.display = "block";
         } else {
-            document.getElementById('info-contato').style.display = "none";
-            document.getElementById('sub-filter-crediario').style.display = "none";
-            document.getElementById('btn-img-only').style.display = "none";
+            document.getElementById('info-contato').style.display = "none"; document.getElementById('sub-filter-crediario').style.display = "none"; document.getElementById('btn-img-only').style.display = "none";
         }
 
         try {
             if (filtro === 'NEGATIVE_CREDIT' && !isContas) {
-                const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0));
-                const snap = await getDocs(q);
-                let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>";
-                let count = 0;
+                const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0)); const snap = await getDocs(q);
+                let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>"; let count = 0;
                 snap.forEach(doc => {
                     const c = doc.data();
                     html += `<div class="fatura-card" style="border-color: #ef4444;">
@@ -2110,11 +1896,9 @@
                     </div>`; count++;
                 });
                 if(count === 0) html = "<div style='color: var(--buy); text-align:center;'>Todos os clientes estão com saldo positivo! 🎉</div>";
-                listContainer.innerHTML = html;
-                return;
+                listContainer.innerHTML = html; return;
             } else if (filtro === 'NEGATIVE_CREDIT' && isContas) {
-                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>";
-                return;
+                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>"; return;
             }
 
             let q = collection(db, dbName);
@@ -2125,37 +1909,24 @@
             }
             
             const snap = await getDocs(q);
-            let htmlList = "";
-            let temFatura = false;
-            let totalReceber = 0;
-            let totalAtraso = 0;
-            
+            let htmlList = ""; let temFatura = false; let totalReceber = 0; let totalAtraso = 0;
             let vendasData = [];
             snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
             
-            // Ordenar faturas para visualização
             vendasData.sort((a,b) => window.isoDate(b.data).localeCompare(window.isoDate(a.data)));
 
             vendasData.forEach(venda => {
                 try {
                     if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
                         if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; 
-                        venda.parcelas = [{
-                            numero: "?", 
-                            valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, 
-                            vencimento: venda.data || "N/I", 
-                            status: "pendente" 
-                        }];
+                        venda.parcelas = [{ numero: "?", valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, vencimento: venda.data || "N/I", status: "pendente" }];
                     }
                         
                     if (filtro === 'CLIENT_ONLY') {
                         venda.parcelas.forEach(p => {
                             if (p && p.status !== 'pago') {
                                 const val = parseFloat(p.valor || 0);
-                                if (!isNaN(val)) {
-                                    totalReceber += val;
-                                    if (isAtrasada(p.vencimento)) totalAtraso += val;
-                                }
+                                if (!isNaN(val)) { totalReceber += val; if (isAtrasada(p.vencimento)) totalAtraso += val; }
                             }
                         });
                         let temPendente = false;
@@ -2167,8 +1938,7 @@
                     venda.parcelas.forEach((p, index) => {
                         if(!p) return;
                         const isLate = isAtrasada(p.vencimento);
-                        if (filtro === 'CLIENT_ONLY') {
-                            parcelasFiltradas.push({p, index, isLate});
+                        if (filtro === 'CLIENT_ONLY') { parcelasFiltradas.push({p, index, isLate});
                         } else if (p.status !== 'pago') {
                             if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
                             if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
@@ -2177,16 +1947,12 @@
 
                     if(parcelasFiltradas.length > 0) {
                         temFatura = true;
-                        
                         let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                         let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i style='color:#ef4444'>Itens não registrados (Fatura Antiga)</i>";
                         
                         let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
-                        if (window.hasPerm('fat_del')) {
-                            faturaBtns += `<button class="btn-del-fat" onclick="window.apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
-                        }
-                        faturaBtns += `<button class="btn-print-fat" onclick="window.imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
-                        faturaBtns += `</div>`;
+                        if (window.hasPerm('fat_del')) { faturaBtns += `<button class="btn-del-fat" onclick="window.apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`; }
+                        faturaBtns += `<button class="btn-print-fat" onclick="window.imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button></div>`;
 
                         const corHeader = isContas ? "var(--contas)" : "var(--primary)";
 
@@ -2218,11 +1984,8 @@
                             if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
                             
                             let badge = "";
-                            if (isPago) {
-                                badge = `<span style="color:var(--buy); font-weight:bold;">PAGA ${p.data_pagamento ? `em ${p.data_pagamento}` : ''}</span>`;
-                            } else if (window.hasPerm('fat_pay')) {
-                                badge = `<button class="btn-pay" onclick="window.receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
-                            }
+                            if (isPago) { badge = `<span style="color:var(--buy); font-weight:bold;">PAGA ${p.data_pagamento ? `em ${p.data_pagamento}` : ''}</span>`;
+                            } else if (window.hasPerm('fat_pay')) { badge = `<button class="btn-pay" onclick="window.receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`; }
                             
                             const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
                             
@@ -2244,65 +2007,229 @@
                     placar.style.display = "block";
                 }
             } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
-        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato.</div>`; }
+        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato. Contate suporte.</div>`; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
         if (!window.hasPerm('fat_pay')) return alert("Sem permissão de Caixa.");
         let cMode = typeof currentMode !== 'undefined' ? currentMode : 'crediario';
-        const isContas = (cMode === 'contas_pagar');
-        const dbName = isContas ? "compras" : "vendas";
+        const isContas = (cMode === 'contas_pagar'); const dbName = isContas ? "compras" : "vendas";
         
         const hoje = window.formatDate(new Date());
         const dataDigitada = prompt(`Deseja confirmar a baixa desta parcela de $${parseFloat(valorParcela).toFixed(2)}?\n\nInforme a data exata da operação (DD/MM/AAAA):`, hoje);
-        
         if (!dataDigitada) return; 
 
         try {
-            const vendaRef = doc(db, dbName, vendaDocId);
-            const vendaSnap = await getDoc(vendaRef);
+            const vendaRef = doc(db, dbName, vendaDocId); const vendaSnap = await getDoc(vendaRef);
             if(!vendaSnap.exists()) return alert("Erro: Fatura não encontrada!");
             
             let dadosVenda = vendaSnap.data();
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
             dadosVenda.parcelas[parcelaIndex].data_pagamento = dataDigitada; 
-            
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
             if(!isContas) {
-                const clienteRef = doc(db, "clientes", clienteDocId);
-                const clienteSnap = await getDoc(clienteRef);
+                const clienteRef = doc(db, "clientes", clienteDocId); const clienteSnap = await getDoc(clienteRef);
                 if(clienteSnap.exists()) {
-                    const dadosCli = clienteSnap.data();
-                    const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
+                    const dadosCli = clienteSnap.data(); const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
                     await updateDoc(clienteRef, { credito_disponivel: credAtual + parseFloat(valorParcela) });
-                    
                     if(window.pessoaSelecionada && window.pessoaSelecionada.firebase_doc_id === clienteDocId) {
                         window.pessoaSelecionada.credito_disponivel = credAtual + parseFloat(valorParcela);
-                        const elDisp = document.getElementById('stat-credito');
-                        elDisp.innerText = `$${window.pessoaSelecionada.credito_disponivel.toFixed(2)}`;
+                        const elDisp = document.getElementById('stat-credito'); elDisp.innerText = `$${window.pessoaSelecionada.credito_disponivel.toFixed(2)}`;
                         if(window.pessoaSelecionada.credito_disponivel < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
                     }
                 }
             }
-            alert("Baixa Efetuada com Data: " + dataDigitada);
-            window.aplicarFiltroCrediario(); 
+            alert("Baixa Efetuada com Data: " + dataDigitada); window.aplicarFiltroCrediario(); 
         } catch (error) { alert("Falha ao registrar pagamento."); }
     };
 
     window.apagarFaturaGlobal = async function(vendaDocId) {
         if (!window.hasPerm('fat_del')) return alert("Sem permissão para Apagar Faturas.");
         let cMode = typeof currentMode !== 'undefined' ? currentMode : 'crediario';
-        const isContas = (cMode === 'contas_pagar');
-        const dbName = isContas ? "compras" : "vendas";
+        const isContas = (cMode === 'contas_pagar'); const dbName = isContas ? "compras" : "vendas";
         if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente?")) return;
-        try {
-            await deleteDoc(doc(db, dbName, vendaDocId));
-            alert("Fatura Apagada com sucesso!");
-            window.aplicarFiltroCrediario();
-        } catch (error) { alert("Falha ao apagar fatura."); }
+        try { await deleteDoc(doc(db, dbName, vendaDocId)); alert("Fatura Apagada com sucesso!"); window.aplicarFiltroCrediario(); } catch (error) { alert("Falha ao apagar fatura."); }
     };
 
+    window.imprimirFaturaUnica = async function(docId) {
+        const card = document.getElementById(`fatura-card-${docId}`); if (!card) return;
+        const oldBg = card.style.background; const oldBorder = card.style.border;
+        
+        card.style.background = "#1e1e1e"; card.style.border = "none";
+        document.getElementById(`print-header-${docId}`).style.display = 'flex'; document.getElementById(`itens-${docId}`).style.display = 'block'; 
+        
+        const actions = card.querySelector('.fatura-actions'); if(actions) actions.style.display = 'none';
+        const toggleBtn = card.querySelector('.toggle-itens-btn'); if(toggleBtn) toggleBtn.style.display = 'none';
+        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
+
+        try {
+            const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
+            const link = document.createElement('a'); link.download = `FATURA_${docId}_${Date.now()}.png`; link.href = canvas.toDataURL(); link.click();
+        } catch(e) { console.error(e); alert("Erro ao gerar a imagem da fatura."); }
+
+        card.style.background = oldBg; card.style.border = oldBorder;
+        document.getElementById(`print-header-${docId}`).style.display = 'none'; document.getElementById(`itens-${docId}`).style.display = 'none';
+        if(actions) actions.style.display = 'flex'; if(toggleBtn) toggleBtn.style.display = 'block';
+        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
+    };
+
+    // =====================================
+    // ABA BALANÇO FINANCEIRO E LIVRO RAZÃO
+    // =====================================
+    window.salvarSaldoBanco = async function() {
+        const val = parseFloat(document.getElementById('in-saldo-banco').value) || 0;
+        try { await setDoc(doc(db, "config", "financas"), { saldo_banco: val }); alert("Saldo Físico no Banco atualizado!"); window.carregarBalanco();
+        } catch(e) { alert("Erro ao salvar saldo no banco."); }
+    }
+
+    window.renderSalesChart = function() {
+        if(!window.todasVendasGerais || window.todasVendasGerais.length === 0) return;
+        const filtro = document.getElementById('sales-chart-filter').value;
+        let groups = {};
+        
+        const dataHoje = new Date(); dataHoje.setHours(0,0,0,0);
+        const limite30Dias = new Date(dataHoje); limite30Dias.setDate(dataHoje.getDate() - 30);
+
+        window.todasVendasGerais.forEach(v => {
+            if(!v.data) return;
+            const parts = v.data.split('/'); if(parts.length !== 3) return;
+            const totalVal = parseFloat(v.pedido.total || 0);
+            
+            if (filtro === 'diario') {
+                const dVenda = new Date(parts[2], parts[1]-1, parts[0]);
+                if(dVenda >= limite30Dias) { const key = `${parts[0]}/${parts[1]}`; groups[key] = (groups[key] || 0) + totalVal; }
+            } else if (filtro === 'mensal') {
+                const key = `${parts[1]}/${parts[2]}`; groups[key] = (groups[key] || 0) + totalVal;
+            } else if (filtro === 'anual') {
+                const key = `${parts[2]}`; groups[key] = (groups[key] || 0) + totalVal;
+            }
+        });
+
+        const sortedKeys = Object.keys(groups).sort((a,b) => {
+            if(filtro === 'diario') { const pA = a.split('/'); const pB = b.split('/'); if(pA[1] !== pB[1]) return parseInt(pA[1]) - parseInt(pB[1]); return parseInt(pA[0]) - parseInt(pB[0]);
+            } else if(filtro === 'mensal') { const pA = a.split('/'); const pB = b.split('/'); if(pA[1] !== pB[1]) return parseInt(pA[1]) - parseInt(pB[1]); return parseInt(pA[0]) - parseInt(pB[0]); }
+            return parseInt(a) - parseInt(b); 
+        });
+
+        const labels = sortedKeys; const data = sortedKeys.map(k => groups[k]);
+        const ctx = document.getElementById('salesBarChart').getContext('2d');
+        if (window.salesBarChart) window.salesBarChart.destroy();
+        window.salesBarChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Volume ($)', data: data, backgroundColor: 'rgba(245, 158, 11, 0.5)', borderColor: 'var(--primary)', borderWidth: 1 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: {color: '#aaa'} }, x: { ticks: {color: '#aaa'} } }, plugins: { legend: { display: false } } } });
+    }
+
+    window.carregarBalanco = async function() {
+        const tbody = document.getElementById('balanco-table-body'); const tExtrato = document.getElementById('extrato-table-body');
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Calculando...</td></tr>"; tExtrato.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Buscando lançamentos...</td></tr>";
+
+        try {
+            let saldoBancoFisico = 0;
+            const docConfig = await getDoc(doc(db, "config", "financas"));
+            if(docConfig.exists()) { saldoBancoFisico = docConfig.data().saldo_banco || 0; document.getElementById('in-saldo-banco').value = saldoBancoFisico; }
+
+            const snapVendas = await getDocs(collection(db, "vendas")); const snapCompras = await getDocs(collection(db, "compras"));
+            let aggregated = {}; let totalEntradasGlobal = 0; let totalSaidasGlobal = 0; let extratoGeral = []; 
+            window.todasVendasGerais = []; let despesasPorCategoria = {}; 
+
+            const processDocs = (snap, tipo) => {
+                snap.forEach(doc => {
+                    const v = doc.data(); if (!v.data) return;
+                    if(tipo === 'entrada') window.todasVendasGerais.push(v);
+                    let hasEntradaParcela = false; let hasAVistaParcela = false;
+                    
+                    if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
+                        v.parcelas.forEach(p => {
+                            if(p && p.vencimento) {
+                                if (p.numero === 'Entrada') hasEntradaParcela = true;
+                                if (String(p.numero).includes('Vista') || p.numero === 1) hasAVistaParcela = true;
+
+                                if (p.status === 'pago') {
+                                    const dataUso = p.data_pagamento || p.vencimento; const pParts = dataUso.split('/');
+                                    if(pParts.length === 3) {
+                                        const parPeriod = `${pParts[1]}/${pParts[2]}`;
+                                        if(!aggregated[parPeriod]) aggregated[parPeriod] = { entradas: 0, saidas: 0 };
+                                        const valorPago = parseFloat(p.valor || 0);
+                                        
+                                        if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
+                                        else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
+
+                                        extratoGeral.push({ dataStr: dataUso, isoDate: window.isoDate(dataUso), tipo: tipo, nome: v.cliente_nome || 'N/I', conta: v.conta || 'Caixa Geral', valor: valorPago, ref: v.numero_pedido });
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    const dataParts = v.data.split('/'); 
+                    if(dataParts.length === 3) {
+                        const period = `${dataParts[1]}/${dataParts[2]}`;
+                        if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
+                        
+                        let valorAntigoPerdido = 0;
+                        if(v.pedido && v.pedido.pagamento === 'À VISTA' && !hasAVistaParcela && (!v.parcelas || v.parcelas.length === 0)) { valorAntigoPerdido = parseFloat(v.pedido.total || 0);
+                        } else if (v.pedido && parseFloat(v.pedido.entrada || 0) > 0 && !hasEntradaParcela) { valorAntigoPerdido = parseFloat(v.pedido.entrada); }
+
+                        if (valorAntigoPerdido > 0) {
+                            if(tipo === 'entrada') { aggregated[period].entradas += valorAntigoPerdido; totalEntradasGlobal += valorAntigoPerdido; }
+                            else { aggregated[period].saidas += valorAntigoPerdido; totalSaidasGlobal += valorAntigoPerdido; }
+                            extratoGeral.push({ dataStr: v.data, isoDate: window.isoDate(v.data), tipo: tipo, nome: v.cliente_nome || 'N/I', conta: v.conta || 'Caixa Geral', valor: valorAntigoPerdido, ref: v.numero_pedido + " (Old)" });
+                        }
+                    }
+
+                    if (tipo === 'saida' && v.pedido && v.pedido.itens) {
+                        v.pedido.itens.forEach(it => {
+                            let cat = it.category || "Estoque Geral"; if(v.is_comissao) cat = "Salários/Comissões";
+                            if(!despesasPorCategoria[cat]) despesasPorCategoria[cat] = 0;
+                            despesasPorCategoria[cat] += parseFloat(it.subtotal || 0);
+                        });
+                    }
+                });
+            };
+
+            processDocs(snapVendas, 'entrada'); processDocs(snapCompras, 'saida');
+
+            const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
+                const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
+                if (yA !== yB) return parseInt(yB) - parseInt(yA); return parseInt(mB) - parseInt(mA);
+            });
+
+            let html = ""; let lineLabels = []; let lineEntradas = []; let lineSaidas = [];
+            const chronologicalPeriods = [...sortedPeriods].reverse();
+            chronologicalPeriods.forEach(period => { lineLabels.push(period); lineEntradas.push(aggregated[period].entradas); lineSaidas.push(aggregated[period].saidas); });
+
+            sortedPeriods.forEach(period => {
+                const data = aggregated[period]; const lucro = data.entradas - data.saidas; const corLucro = lucro < 0 ? '#ef4444' : 'var(--balanco)';
+                html += `<tr><td style="color:white; font-weight:bold;">${period}</td><td style="color:var(--primary);">$${data.entradas.toFixed(2)}</td><td style="color:var(--contas);">$${data.saidas.toFixed(2)}</td><td style="color:${corLucro}; font-weight:bold;">$${lucro.toFixed(2)}</td></tr>`;
+            });
+            tbody.innerHTML = html || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação.</td></tr>";
+
+            extratoGeral.sort((a, b) => b.isoDate.localeCompare(a.isoDate)); 
+            let extratoHtml = "";
+            extratoGeral.forEach(ex => {
+                const cor = ex.tipo === 'entrada' ? 'var(--primary)' : 'var(--contas)'; const sinal = ex.tipo === 'entrada' ? '+' : '-';
+                extratoHtml += `<tr><td style="color:#aaa;">${ex.dataStr}</td><td style="color:white;">${ex.nome} <br><small style="color:#666">${ex.ref}</small></td><td style="color:var(--clientes);">${ex.conta}</td><td style="color:${cor}; font-weight:bold; text-align:right;">${sinal} $${ex.valor.toFixed(2)}</td></tr>`;
+            });
+            tExtrato.innerHTML = extratoHtml || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhum extrato.</td></tr>";
+
+            const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal; const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)'; const poderDeCompra = saldoBancoFisico + saldoAtualLiquido;
+            
+            document.getElementById('bal-entradas').innerText = `$${totalEntradasGlobal.toFixed(2)}`; document.getElementById('bal-saidas').innerText = `$${totalSaidasGlobal.toFixed(2)}`;
+            document.getElementById('bal-liquido').innerText = `$${saldoAtualLiquido.toFixed(2)}`; document.getElementById('bal-liquido').style.color = corSaldo;
+            document.getElementById('poder-compra').innerText = `$${poderDeCompra.toFixed(2)}`;
+
+            window.renderSalesChart(); 
+
+            const ctxLine = document.getElementById('balancoLineChart').getContext('2d');
+            if (window.balancoLineChart) window.balancoLineChart.destroy();
+            window.balancoLineChart = new Chart(ctxLine, { type: 'line', data: { labels: lineLabels, datasets: [{ label: 'Entradas', data: lineEntradas, borderColor: 'rgba(245, 158, 11, 1)', backgroundColor: 'transparent', tension: 0.3 }, { label: 'Saídas', data: lineSaidas, borderColor: 'rgba(244, 63, 94, 1)', backgroundColor: 'transparent', tension: 0.3 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: {color: '#aaa'} }, x: { ticks: {color: '#aaa'} } }, plugins: { legend: { labels: {color: 'white'} } } } });
+
+            const ctxPie = document.getElementById('balancoPieChart').getContext('2d');
+            if (window.balancoPieChart) window.balancoPieChart.destroy();
+            const catLabels = Object.keys(despesasPorCategoria); const catData = Object.values(despesasPorCategoria); const bgColors = ['#f43f5e', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6', '#eab308'];
+            window.balancoPieChart = new Chart(ctxPie, { type: 'doughnut', data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: bgColors, borderWidth: 1, borderColor: '#1e1e1e' }] }, options: { responsive: true, plugins: { legend: { position: 'right', labels: {color: 'white', font: {size: 10}} } } } });
+
+        } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='4' style='color:#ef4444;'>Erro ao processar balanço.</td></tr>"; }
+    };
 </script>
 </body>
 </html>
