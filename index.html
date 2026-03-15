@@ -201,7 +201,9 @@
         .extrato-table th { color: var(--balanco); font-size: 0.8rem; }
         .extrato-table td { font-size: 0.8rem; }
     </style>
+    
     <script>
+        // Trava para evitar o F12 e Seleção (Segurança do Sistema)
         document.addEventListener('contextmenu', event => event.preventDefault());
         document.onkeydown = function(e) {
             if(e.keyCode === 123) { return false; } 
@@ -210,6 +212,8 @@
             if(e.ctrlKey && e.keyCode === 85) { return false; } 
             if(e.ctrlKey && e.keyCode === 83) { return false; } 
         };
+
+        // Funções Globais Iniciais para evitar erros de leitura "undefined"
         window.hasPerm = window.hasPerm || function() { return false; };
         
         window.formatDate = function(date) {
@@ -220,7 +224,7 @@
         };
 
         window.isoDate = function(dateStr) {
-            if(!dateStr) return "00000000";
+            if(typeof dateStr !== 'string' || !dateStr) return "00000000";
             const p = dateStr.split('/');
             if(p.length !== 3) return "00000000";
             return `${p[2]}${p[1]}${p[0]}`;
@@ -237,9 +241,9 @@
         
         <input type="text" id="login-user" placeholder="Nome de Usuário">
         <input type="password" id="login-pass" placeholder="Senha">
-        <button class="auth-btn-main" onclick="authLogin()">ENTRAR NO SISTEMA</button>
+        <button class="auth-btn-main" onclick="window.authLogin()">ENTRAR NO SISTEMA</button>
         
-        <div class="auth-link" onclick="toggleAuthMode()">Não tem cadastro? Solicitar acesso.</div>
+        <div class="auth-link" onclick="window.toggleAuthMode()">Não tem cadastro? Solicitar acesso.</div>
     </div>
     
     <div class="auth-box" id="register-box" style="display: none;">
@@ -249,29 +253,29 @@
         
         <input type="text" id="reg-user" placeholder="Crie um Usuário">
         <input type="password" id="reg-pass" placeholder="Crie uma Senha">
-        <button class="auth-btn-main" style="background: var(--secondary);" onclick="authRegister()">ENVIAR SOLICITAÇÃO</button>
+        <button class="auth-btn-main" style="background: var(--secondary);" onclick="window.authRegister()">ENVIAR SOLICITAÇÃO</button>
         
-        <div class="auth-link" onclick="toggleAuthMode()">Já tem conta? Fazer Login.</div>
+        <div class="auth-link" onclick="window.toggleAuthMode()">Já tem conta? Fazer Login.</div>
     </div>
 </div>
 
 <div id="main-app">
     <div class="nav-tabs">
-        <button class="tab-btn btn-vendas active" onclick="switchSystem('vendas')">Vendas</button>
-        <button class="tab-btn btn-producao" onclick="switchSystem('producao')">Produção</button>
-        <button class="tab-btn btn-clientes" onclick="switchSystem('clientes')">Clientes</button>
-        <button class="tab-btn btn-crediario" onclick="switchSystem('crediario')">Crediário (A Receber)</button>
+        <button class="tab-btn btn-vendas active" onclick="window.switchSystem('vendas')">Vendas</button>
+        <button class="tab-btn btn-producao" onclick="window.switchSystem('producao')">Produção</button>
+        <button class="tab-btn btn-clientes" onclick="window.switchSystem('clientes')">Clientes</button>
+        <button class="tab-btn btn-crediario" onclick="window.switchSystem('crediario')">Crediário (A Receber)</button>
         
         <div style="width: 1px; background: #333; margin: 0 5px;"></div>
         
-        <button class="tab-btn btn-compras" onclick="switchSystem('compras')">Compras</button>
-        <button class="tab-btn btn-fornecedores" onclick="switchSystem('fornecedores')">Fornecedores</button>
-        <button class="tab-btn btn-contas_pagar" onclick="switchSystem('contas_pagar')">Contas a Pagar</button>
+        <button class="tab-btn btn-compras" onclick="window.switchSystem('compras')">Compras</button>
+        <button class="tab-btn btn-fornecedores" onclick="window.switchSystem('fornecedores')">Fornecedores</button>
+        <button class="tab-btn btn-contas_pagar" onclick="window.switchSystem('contas_pagar')">Contas a Pagar</button>
         
         <div style="width: 1px; background: #333; margin: 0 5px;"></div>
 
-        <button class="tab-btn btn-balanco" id="tab-balanco" onclick="switchSystem('balanco')">Balanço</button>
-        <button class="tab-btn btn-admin" id="tab-admin" onclick="switchSystem('gerenciamento')">Admin</button>
+        <button class="tab-btn btn-balanco" id="tab-balanco" onclick="window.switchSystem('balanco')">Balanço</button>
+        <button class="tab-btn btn-admin" id="tab-admin" onclick="window.switchSystem('gerenciamento')">Admin</button>
     </div>
 
     <header id="main-header" style="max-width: 1200px; width:100%;">
@@ -284,7 +288,7 @@
         </div>
         <div class="user-badge">
             👤 <span id="logged-username">Usuario</span> 
-            <button class="logout-btn" onclick="authLogout()">SAIR</button>
+            <button class="logout-btn" onclick="window.authLogout()">SAIR</button>
         </div>
     </header>
 
@@ -299,7 +303,7 @@
             </div>
             <div style="display: flex; gap: 10px;">
                 <input type="number" id="in-saldo-banco" step="0.01" placeholder="Ex: 5000.00">
-                <button class="btn-solid" style="width:auto; background:var(--secondary);" onclick="salvarSaldoBanco()">SALVAR</button>
+                <button class="btn-solid" style="width:auto; background:var(--secondary);" onclick="window.salvarSaldoBanco()">SALVAR</button>
             </div>
         </div>
 
@@ -427,7 +431,7 @@
                     <label><input type="checkbox" id="perm_user_del"> Demissão de usuário</label>
                 </div>
 
-                <button class="btn-solid" style="background: var(--buy); margin-top: 10px;" onclick="salvarNovoCargo()">SALVAR CARGO</button>
+                <button class="btn-solid" style="background: var(--buy); margin-top: 10px;" onclick="window.salvarNovoCargo()">SALVAR CARGO</button>
                 
                 <div style="margin-top: 25px; border-top: 1px dashed #555; padding-top: 15px;">
                     <h4 style="color: var(--admin); margin-top: 0; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85rem;">Cargos Existentes</h4>
@@ -466,7 +470,7 @@
         
         <div class="filter-container" id="filter-bar">
             <label>Empresa:</label>
-            <select id="category-select" class="category-select" onchange="renderCatalog()">
+            <select id="category-select" class="category-select" onchange="window.renderCatalog()">
                 <option value="TODOS">TODAS AS EMPRESAS</option>
                 <option value="Fazendas">FAZENDAS</option>
                 <option value="Mineradoras">MINERADORAS</option>
@@ -507,7 +511,7 @@
             
             <div class="crediario-filters" id="crediario-filters">
                 <label>Modo de Visualização (Filtro)</label>
-                <select id="crediario-filter-select" class="category-select" style="border-color: var(--crediario); margin-bottom: 5px;" onchange="aplicarFiltroCrediario()">
+                <select id="crediario-filter-select" class="category-select" style="border-color: var(--crediario); margin-bottom: 5px;" onchange="window.aplicarFiltroCrediario()">
                     <option value="CLIENT_ONLY">Por Cadastro Específico (Buscar Abaixo)</option>
                     <option value="ALL_LATE">🚨 ALERTAS: Parcelas Atrasadas</option>
                     <option value="NEGATIVE_CREDIT">🚨 ALERTAS: Limites Estourados</option>
@@ -515,7 +519,7 @@
                 </select>
                 <div id="sub-filter-crediario" style="display:none; margin-top: 10px; border-top: 1px dashed #444; padding-top: 10px;">
                     <label style="color: #aaa;">Quais faturas exibir no extrato?</label>
-                    <select id="crediario-extrato-filter" class="category-select" onchange="aplicarFiltroCrediario()">
+                    <select id="crediario-extrato-filter" class="category-select" onchange="window.aplicarFiltroCrediario()">
                         <option value="OPEN">Somente Faturas em Aberto</option>
                         <option value="ALL">Todas as Faturas (Histórico Completo)</option>
                     </select>
@@ -527,7 +531,7 @@
                     <label id="lbl-pesquisa-nome">Pesquisar Cliente (Nome ou ID)</label>
                     <div style="display: flex; gap: 5px; width: 100%; position: relative;">
                         <input type="text" id="in-name" placeholder="NOME" style="flex: 1;">
-                        <button id="search-client-btn" onclick="buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar">🔍</button>
+                        <button id="search-client-btn" onclick="window.buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar">🔍</button>
                         <div id="search-results-box" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #1e1e1e; border: 1px solid #444; border-radius: 4px; z-index: 1000; max-height: 180px; overflow-y: auto; margin-top: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);"></div>
                     </div>
                     <span id="out-name" class="display-data"></span>
@@ -537,7 +541,7 @@
                     <label id="lbl-pesquisa-id">ID do Cliente</label>
                     <div style="display: flex; gap: 5px; width: 100%;">
                         <input type="text" id="in-id" placeholder="Ex: 1234" style="flex: 1;">
-                        <button id="search-id-btn" onclick="buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar por ID">🔍</button>
+                        <button id="search-id-btn" onclick="window.buscarPessoaFirebase()" style="background: var(--secondary); color: white; border: none; border-radius: 4px; padding: 0 15px; cursor: pointer; font-size: 1.2rem;" title="Buscar por ID">🔍</button>
                     </div>
                     <span id="out-id" class="display-data"></span>
                 </div>
@@ -613,7 +617,8 @@
                         <div class="chart-filters">
                             <span style="color:#aaa; font-size:0.8rem; text-transform:uppercase;">Evolução de Operações</span>
                             <div style="display:flex; gap:5px;">
-                                <select id="chart-year" class="chart-select" onchange="window.renderClientChart()"></select>
+                                <select id="chart-year" class="chart-select" onchange="window.renderClientChart()">
+                                    </select>
                             </div>
                         </div>
                         <canvas id="clientChart" width="100" height="50"></canvas>
@@ -623,7 +628,7 @@
 
             <div class="payment-area" id="payment-box">
                 <label id="pay-label">Forma de Pagamento</label>
-                <select id="pay-method" class="pay-select" onchange="updateUI()">
+                <select id="pay-method" class="pay-select" onchange="window.updateUI()">
                     <option value="1">À VISTA (Pagamento Imediato)</option>
                     <option value="2">PARCELADO 2X</option>
                     <option value="3">PARCELADO 3X</option>
@@ -634,14 +639,14 @@
 
                 <div id="date-group" style="margin-bottom: 10px; display:none;">
                     <label id="date-label" style="font-size: 0.7rem; font-weight: bold; text-transform: uppercase; color: var(--primary);">Data da 1ª Parcela</label>
-                    <input type="date" id="first-payment-date" class="qty-input" style="width: 100%; margin-top: 5px; text-align: left;" onchange="updateUI()">
+                    <input type="date" id="first-payment-date" class="qty-input" style="width: 100%; margin-top: 5px; text-align: left;" onchange="window.updateUI()">
                 </div>
 
                 <div class="entry-group" id="entry-checkbox-group">
-                    <input type="checkbox" id="has-entry" onchange="toggleEntryField()">
+                    <input type="checkbox" id="has-entry" onchange="window.toggleEntryField()">
                     <label style="margin:0; cursor:pointer" for="has-entry">Haverá Entrada (Sinal)?</label>
                 </div>
-                <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="updateUI()" step="0.01">
+                <input type="number" id="entry-val" class="qty-input entry-input" placeholder="VALOR $" oninput="window.updateUI()" step="0.01">
                 <div id="parcel-details" class="parcel-info" style="display:none"></div>
             </div>
 
@@ -666,8 +671,8 @@
             </div>
 
             <div class="action-btns" id="ui-buttons">
-                <button id="btn-refresh" class="btn-outline" style="color: var(--secondary); border-color: var(--secondary);" onclick="updateUI()">ATUALIZAR PEDIDO</button>
-                <button id="btn-transfer" class="btn-solid" style="background: var(--secondary); display: none;" onclick="transferToCompras()">TRANSFERIR PARA COMPRAS</button>
+                <button id="btn-refresh" class="btn-outline" style="color: var(--secondary); border-color: var(--secondary);" onclick="window.updateUI()">ATUALIZAR PEDIDO</button>
+                <button id="btn-transfer" class="btn-solid" style="background: var(--secondary); display: none;" onclick="window.transferToCompras()">TRANSFERIR PARA COMPRAS</button>
 
                 <button id="btn-save-venda" class="btn-solid" style="background: #059669; display: none;" onclick="window.finalizarOperacao()">FINALIZAR E SALVAR VENDA</button>
                 <button id="btn-save-compra" class="btn-solid" style="background: var(--buy); color:black; display: none;" onclick="window.finalizarOperacao()">FINALIZAR COMPRA NO FORNECEDOR</button>
@@ -677,7 +682,7 @@
                 <button id="btn-db-delete" class="btn-solid" style="background: #ef4444; display: none;" onclick="window.deletarPessoaFirebase()">EXCLUIR CADASTRO</button>
 
                 <button id="btn-img-only" class="btn-outline" style="color: white; border-color: white;" onclick="window.generateImage()">SALVAR IMAGEM / EXTRATO</button>
-                <button id="btn-clear" class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="clearCart()">LIMPAR ABA ATUAL</button>
+                <button id="btn-clear" class="btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="window.clearCart()">LIMPAR ABA ATUAL</button>
             </div>
 
             <div class="all-clients-panel" id="all-clients-panel">
