@@ -7,7 +7,9 @@
     <link rel="icon" type="image/png" href="https://i.imgur.com/bQAy1gG.png">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
         :root {
             --primary: #f59e0b; /* Vendas */
             --secondary: #3b82f6; /* Produção */
@@ -109,7 +111,7 @@
         .stat-credit { color: var(--buy); font-size: 1.1rem; }
         .stat-credit.negative { color: #ef4444; }
         
-        .chart-container { margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px; }
+        .chart-container { margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px; display: none; }
         .chart-filters { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .chart-select { background: #121212; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; font-size: 0.7rem; }
 
@@ -166,7 +168,7 @@
         .balanco-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
         
         /* Box do Saldo do Banco */
-        .bank-box { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #555; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .bank-box { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #555; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:10px;}
         .bank-box input { background: #121212; color: white; border: 1px solid #777; padding: 8px; border-radius: 4px; text-align: center; font-size: 1rem; width: 150px;}
         
         .balanco-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
@@ -204,6 +206,23 @@
             if(e.ctrlKey && e.keyCode === 83) { return false; } 
         };
         window.hasPerm = window.hasPerm || function() { return false; };
+        
+        // =====================================
+        // FUNÇÕES GLOBAIS E UTILITÁRIOS
+        // =====================================
+        window.formatDate = function(date) {
+            const d = date.getDate().toString().padStart(2, '0');
+            const m = (date.getMonth() + 1).toString().padStart(2, '0');
+            const y = date.getFullYear();
+            return `${d}/${m}/${y}`;
+        };
+
+        window.isoDate = function(dateStr) {
+            if(!dateStr) return "00000000";
+            const p = dateStr.split('/');
+            if(p.length !== 3) return "00000000";
+            return `${p[2]}${p[1]}${p[0]}`;
+        };
     </script>
 </head>
 <body>
@@ -522,13 +541,10 @@
                         <div class="stat-val stat-credit" id="stat-credito">$1000.00</div>
                     </div>
                     
-                    <div class="chart-container" id="chart-container">
-                        <div class="chart-filters">
+                    <div class="chart-container" id="chart-container" style="display:none; margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px;">
+                        <div class="chart-filters" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                             <span style="color:#aaa; font-size:0.8rem; text-transform:uppercase;">Evolução de Compras</span>
-                            <div style="display:flex; gap:5px;">
-                                <select id="chart-year" class="chart-select" onchange="renderClientChart()">
-                                    </select>
-                            </div>
+                            <select id="chart-year" class="chart-select" onchange="renderClientChart()" style="background: #121212; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; font-size: 0.7rem;"></select>
                         </div>
                         <canvas id="clientChart" width="100" height="50"></canvas>
                     </div>
@@ -538,7 +554,7 @@
             <div class="payment-area" id="payment-box">
                 <label id="pay-label">Forma de Pagamento</label>
                 <select id="pay-method" class="pay-select" onchange="updateUI()">
-                    <option value="1">À VISTA (Caixa Físico Hoje)</option>
+                    <option value="1">À VISTA (Pagamento Imediato)</option>
                     <option value="2">PARCELADO 2X</option>
                     <option value="3">PARCELADO 3X</option>
                     <option value="4">PARCELADO 4X</option>
@@ -628,24 +644,6 @@
 
 <script>
     // =====================================
-    // FUNÇÕES GLOBAIS E UTILITÁRIOS
-    // =====================================
-    window.formatDate = function(date) {
-        const d = date.getDate().toString().padStart(2, '0');
-        const m = (date.getMonth() + 1).toString().padStart(2, '0');
-        const y = date.getFullYear();
-        return `${d}/${m}/${y}`;
-    }
-
-    // Usado para ordenar o Livro Razão
-    window.isoDate = function(dateStr) {
-        if(!dateStr) return "00000000";
-        const p = dateStr.split('/');
-        if(p.length !== 3) return "00000000";
-        return `${p[2]}${p[1]}${p[0]}`;
-    }
-
-    // =====================================
     // UI DO SISTEMA (FRONT-END)
     // =====================================
     let currentMode = 'vendas';
@@ -657,7 +655,7 @@
     window.currentPage = 1;
     window.itemsPerPage = 10;
     let clientChartInstance = null;
-    window.vendasAtuaisDoCliente = []; // Armazena as vendas do cliente carregado para o gráfico
+    window.vendasAtuaisDoCliente = [];
 
     function uiHasPerm(permKey) {
         if(typeof window.hasPerm === 'function') return window.hasPerm(permKey);
@@ -757,6 +755,7 @@
         document.getElementById('balanco-panel').style.display = "none";
         document.getElementById('cart-capture').style.display = "block";
         document.getElementById('all-clients-panel').style.display = "none";
+        document.getElementById('chart-container').style.display = "none";
         
         document.getElementById('btn-refresh').style.display = "none";
         document.getElementById('btn-transfer').style.display = "none";
@@ -781,7 +780,7 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false;
+            document.getElementById('in-id').disabled = false; // Mantém ID livre para Vendas/Compras
             
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
@@ -812,7 +811,7 @@
         else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false;
+            document.getElementById('in-id').disabled = false; // Mantém ID Livre
             
             if (isCli) {
                 document.getElementById('group-nivel').style.display = "block";
@@ -829,6 +828,7 @@
                 if(uiHasPerm('cli_del')) document.getElementById('btn-db-delete').style.display = "block";
                 document.getElementById('btn-img-only').style.display = "block";
                 document.getElementById('btn-img-only').innerText = "SALVAR FICHA";
+                document.getElementById('chart-container').style.display = "block";
             } else { 
                 if(isCli) { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; }
                 else { document.getElementById('in-categoria').value = "Fazendas"; }
@@ -929,6 +929,7 @@
         if (qtyVal <= 0 || isNaN(qtyVal)) return;
 
         let finalPrice = prod.price || 0;
+        
         if(currentMode === 'compras') {
             finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
         } else if (currentMode === 'vendas') {
@@ -1034,6 +1035,7 @@
                 lastCategory = item.category; 
                 htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; 
             }
+            
             let infoHTML = "", priceColHTML = "", qtyFinalLabel = "";
 
             if(currentMode === 'producao' && item.recipe) {
@@ -1098,7 +1100,7 @@
                 let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
                 for(let i=0; i < numParcelas; i++) {
                     let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
+                    nextDate.setDate(baseDate.getDate() + (i * 2)); // Mantido padrão da Ferraria (2 dias)
                     pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${window.formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
                 }
             } else if (valorFinanciado > 0) {
@@ -1108,106 +1110,6 @@
         } else { parcelBox.style.display = "none"; }
         
         document.getElementById('total-val').innerText = totalRaw.toFixed(2);
-    }
-
-    async function generateImage() {
-        if((currentMode === 'vendas' || currentMode === 'compras' || currentMode === 'producao') && Object.keys(carts[currentMode]).length === 0) {
-            return alert("A lista de itens está vazia!");
-        }
-        
-        if(currentMode !== 'producao') {
-            const name = document.getElementById('in-name').value;
-            const idCli = document.getElementById('in-id').value;
-            if(!name) return alert("Preencha o Nome!");
-            
-            document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-id').innerText = idCli.toUpperCase() || "N/I";
-            
-            let vTele = document.getElementById('in-tele').value.toUpperCase();
-            document.getElementById('out-tele').innerText = vTele !== "" ? vTele : "NÃO INFORMADO";
-            
-            document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
-            document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
-            
-            if (currentMode === 'clientes') {
-                const selectNivel = document.getElementById('in-nivel');
-                document.getElementById('out-nivel').innerText = selectNivel.options[selectNivel.selectedIndex].text;
-                document.getElementById('out-bonus').innerText = "$" + parseFloat(document.getElementById('in-bonus').value || 0).toFixed(2);
-            }
-            if (currentMode === 'fornecedores') {
-                const selectCat = document.getElementById('in-categoria');
-                document.getElementById('out-categoria').innerText = selectCat.options[selectCat.selectedIndex].text;
-            }
-
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
-            document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'none');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
-            document.getElementById('chart-container').style.display = 'none'; // Esconde o gráfico no print
-        }
-
-        const paySelect = document.getElementById('pay-method');
-        const payDisplay = document.getElementById('out-pay');
-        payDisplay.innerText = paySelect.options[paySelect.selectedIndex].text;
-        paySelect.style.display = 'none';
-        payDisplay.style.display = 'block';
-        
-        document.getElementById('ui-buttons').style.display = 'none';
-        document.getElementById('date-group').style.display = 'none';
-        document.getElementById('entry-checkbox-group').style.display = 'none';
-        document.getElementById('entry-val').style.display = 'none';
-        document.getElementById('search-client-btn').style.display = 'none';
-        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'none';
-        document.getElementById('search-results-box').style.display = 'none';
-        document.getElementById('all-clients-panel').style.display = 'none';
-        
-        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
-            document.getElementById('crediario-filters').style.display = 'none';
-            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
-            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'none'); 
-            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'none'); 
-            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'block'); 
-            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'none'); 
-        }
-        
-        document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
-        document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'none');
-        document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'none');
-
-        const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
-        const link = document.createElement('a');
-        link.download = `CUSCO_${currentMode.toUpperCase()}_${Date.now()}.png`;
-        link.href = canvas.toDataURL(); link.click();
-        
-        paySelect.style.display = 'block';
-        payDisplay.style.display = 'none';
-        document.getElementById('ui-buttons').style.display = 'flex';
-        document.getElementById('entry-checkbox-group').style.display = 'flex';
-        document.getElementById('search-client-btn').style.display = 'block';
-        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'block';
-        if(document.getElementById('has-entry').checked) document.getElementById('entry-val').style.display = 'block';
-        
-        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
-            document.getElementById('crediario-filters').style.display = 'block';
-            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'inline-block');
-            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'inline-block');
-            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'inline-block');
-            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'none'); 
-            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'block'); 
-        }
-
-        document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
-        document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'block');
-        document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
-        document.getElementById('chart-container').style.display = 'block';
-        
-        switchSystem(currentMode); 
-    }
-
-    window.toggleItens = function(id) {
-        const el = document.getElementById(id);
-        if (el.style.display === 'none') el.style.display = 'block';
-        else el.style.display = 'none';
     }
 
     // =====================================
@@ -1260,7 +1162,6 @@
             }
         });
     }
-
 </script>
 
 <script type="module">
@@ -1311,7 +1212,9 @@
             if (userData.role !== 'admin') {
                 const roleSnap = await getDoc(doc(db, "cargos", userData.role));
                 if (roleSnap.exists()) permissoes = roleSnap.data().permissoes || {};
-            } else { permissoes = { admin: true }; }
+            } else {
+                permissoes = { admin: true };
+            }
 
             window.usuarioLogado = { ...userData, id: userId, permissoes: permissoes };
             
@@ -1478,7 +1381,7 @@
     };
 
     // =====================================
-    // 1. BUSCA E LISTAGEM CLIENTE/FORN
+    // 1. BUSCA E LISTAGEM CLIENTE/FORN E GRÁFICO
     // =====================================
 
     async function getNextSequence(counterName) {
@@ -1671,7 +1574,7 @@
         document.getElementById('client-stats').style.display = "block";
         document.getElementById('search-results-box').style.display = "none";
         
-        // Puxa as vendas do Firebase para o Gráfico
+        // GRÁFICO - Puxa as operações da pessoa 
         const dbNameOp = isForn ? "compras" : "vendas";
         const q = query(collection(db, dbNameOp), where("cliente_doc_id", "==", dados.firebase_doc_id));
         try {
@@ -1697,10 +1600,10 @@
                 selAnos.innerHTML += `<option value="${ano}">${text}</option>`;
             });
 
+            document.getElementById('chart-container').style.display = 'block';
             window.renderClientChart();
 
         } catch (e) { console.error("Erro ao puxar dados pro gráfico", e); }
-
 
         if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
             document.getElementById('crediario-filter-select').value = "CLIENT_ONLY";
@@ -1882,7 +1785,7 @@
                 vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
                 cliente_doc_id: window.pessoaSelecionada.firebase_doc_id,
                 cliente_nome: window.pessoaSelecionada.nome,
-                conta: window.pessoaSelecionada.conta || 'N/I', // Puxa do perfil da pessoa
+                conta: window.pessoaSelecionada.conta || 'N/I',
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
                 parcelas: parcelasArray,
                 data: dataHoje
@@ -1987,7 +1890,12 @@
                 try {
                     if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
                         if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; 
-                        venda.parcelas = [{ numero: "?", valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, vencimento: venda.data || "N/I", status: "pendente" }];
+                        venda.parcelas = [{
+                            numero: "?", 
+                            valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, 
+                            vencimento: venda.data || "N/I", 
+                            status: "pendente" 
+                        }];
                     }
                         
                     if (filtro === 'CLIENT_ONLY') {
@@ -2060,11 +1968,8 @@
                             if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
                             
                             let badge = "";
-                            if (isPago) {
-                                badge = `<span style="color:var(--buy); font-weight:bold;">PAGA ${p.data_pagamento ? `em ${p.data_pagamento}` : ''}</span>`;
-                            } else if (window.hasPerm('fat_pay')) {
-                                badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
-                            }
+                            if (isPago) badge = `<span style="color:var(--buy); font-weight:bold;">PAGA ${p.data_pagamento ? `em ${p.data_pagamento}` : ''}</span>`;
+                            else if (window.hasPerm('fat_pay')) badge = `<button class="btn-pay" onclick="receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
                             
                             const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
                             
@@ -2075,7 +1980,9 @@
                         });
                         htmlList += `${faturaBtns}</div>`;
                     }
-                } catch(errFatura) { console.warn("Fatura ignorada:", errFatura); }
+                } catch(errFatura) {
+                    console.warn("Fatura ignorada por erro de formato antigo:", errFatura);
+                }
             });
 
             if(temFatura) {
@@ -2086,7 +1993,7 @@
                     placar.style.display = "block";
                 }
             } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
-        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato.</div>`; }
+        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato. Contate suporte.</div>`; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
@@ -2097,7 +2004,7 @@
         const hoje = window.formatDate(new Date());
         const dataDigitada = prompt(`Deseja confirmar a baixa desta parcela de $${parseFloat(valorParcela).toFixed(2)}?\n\nInforme a data exata do pagamento (DD/MM/AAAA):`, hoje);
         
-        if (!dataDigitada) return; // Cancelou
+        if (!dataDigitada) return; 
 
         try {
             const vendaRef = doc(db, dbName, vendaDocId);
@@ -2106,7 +2013,7 @@
             
             let dadosVenda = vendaSnap.data();
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
-            dadosVenda.parcelas[parcelaIndex].data_pagamento = dataDigitada; // Registra a data no banco
+            dadosVenda.parcelas[parcelaIndex].data_pagamento = dataDigitada; 
             
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
@@ -2181,14 +2088,12 @@
     // =====================================
     // ABA BALANÇO FINANCEIRO (DRE) E CAIXA
     // =====================================
-    
-    // Função para salvar o Saldo Bancário no Config do Firebase
     window.salvarSaldoBanco = async function() {
         const val = parseFloat(document.getElementById('in-saldo-banco').value) || 0;
         try {
             await setDoc(doc(db, "config", "financas"), { saldo_banco: val });
             alert("Saldo Físico no Banco atualizado!");
-            window.carregarBalanco(); // Recarrega para somar
+            window.carregarBalanco();
         } catch(e) { alert("Erro ao salvar saldo no banco."); }
     }
 
@@ -2199,7 +2104,6 @@
         tExtrato.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Buscando lançamentos...</td></tr>";
 
         try {
-            // Busca o saldo fisico digitado no banco
             let saldoBancoFisico = 0;
             const docConfig = await getDoc(doc(db, "config", "financas"));
             if(docConfig.exists()) {
@@ -2213,7 +2117,7 @@
             let aggregated = {};
             let totalEntradasGlobal = 0;
             let totalSaidasGlobal = 0;
-            let extratoGeral = []; // Lista para a tabela debaixo
+            let extratoGeral = []; 
             
             const processDocs = (snap, tipo) => {
                 snap.forEach(doc => {
@@ -2223,7 +2127,6 @@
                     let hasEntradaParcela = false;
                     let hasAVistaParcela = false;
                     
-                    // 1. Processa parcelas registradas
                     if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
                         v.parcelas.forEach(p => {
                             if(p && p.vencimento) {
@@ -2231,7 +2134,6 @@
                                 if (String(p.numero).includes('Vista') || p.numero === 1) hasAVistaParcela = true;
 
                                 if (p.status === 'pago') {
-                                    // NOVO: Usa a data do pagamento se existir, senão usa o vencimento
                                     const dataUso = p.data_pagamento || p.vencimento;
                                     const pParts = dataUso.split('/');
                                     if(pParts.length === 3) {
@@ -2242,7 +2144,6 @@
                                         if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
                                         else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
 
-                                        // Joga pro Extrato Completo
                                         extratoGeral.push({
                                             dataStr: dataUso, isoDate: window.isoDate(dataUso),
                                             tipo: tipo, nome: v.cliente_nome || 'N/I',
@@ -2254,7 +2155,6 @@
                         });
                     }
 
-                    // 2. Retro-compatibilidade (Para resgatar Entradas/À Vista antigas que não viraram parcelas)
                     const dataParts = v.data.split('/'); 
                     if(dataParts.length === 3) {
                         const period = `${dataParts[1]}/${dataParts[2]}`;
@@ -2284,7 +2184,6 @@
             processDocs(snapVendas, 'entrada');
             processDocs(snapCompras, 'saida');
 
-            // Renderiza DRE Mensal
             const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
                 const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
                 if (yA !== yB) return parseInt(yB) - parseInt(yA);
@@ -2306,8 +2205,7 @@
             });
             tbody.innerHTML = html || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
 
-            // Renderiza Extrato Geral do Livro Razão
-            extratoGeral.sort((a, b) => b.isoDate.localeCompare(a.isoDate)); // Ordena Decrescente pela data formatada
+            extratoGeral.sort((a, b) => b.isoDate.localeCompare(a.isoDate)); 
             let extratoHtml = "";
             extratoGeral.forEach(ex => {
                 const cor = ex.tipo === 'entrada' ? 'var(--primary)' : 'var(--contas)';
@@ -2321,8 +2219,6 @@
             });
             tExtrato.innerHTML = extratoHtml || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhum extrato.</td></tr>";
 
-
-            // Atualiza Dashboard Global
             const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal;
             const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)';
             const poderDeCompra = saldoBancoFisico + saldoAtualLiquido;
