@@ -28,6 +28,7 @@
 
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; min-height: 100vh;}
         
+        /* BLOQUEIOS ANTI-CÓPIA */
         body { -webkit-user-select: none; -ms-user-select: none; user-select: none; }
         input, select, textarea { -webkit-user-select: text; -ms-user-select: text; user-select: text; }
 
@@ -167,7 +168,6 @@
         /* ABA BALANÇO FINANCEIRO */
         .balanco-panel { display: none; width: 100%; max-width: 1200px; background: var(--card); padding: 20px; border-radius: 10px; border: 1px solid #333; box-sizing: border-box; grid-column: 1 / -1; }
         
-        /* Box do Saldo do Banco */
         .bank-box { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 8px; border: 1px solid #555; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap:10px;}
         .bank-box input { background: #121212; color: white; border: 1px solid #777; padding: 8px; border-radius: 4px; text-align: center; font-size: 1rem; width: 150px;}
         
@@ -427,6 +427,16 @@
             </select>
         </div>
 
+        <div class="filter-container" id="custom-item-bar" style="flex-direction: column; align-items: flex-start; gap:5px; border-style: dashed;">
+            <label style="font-size: 0.8rem; font-weight: bold; text-transform: uppercase;" id="custom-lbl">➕ Lançamento Extraordinário (Avulso)</label>
+            <div style="display:flex; gap:10px; width:100%; margin-top:5px;">
+                <input type="text" id="custom-name" placeholder="Ex: Conta de Luz / Acerto de Dívida / Limpeza" style="flex:2; padding:10px; border-radius:4px; background:#121212; color:white; border:1px solid #555;">
+                <input type="number" id="custom-price" placeholder="Valor $" step="0.01" style="flex:1; padding:10px; border-radius:4px; background:#121212; color:white; border:1px solid #555;">
+                <input type="number" id="custom-qty" placeholder="Qtd" value="1" min="1" style="width:70px; padding:10px; border-radius:4px; background:#121212; color:white; border:1px solid #555;">
+                <button class="btn-solid" style="width:auto; padding:0 20px;" id="btn-add-custom" onclick="addCustomToCart()">ADICIONAR</button>
+            </div>
+        </div>
+
         <div class="catalog" id="catalog"></div>
 
         <aside class="cart-panel" id="cart-capture">
@@ -541,10 +551,13 @@
                         <div class="stat-val stat-credit" id="stat-credito">$1000.00</div>
                     </div>
                     
-                    <div class="chart-container" id="chart-container" style="display:none; margin-top: 15px; border-top: 1px dashed #555; padding-top: 15px;">
-                        <div class="chart-filters" style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <span style="color:#aaa; font-size:0.8rem; text-transform:uppercase;">Evolução de Compras</span>
-                            <select id="chart-year" class="chart-select" onchange="renderClientChart()" style="background: #121212; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px; font-size: 0.7rem;"></select>
+                    <div class="chart-container" id="chart-container">
+                        <div class="chart-filters">
+                            <span style="color:#aaa; font-size:0.8rem; text-transform:uppercase;">Evolução de Operações</span>
+                            <div style="display:flex; gap:5px;">
+                                <select id="chart-year" class="chart-select" onchange="renderClientChart()">
+                                    </select>
+                            </div>
                         </div>
                         <canvas id="clientChart" width="100" height="50"></canvas>
                     </div>
@@ -740,6 +753,7 @@
         // Reset Displays Full
         document.getElementById('catalog').style.display = "none";
         document.getElementById('filter-bar').style.display = "none";
+        document.getElementById('custom-item-bar').style.display = "none"; // Reset item custom
         document.getElementById('crediario-filters').style.display = "none";
         document.getElementById('payment-box').style.display = "none";
         document.getElementById('cart-items').style.display = "none";
@@ -755,7 +769,6 @@
         document.getElementById('balanco-panel').style.display = "none";
         document.getElementById('cart-capture').style.display = "block";
         document.getElementById('all-clients-panel').style.display = "none";
-        document.getElementById('chart-container').style.display = "none";
         
         document.getElementById('btn-refresh').style.display = "none";
         document.getElementById('btn-transfer').style.display = "none";
@@ -780,8 +793,14 @@
         if (isVend || isProd || isBuy) {
             document.getElementById('catalog').style.display = "grid";
             document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false; // Mantém ID livre para Vendas/Compras
+            document.getElementById('in-id').disabled = false; 
             
+            if (isVend || isBuy) {
+                document.getElementById('custom-item-bar').style.display = "flex";
+                document.getElementById('custom-lbl').style.color = isBuy ? "var(--buy)" : "var(--primary)";
+                document.getElementById('btn-add-custom').style.background = isBuy ? "var(--buy)" : "var(--primary)";
+            }
+
             if (isVend) {
                 document.getElementById('payment-box').style.display = "block";
                 document.getElementById('info-contato').style.display = "flex";
@@ -811,7 +830,7 @@
         else if (isCli || isForn) {
             document.getElementById('info-contato').style.display = "flex";
             document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false; // Mantém ID Livre
+            document.getElementById('in-id').disabled = false;
             
             if (isCli) {
                 document.getElementById('group-nivel').style.display = "block";
@@ -954,6 +973,34 @@
         updateUI();
     }
 
+    window.addCustomToCart = function() {
+        const name = document.getElementById('custom-name').value.trim();
+        const price = parseFloat(document.getElementById('custom-price').value);
+        const qty = parseInt(document.getElementById('custom-qty').value);
+
+        if (!name || isNaN(price) || price <= 0 || isNaN(qty) || qty <= 0) {
+            return alert("Preencha corretamente a descrição, valor unitário e quantidade do Lançamento Extraordinário!");
+        }
+
+        const id = 'custom_' + Date.now();
+        const customItem = {
+            id: id,
+            name: name,
+            price: price,
+            defaultPrice: price,
+            img: "https://i.imgur.com/bQAy1gG.png", // Logo genérica
+            category: "Extraordinário",
+            quantity: qty,
+            stock: 0
+        };
+
+        carts[currentMode][id] = customItem;
+        document.getElementById('custom-name').value = "";
+        document.getElementById('custom-price').value = "";
+        document.getElementById('custom-qty').value = "1";
+        updateUI();
+    };
+
     function transferToCompras() {
         const prodCart = carts['producao'];
         if (Object.keys(prodCart).length === 0) return alert("A lista de produção está vazia!");
@@ -1003,10 +1050,15 @@
         document.getElementById('entry-val').value = ""; 
         document.getElementById('entry-val').style.display = "none"; 
         
+        if(document.getElementById('custom-name')) document.getElementById('custom-name').value = "";
+        if(document.getElementById('custom-price')) document.getElementById('custom-price').value = "";
+        if(document.getElementById('custom-qty')) document.getElementById('custom-qty').value = "1";
+
         document.getElementById('search-results-box').style.display = "none";
         document.getElementById('client-stats').style.display = "none";
         document.getElementById('crediario-list').innerHTML = "";
         document.getElementById('crediario-placar').style.display = "none";
+        document.getElementById('chart-container').style.display = "none";
         
         window.pessoaSelecionada = null;
         if(clientChartInstance) { clientChartInstance.destroy(); clientChartInstance = null; }
@@ -1073,7 +1125,6 @@
         const numParcelas = parseInt(document.getElementById('pay-method').value);
         let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
         
-        // Bloqueia entrada maior que o valor
         if (entryVal > totalRaw) {
             entryVal = totalRaw;
             document.getElementById('entry-val').value = entryVal.toFixed(2);
@@ -1087,7 +1138,7 @@
 
         if (totalRaw > 0 && (currentMode === 'vendas' || currentMode === 'compras')) {
             parcelBox.style.display = "block";
-            let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (CAIXA):</b><br>`;
+            let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (A DAR BAIXA NO CAIXA):</b><br>`;
             
             const valorFinanciado = totalRaw - entryVal;
 
@@ -1100,7 +1151,7 @@
                 let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
                 for(let i=0; i < numParcelas; i++) {
                     let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 2)); // Mantido padrão da Ferraria (2 dias)
+                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
                     pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${window.formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
                 }
             } else if (valorFinanciado > 0) {
@@ -1110,6 +1161,111 @@
         } else { parcelBox.style.display = "none"; }
         
         document.getElementById('total-val').innerText = totalRaw.toFixed(2);
+    }
+
+    async function generateImage() {
+        if((currentMode === 'vendas' || currentMode === 'compras' || currentMode === 'producao') && Object.keys(carts[currentMode]).length === 0) {
+            return alert("A lista de itens está vazia!");
+        }
+        
+        if(currentMode !== 'producao') {
+            const name = document.getElementById('in-name').value;
+            const idCli = document.getElementById('in-id').value;
+            if(!name) return alert("Preencha o Nome!");
+            
+            document.getElementById('out-name').innerText = name.toUpperCase();
+            document.getElementById('out-id').innerText = idCli.toUpperCase();
+            
+            let vTele = document.getElementById('in-tele').value.toUpperCase();
+            document.getElementById('out-tele').innerText = vTele !== "" ? vTele : "NÃO INFORMADO";
+            
+            document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
+            document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
+            
+            if (currentMode === 'clientes') {
+                const selectNivel = document.getElementById('in-nivel');
+                document.getElementById('out-nivel').innerText = selectNivel.options[selectNivel.selectedIndex].text;
+                document.getElementById('out-bonus').innerText = "$" + parseFloat(document.getElementById('in-bonus').value || 0).toFixed(2);
+            }
+            if (currentMode === 'fornecedores') {
+                const selectCat = document.getElementById('in-categoria');
+                document.getElementById('out-categoria').innerText = selectCat.options[selectCat.selectedIndex].text;
+            }
+
+            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
+            document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'none');
+            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
+            document.getElementById('chart-container').style.display = 'none'; // Esconde o gráfico no print
+        }
+
+        const paySelect = document.getElementById('pay-method');
+        const payDisplay = document.getElementById('out-pay');
+        payDisplay.innerText = paySelect.options[paySelect.selectedIndex].text;
+        paySelect.style.display = 'none';
+        payDisplay.style.display = 'block';
+        
+        // Esconder UI
+        document.getElementById('ui-buttons').style.display = 'none';
+        document.getElementById('date-group').style.display = 'none';
+        document.getElementById('entry-checkbox-group').style.display = 'none';
+        document.getElementById('entry-val').style.display = 'none';
+        if(document.getElementById('custom-item-bar')) document.getElementById('custom-item-bar').style.display = 'none';
+        document.getElementById('search-client-btn').style.display = 'none';
+        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'none';
+        document.getElementById('search-results-box').style.display = 'none';
+        document.getElementById('all-clients-panel').style.display = 'none';
+        
+        // Esconder Botões no Print
+        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
+            document.getElementById('crediario-filters').style.display = 'none';
+            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
+            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'none'); 
+            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'none'); 
+            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'block'); 
+            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'none'); 
+        }
+        
+        document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
+        document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
+        document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'none');
+        document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'none');
+
+        // Capturar
+        const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
+        const link = document.createElement('a');
+        link.download = `CUSCO_${currentMode.toUpperCase()}_${Date.now()}.png`;
+        link.href = canvas.toDataURL(); link.click();
+        
+        // Restaurar UI
+        paySelect.style.display = 'block';
+        payDisplay.style.display = 'none';
+        document.getElementById('ui-buttons').style.display = 'flex';
+        document.getElementById('entry-checkbox-group').style.display = 'flex';
+        document.getElementById('search-client-btn').style.display = 'block';
+        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'block';
+        if(document.getElementById('has-entry').checked) document.getElementById('entry-val').style.display = 'block';
+        
+        if (currentMode === 'crediario' || currentMode === 'contas_pagar') {
+            document.getElementById('crediario-filters').style.display = 'block';
+            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'inline-block');
+            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'inline-block');
+            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'inline-block');
+            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'none'); 
+            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'block'); 
+        }
+
+        document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
+        document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'block');
+        document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
+        if(document.getElementById('chart-container') && clientChartInstance) document.getElementById('chart-container').style.display = 'block';
+        
+        switchSystem(currentMode); 
+    }
+
+    window.toggleItens = function(id) {
+        const el = document.getElementById(id);
+        if (el.style.display === 'none') el.style.display = 'block';
+        else el.style.display = 'none';
     }
 
     // =====================================
@@ -1162,6 +1318,7 @@
             }
         });
     }
+
 </script>
 
 <script type="module">
@@ -1381,7 +1538,7 @@
     };
 
     // =====================================
-    // 1. BUSCA E LISTAGEM CLIENTE/FORN E GRÁFICO
+    // 1. BUSCA E LISTAGEM CLIENTE/FORN
     // =====================================
 
     async function getNextSequence(counterName) {
@@ -1592,7 +1749,6 @@
                 }
             });
 
-            // Atualiza select de anos
             const selAnos = document.getElementById('chart-year');
             selAnos.innerHTML = "";
             [...anosEncontrados].sort((a,b)=>b-a).forEach(ano => {
@@ -1762,6 +1918,7 @@
 
             let parcelasArray = [];
             
+            // Entrada
             if (entryVal > 0) {
                 parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' });
             }
@@ -1788,7 +1945,8 @@
                 conta: window.pessoaSelecionada.conta || 'N/I',
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
                 parcelas: parcelasArray,
-                data: dataHoje
+                data: dataHoje,
+                hora: new Date().toLocaleTimeString('pt-BR')
             });
             
             const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
@@ -1802,7 +1960,7 @@
             }
             await updateDoc(doc(db, dbNamePessoa, window.pessoaSelecionada.firebase_doc_id), updateCli);
             
-            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nLembre-se de ir na aba Crediário/Contas para confirmar o pagamento.`);
+            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nLembre-se de ir na aba Crediário/Contas para dar baixa no pagamento.`);
             await generateImage();
             clearCart();
         } catch (error) { console.log(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
@@ -1888,14 +2046,10 @@
             
             vendasData.forEach(venda => {
                 try {
+                    // SAFEGUARD
                     if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
                         if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; 
-                        venda.parcelas = [{
-                            numero: "?", 
-                            valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, 
-                            vencimento: venda.data || "N/I", 
-                            status: "pendente" 
-                        }];
+                        venda.parcelas = [{ numero: "?", valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, vencimento: venda.data || "N/I", status: "pendente" }];
                     }
                         
                     if (filtro === 'CLIENT_ONLY') {
@@ -1927,9 +2081,8 @@
 
                     if(parcelasFiltradas.length > 0) {
                         temFatura = true;
-                        
                         let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
-                        let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i style='color:#ef4444'>Itens não registrados (Fatura Antiga)</i>";
+                        let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i>Itens não registrados (Fatura antiga)</i>";
                         
                         let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
                         if (window.hasPerm('fat_del')) {
@@ -1980,9 +2133,7 @@
                         });
                         htmlList += `${faturaBtns}</div>`;
                     }
-                } catch(errFatura) {
-                    console.warn("Fatura ignorada por erro de formato antigo:", errFatura);
-                }
+                } catch(errFatura) { console.warn("Fatura ignorada:", errFatura); }
             });
 
             if(temFatura) {
@@ -1993,7 +2144,7 @@
                     placar.style.display = "block";
                 }
             } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
-        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato. Contate suporte.</div>`; }
+        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato.</div>`; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
@@ -2002,7 +2153,7 @@
         const dbName = isContas ? "compras" : "vendas";
         
         const hoje = window.formatDate(new Date());
-        const dataDigitada = prompt(`Deseja confirmar a baixa desta parcela de $${parseFloat(valorParcela).toFixed(2)}?\n\nInforme a data exata do pagamento (DD/MM/AAAA):`, hoje);
+        const dataDigitada = prompt(`Deseja confirmar a baixa desta parcela de $${parseFloat(valorParcela).toFixed(2)}?\n\nInforme a data exata da operação (DD/MM/AAAA):`, hoje);
         
         if (!dataDigitada) return; 
 
@@ -2086,7 +2237,7 @@
     };
 
     // =====================================
-    // ABA BALANÇO FINANCEIRO (DRE) E CAIXA
+    // ABA BALANÇO FINANCEIRO E LIVRO RAZÃO
     // =====================================
     window.salvarSaldoBanco = async function() {
         const val = parseFloat(document.getElementById('in-saldo-banco').value) || 0;
@@ -2127,6 +2278,7 @@
                     let hasEntradaParcela = false;
                     let hasAVistaParcela = false;
                     
+                    // 1. Processa parcelas registradas
                     if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
                         v.parcelas.forEach(p => {
                             if(p && p.vencimento) {
@@ -2134,6 +2286,7 @@
                                 if (String(p.numero).includes('Vista') || p.numero === 1) hasAVistaParcela = true;
 
                                 if (p.status === 'pago') {
+                                    // NOVO: Usa a data do pagamento se existir, senão usa o vencimento
                                     const dataUso = p.data_pagamento || p.vencimento;
                                     const pParts = dataUso.split('/');
                                     if(pParts.length === 3) {
@@ -2144,6 +2297,7 @@
                                         if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
                                         else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
 
+                                        // Joga pro Extrato Completo (Livro Razão)
                                         extratoGeral.push({
                                             dataStr: dataUso, isoDate: window.isoDate(dataUso),
                                             tipo: tipo, nome: v.cliente_nome || 'N/I',
@@ -2155,6 +2309,7 @@
                         });
                     }
 
+                    // 2. Retro-compatibilidade (Para resgatar Entradas/À Vista antigas que não viraram parcelas)
                     const dataParts = v.data.split('/'); 
                     if(dataParts.length === 3) {
                         const period = `${dataParts[1]}/${dataParts[2]}`;
@@ -2184,6 +2339,7 @@
             processDocs(snapVendas, 'entrada');
             processDocs(snapCompras, 'saida');
 
+            // Renderiza DRE Mensal
             const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
                 const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
                 if (yA !== yB) return parseInt(yB) - parseInt(yA);
@@ -2205,6 +2361,7 @@
             });
             tbody.innerHTML = html || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
 
+            // Renderiza Extrato Geral do Livro Razão
             extratoGeral.sort((a, b) => b.isoDate.localeCompare(a.isoDate)); 
             let extratoHtml = "";
             extratoGeral.forEach(ex => {
@@ -2219,6 +2376,7 @@
             });
             tExtrato.innerHTML = extratoHtml || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhum extrato.</td></tr>";
 
+            // Atualiza Dashboard Global
             const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal;
             const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)';
             const poderDeCompra = saldoBancoFisico + saldoAtualLiquido;
