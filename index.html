@@ -15,9 +15,9 @@
             --secondary: #3b82f6; /* Produção */
             --buy: #10b981; /* Compras */
             --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores */
+            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
             --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar */
+            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
             --balanco: #eab308; /* Balanço */
             --admin: #ef4444; /* Admin */
             --bg: #121212;
@@ -209,7 +209,7 @@
             if(e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83))) { return false; } 
         };
 
-        // VARIÁVEIS GLOBAIS ABSOLUTAS (Evita travamentos entre scripts)
+        // VARIÁVEIS GLOBAIS ABSOLUTAS
         window.currentMode = 'vendas';
         window.carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
         window.pessoaSelecionada = null; 
@@ -228,6 +228,7 @@
 
         window.hasPerm = window.hasPerm || function() { return false; };
         
+        // Conversão de Data para garantir formato DD/MM/YYYY
         window.formatDate = function(date) {
             const d = date.getDate().toString().padStart(2, '0');
             const m = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -235,6 +236,7 @@
             return `${d}/${m}/${y}`;
         };
 
+        // Ordenação ISO para o Livro Razão
         window.isoDate = function(dateStr) {
             if(typeof dateStr !== 'string' || !dateStr) return "00000000";
             const p = dateStr.split('/');
@@ -711,52 +713,6 @@
     // =====================================
     // UI JS E LÓGICA DE INTERFACE
     // =====================================
-    const inventory = [
-        { id: 1, name: "Cápsula de Munição", price: 0.86, img: "https://i.imgur.com/pYci4DW.png", recipe: { yield: 20, materials: [{n: "Lingote de Cobre", q: 3}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 2}] } },
-        { id: 2, name: "Cutelo", price: 3.12, img: "https://i.imgur.com/v4fRfq2.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
-        { id: 3, name: "Faca Comum", price: 7.80, img: "https://i.imgur.com/c7VZQFm.png", recipe: { yield: 7, materials: [{n: "Madeira Cilíndrica", q: 4}, {n: "Lingote de Aço", q: 3}] } },
-        { id: 4, name: "Faca de Arremesso", price: 11.70, img: "https://i.imgur.com/tAnQ019.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
-        { id: 5, name: "Lingote de Aço", price: 3.67, img: "https://i.imgur.com/k84v8UK.png", recipe: { yield: 3, materials: [{n: "Pepita de Prata", q: 4}, {n: "Pepita de Cobre", q: 5}, {n: "Carvão Vegetal", q: 5}] } },
-        { id: 6, name: "Lingote de Cobre", price: 3.35, img: "https://i.imgur.com/3e9Rtrv.png", recipe: { yield: 2, materials: [{n: "Pepita de Cobre", q: 4}, {n: "Carvão Vegetal", q: 6}] } },
-        { id: 7, name: "Lingote de Ferro", price: 2.57, img: "https://i.imgur.com/FLBxUU9.png", recipe: { yield: 7, materials: [{n: "Pepita de Ferro", q: 9}, {n: "Carvão Mineral Bruto", q: 10}] } },
-        { id: 8, name: "Lingote de Ouro", price: 3.98, img: "https://i.imgur.com/W09uKgt.png", recipe: { yield: 3, materials: [{n: "Pepita de Ouro", q: 7}, {n: "Carvão Vegetal", q: 5}] } },
-        { id: 9, name: "Lingote de Prata", price: 3.04, img: "https://i.imgur.com/OP2T9Xk.png", recipe: { yield: 2, materials: [{n: "Pepita de Prata", q: 5}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 10, name: "Machado Avançado", price: 11.70, img: "https://i.imgur.com/4O83Srs.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}] } },
-        { id: 11, name: "Moedor", price: 0.59, img: "https://i.imgur.com/hJnt1RN.png", recipe: { yield: 10, materials: [{n: "Madeira Cilíndrica", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 12, name: "Picareta Avançada", price: 11.70, img: "https://i.imgur.com/MhMdBQL.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 13, name: "Prego", price: 0.55, img: "https://i.imgur.com/KzcO0kY.png", recipe: { yield: 7, materials: [{n: "Pepita de Chumbo", q: 4}, {n: "Carvão Vegetal", q: 1}] } },
-        { id: 14, name: "Rastelo", price: 2.34, img: "https://i.imgur.com/ptqDSbJ.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 3}, {n: "Lingote de Aço", q: 1}] } },
-        { id: 15, name: "Seringa de Vidro", price: 1.17, img: "https://i.imgur.com/YdoqXpy.png", recipe: { yield: 12, materials: [{n: "Garrafa de Álcool", q: 7}, {n: "Pepita de Quartzo", q: 10}] } }
-    ];
-
-    const supplyInventory = [
-        { id: 101, category: "Fazendas", name: "Garrafa de Álcool", img: "https://i.imgur.com/VlBbvqI.png", defaultPrice: 0.40 },
-        { id: 201, category: "Mineradoras", name: "Carvão Mineral Bruto", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.15 },
-        { id: 202, category: "Mineradoras", name: "Pepita de Chumbo", img: "https://i.imgur.com/xb2QWoD.png", defaultPrice: 0.12 },
-        { id: 203, category: "Mineradoras", name: "Pepita de Cobre", img: "https://i.imgur.com/G2gWC2r.png", defaultPrice: 0.54 },
-        { id: 204, category: "Mineradoras", name: "Pepita de Ferro", img: "https://i.imgur.com/GDB3nyr.png", defaultPrice: 0.60 },
-        { id: 205, category: "Mineradoras", name: "Pepita de Ouro", img: "https://i.imgur.com/lOiB6RO.png", defaultPrice: 0.69 },
-        { id: 206, category: "Mineradoras", name: "Pepita de Prata", img: "https://i.imgur.com/au2hezv.png", defaultPrice: 0.66 },
-        { id: 207, category: "Mineradoras", name: "Pepita de Quartzo", img: "https://i.imgur.com/D7w2HiZ.png", defaultPrice: 0.30 },
-        { id: 301, category: "Artesanatos", name: "Verniz", img: "https://i.imgur.com/61jHucx.png", defaultPrice: 0.76 },
-        { id: 401, category: "Madeireiras", name: "Carvão Vegetal", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.31 },
-        { id: 402, category: "Madeireiras", name: "Madeira Cilíndrica", img: "https://i.imgur.com/H0Xwc7K.png", defaultPrice: 0.47 },
-        { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png", defaultPrice: 0.43 }
-    ];
-
-    window.toggleAuthMode = function() {
-        const login = document.getElementById('login-box'); const reg = document.getElementById('register-box');
-        if (login.style.display === 'none') { login.style.display = 'block'; reg.style.display = 'none';
-        } else { login.style.display = 'none'; reg.style.display = 'block'; }
-    };
-
-    window.toggleEntryField = function() {
-        const checkbox = document.getElementById('has-entry');
-        document.getElementById('entry-val').style.display = checkbox.checked ? "block" : "none";
-        if(!checkbox.checked) document.getElementById('entry-val').value = "";
-        window.updateUI();
-    };
-
     window.switchSystem = function(mode) {
         window.currentMode = mode;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1106,12 +1062,9 @@
         if (totalRaw > 0 && (window.currentMode === 'vendas' || window.currentMode === 'compras')) {
             parcelBox.style.display = "block";
             let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (CAIXA):</b><br>`;
-            
             const valorFinanciado = totalRaw - entryVal;
 
-            if(entryVal > 0) {
-                pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
-            }
+            if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
             
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorParcela = valorFinanciado / numParcelas;
@@ -1265,24 +1218,8 @@
 
         window.clientChartInstance = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: monthNames,
-                datasets: [{
-                    label: 'Movimentação ($)',
-                    data: dataValues,
-                    backgroundColor: corFundo,
-                    borderColor: corLinha,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: { 
-                    y: { beginAtZero: true, ticks: { color: '#aaa', font: {size: 10} } },
-                    x: { ticks: { color: '#aaa', font: {size: 10} } }
-                },
-                plugins: { legend: { display: false } }
-            }
+            data: { labels: monthNames, datasets: [{ label: 'Movimentação ($)', data: dataValues, backgroundColor: corFundo, borderColor: corLinha, borderWidth: 1 }] },
+            options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#aaa', font: {size: 10} } }, x: { ticks: { color: '#aaa', font: {size: 10} } } }, plugins: { legend: { display: false } } }
         });
     };
 </script>
@@ -1303,6 +1240,19 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // =====================================
+    // 0. AUTENTICAÇÃO E PERMISSÕES
+    // =====================================
+    window.usuarioLogado = null;
+    window.todosCargos = [];
+
+    window.hasPerm = function(permKey) {
+        if (!window.usuarioLogado) return false;
+        if (window.usuarioLogado.role === 'admin') return true;
+        if (window.usuarioLogado.permissoes && window.usuarioLogado.permissoes[permKey]) return true;
+        return false;
+    };
+
     window.authLogin = async function() {
         const user = document.getElementById('login-user').value.trim();
         const pass = document.getElementById('login-pass').value.trim();
@@ -1322,9 +1272,7 @@
             if (userData.role !== 'admin') {
                 const roleSnap = await getDoc(doc(db, "cargos", userData.role));
                 if (roleSnap.exists()) permissoes = roleSnap.data().permissoes || {};
-            } else {
-                permissoes = { admin: true };
-            }
+            } else { permissoes = { admin: true }; }
 
             window.usuarioLogado = { ...userData, id: userId, permissoes: permissoes };
             
@@ -1339,7 +1287,6 @@
             if (window.hasPerm('ver_balanco')) {
                 document.getElementById('tab-balanco').style.display = "block";
             }
-            
             window.switchSystem('vendas'); 
         } catch (error) { console.log(error); alert("Erro ao conectar."); }
     };
@@ -1361,8 +1308,7 @@
                 username: user, password: pass, 
                 role: isFirstUser ? 'admin' : 'Pendente',
                 status: isFirstUser ? 'aprovado' : 'pendente',
-                comissao: 0,
-                data_registro: window.formatDate(new Date())
+                comissao: 0, data_registro: window.formatDate(new Date())
             });
 
             if (isFirstUser) alert("✨ Você é o primeiro! Foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login.");
@@ -1400,7 +1346,7 @@
                 list.innerHTML = html || "<li style='text-align:center;'>Nenhum cargo extra criado.</li>";
             }
         } catch(e) {}
-    }
+    };
 
     window.carregarUsuariosAdmin = async function() {
         if (!window.todosCargos || window.todosCargos.length === 0) await window.carregarCargosAdmin();
@@ -1412,14 +1358,12 @@
             let html = "";
             window.todosVendedoresDb = []; 
             snap.forEach(docSnap => {
-                const u = docSnap.data();
-                const uId = docSnap.id;
+                const u = docSnap.data(); const uId = docSnap.id;
                 window.todosVendedoresDb.push({ id: uId, ...u });
                 
                 if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
 
                 const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
-                
                 let options = `<option value="admin" ${u.role==='admin'?'selected':''}>Admin Supremo</option>`;
                 window.todosCargos.forEach(c => { options += `<option value="${c.id}" ${u.role===c.id?'selected':''}>${c.nome}</option>`; });
                 const selCargo = `<select id="cargo-${uId}" class="pay-select" style="margin:0; padding:4px;">${options}</select>`;
@@ -1433,7 +1377,6 @@
                     if (window.hasPerm('user_edit')) acoes += `<button style="background:var(--secondary); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="window.alterarCargoVendedor('${uId}')">Salvar Edição</button> `;
                     if (window.hasPerm('user_del')) acoes += `<button style="background:var(--admin); color:white; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="window.excluirVendedor('${uId}')">Revogar</button>`;
                 }
-
                 html += `<tr><td style="color:white; font-weight:bold;">${u.username}</td><td>${window.hasPerm('user_edit') ? selCargo : u.role.toUpperCase()}</td><td>${window.hasPerm('user_edit') ? inpComissao : (u.comissao||0) + '%'}</td><td><span class="badge-status ${badgeClass}">${u.status.toUpperCase()}</span></td><td>${acoes}</td></tr>`;
             });
             tbody.innerHTML = html || "<tr><td colspan='5' style='text-align:center; color:#aaa;'>Nenhum outro usuário.</td></tr>";
@@ -1443,10 +1386,8 @@
     window.alterarCargoVendedor = async function(docId) {
         const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
         const comissaoVal = parseFloat(document.getElementById(`comissao-${docId}`).value) || 0;
-        try { 
-            await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado, comissao: comissaoVal }); 
-            alert("Ficha do funcionário atualizada!"); 
-        } catch(e) { alert("Erro ao atualizar funcionário."); }
+        try { await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado, comissao: comissaoVal }); alert("Ficha atualizada!"); } 
+        catch(e) { alert("Erro ao atualizar."); }
     };
 
     window.carregarComissoes = async function() {
@@ -1459,7 +1400,6 @@
         try {
             const snapVendas = await getDocs(collection(db, "vendas"));
             let vendasFunc = {};
-            
             snapVendas.forEach(docV => {
                 const v = docV.data();
                 if(v.data && v.data.endsWith(mesFiltro) && v.vendedor) {
@@ -1470,15 +1410,12 @@
 
             const snapCompras = await getDocs(query(collection(db, "compras"), where("is_comissao", "==", true)));
             let valesFunc = {};
-            
             snapCompras.forEach(docC => {
                 const c = docC.data();
                 if(c.data && c.data.endsWith(mesFiltro) && c.vendedor_ref) {
                     if(!valesFunc[c.vendedor_ref]) valesFunc[c.vendedor_ref] = 0;
                     if(c.parcelas && Array.isArray(c.parcelas)) {
-                        c.parcelas.forEach(p => {
-                            if(p && p.status === 'pago') valesFunc[c.vendedor_ref] += parseFloat(p.valor || 0);
-                        });
+                        c.parcelas.forEach(p => { if(p && p.status === 'pago') valesFunc[c.vendedor_ref] += parseFloat(p.valor || 0); });
                     }
                 }
             });
@@ -1486,13 +1423,8 @@
             let html = "";
             window.todosVendedoresDb.forEach(u => {
                 if(u.status !== 'aprovado') return; 
-                
-                const nome = u.username;
-                const pct = parseFloat(u.comissao || 0);
-                const totalVendido = vendasFunc[nome] || 0;
-                const comissaoBruta = totalVendido * (pct / 100);
-                const valesTirados = valesFunc[nome] || 0;
-                const restante = comissaoBruta - valesTirados;
+                const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0;
+                const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
                 
                 html += `<tr>
                     <td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td>
@@ -1500,20 +1432,13 @@
                     <td style="color:white;">$${comissaoBruta.toFixed(2)}</td>
                     <td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td>
                     <td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td>
-                    <td>
-                        <button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button>
-                    </td>
+                    <td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td>
                 </tr>`;
             });
             
             if (window.usuarioLogado && !window.todosVendedoresDb.find(x => x.username === window.usuarioLogado.username)) {
-                const u = window.usuarioLogado;
-                const nome = u.username;
-                const pct = parseFloat(u.comissao || 0);
-                const totalVendido = vendasFunc[nome] || 0;
-                const comissaoBruta = totalVendido * (pct / 100);
-                const valesTirados = valesFunc[nome] || 0;
-                const restante = comissaoBruta - valesTirados;
+                const u = window.usuarioLogado; const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0;
+                const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
                 
                 html += `<tr>
                     <td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td>
@@ -1521,102 +1446,68 @@
                     <td style="color:white;">$${comissaoBruta.toFixed(2)}</td>
                     <td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td>
                     <td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td>
-                    <td>
-                        <button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button>
-                    </td>
+                    <td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td>
                 </tr>`;
             }
-
             tbody.innerHTML = html || "<tr><td colspan='6' style='text-align:center; color:#aaa;'>Sem dados para exibir.</td></tr>";
-
         } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='6' style='color:red;'>Erro ao calcular comissões.</td></tr>"; }
     };
 
     window.lancarValeFuncionario = async function(vendedorUsername) {
         if(!window.hasPerm('admin')) return alert("Apenas admins podem lançar vales.");
-        const val = prompt(`Lançamento de Vale / Pagamento de Comissão para ${vendedorUsername}.\nDigite o valor ($):`);
+        const val = prompt(`Lançamento de Vale/Pagamento para ${vendedorUsername}.\nDigite o valor ($):`);
         if(!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) return;
         
         const dataHoje = window.formatDate(new Date());
-        
         try {
             await addDoc(collection(db, "compras"), {
-                numero_pedido: `VALE ${Date.now()}`,
-                vendedor: window.usuarioLogado.username,
-                cliente_doc_id: 'interno',
-                cliente_nome: `FUNCIONÁRIO: ${vendedorUsername}`, 
-                vendedor_ref: vendedorUsername, 
-                is_comissao: true,
-                conta: 'Caixa Geral',
-                pedido: { 
-                    itens: [{nome_produto: "Vale/Comissão de Vendas", quantidade: 1, valor_unitario: parseFloat(val), subtotal: parseFloat(val), category: "Salários/Comissões"}], 
-                    total: parseFloat(val), pagamento: 'À VISTA', entrada: 0, financiado: 0 
-                },
+                numero_pedido: `VALE ${Date.now()}`, vendedor: window.usuarioLogado.username,
+                cliente_doc_id: 'interno', cliente_nome: `FUNCIONÁRIO: ${vendedorUsername}`,
+                vendedor_ref: vendedorUsername, is_comissao: true, conta: 'Caixa Geral',
+                pedido: { itens: [{nome_produto: "Vale/Comissão", quantidade: 1, valor_unitario: parseFloat(val), subtotal: parseFloat(val), category: "Salários/Comissões"}], total: parseFloat(val), pagamento: 'À VISTA', entrada: 0, financiado: 0 },
                 parcelas: [{ numero: "1 (Pago)", valor: parseFloat(val), vencimento: dataHoje, data_pagamento: dataHoje, status: 'pago' }],
                 data: dataHoje
             });
-            alert("Lançamento efetuado! O valor já foi abatido no saldo do funcionário e constará no Balanço.");
-            window.carregarComissoes();
+            alert("Lançamento efetuado! Constará no Balanço."); window.carregarComissoes();
         } catch(e) { alert("Erro ao lançar vale."); }
     };
 
     window.salvarNovoCargo = async function() {
-        if (!window.hasPerm('admin')) return alert("Apenas admins podem criar níveis de acesso.");
+        if (!window.hasPerm('admin')) return alert("Apenas admins.");
         const nome = document.getElementById('role-name-input').value.trim();
         if (!nome) return alert("Digite o nome do cargo!");
         
         const permissoes = {
-            cli_add: document.getElementById('perm_cli_add').checked,
-            cli_edit: document.getElementById('perm_cli_edit').checked,
-            cli_del: document.getElementById('perm_cli_del').checked,
-            fat_pay: document.getElementById('perm_fat_pay').checked,
-            fat_del: document.getElementById('perm_fat_del').checked,
-            ver_balanco: document.getElementById('perm_ver_balanco').checked,
-            user_approve: document.getElementById('perm_user_approve').checked,
-            user_edit: document.getElementById('perm_user_edit').checked,
-            user_del: document.getElementById('perm_user_del').checked
+            cli_add: document.getElementById('perm_cli_add').checked, cli_edit: document.getElementById('perm_cli_edit').checked, cli_del: document.getElementById('perm_cli_del').checked,
+            fat_pay: document.getElementById('perm_fat_pay').checked, fat_del: document.getElementById('perm_fat_del').checked, ver_balanco: document.getElementById('perm_ver_balanco').checked,
+            user_approve: document.getElementById('perm_user_approve').checked, user_edit: document.getElementById('perm_user_edit').checked, user_del: document.getElementById('perm_user_del').checked
         };
-
         try {
-            await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes });
-            alert("Cargo Criado!");
-            document.getElementById('role-name-input').value = "";
-            document.querySelectorAll('.role-check-group input[type="checkbox"]').forEach(cb => cb.checked = false);
-            window.carregarUsuariosAdmin(); 
+            await addDoc(collection(db, "cargos"), { nome: nome.toUpperCase(), permissoes: permissoes }); alert("Cargo Criado!"); document.getElementById('role-name-input').value = "";
+            document.querySelectorAll('.role-check-group input[type="checkbox"]').forEach(cb => cb.checked = false); window.carregarUsuariosAdmin(); 
         } catch(e) { alert("Erro ao criar cargo."); }
     };
 
     window.deletarCargo = async function(cargoId) {
         if(!window.hasPerm('admin')) return;
-        if(!confirm("⚠️ Atenção!\nTem certeza que deseja apagar este cargo? Certifique-se de que nenhum funcionário está utilizando ele antes!")) return;
-        try {
-            await deleteDoc(doc(db, "cargos", cargoId));
-            alert("Cargo apagado com sucesso!");
-            window.carregarUsuariosAdmin(); 
-        } catch(e) {
-            alert("Erro ao apagar cargo.");
-        }
+        if(!confirm("⚠️ Atenção!\nTem certeza que deseja apagar este cargo?")) return;
+        try { await deleteDoc(doc(db, "cargos", cargoId)); alert("Cargo apagado!"); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
-
     window.aprovarVendedor = async function(docId) {
         const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
         if(!confirm("Deseja APROVAR este vendedor?")) return;
-        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado', role: cargoSelecionado }); window.carregarUsuariosAdmin(); } 
-        catch(e) { alert("Erro."); }
+        try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado', role: cargoSelecionado }); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
-
     window.excluirVendedor = async function(docId) {
         if(!confirm("Deseja EXCLUIR este usuário?")) return;
-        try { await deleteDoc(doc(db, "vendedores", docId)); window.carregarUsuariosAdmin(); } 
-        catch(e) { alert("Erro."); }
+        try { await deleteDoc(doc(db, "vendedores", docId)); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
 
     // =====================================
-    // 1. BUSCA DE CLIENTES E LISTAGEM
+    // 1. BUSCA E LISTAGEM CLIENTE/FORN
     // =====================================
     async function getNextSequence(counterName) {
-        const counterRef = doc(db, "counters", counterName);
-        const counterSnap = await getDoc(counterRef);
+        const counterRef = doc(db, "counters", counterName); const counterSnap = await getDoc(counterRef);
         let nextNum = 1;
         if (counterSnap.exists()) { nextNum = (counterSnap.data().seq || 0) + 1; await updateDoc(counterRef, { seq: nextNum });
         } else { await setDoc(counterRef, { seq: nextNum }); }
@@ -1624,180 +1515,103 @@
     }
 
     window.loadAllPessoas = async function() {
-        const isForn = (window.currentMode === 'fornecedores');
-        const dbName = isForn ? "fornecedores" : "clientes";
-        const listDiv = document.getElementById('full-client-list-render');
-        listDiv.innerHTML = "<span style='color:#aaa'>Carregando registros...</span>";
+        const isForn = (window.currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
+        const listDiv = document.getElementById('full-client-list-render'); listDiv.innerHTML = "<span style='color:#aaa'>Carregando registros...</span>";
         try {
-            const snap = await getDocs(collection(db, dbName));
-            let allC = [];
+            const snap = await getDocs(collection(db, dbName)); let allC = [];
             snap.forEach(d => allC.push({ ...d.data(), firebase_doc_id: d.id }));
             
             const sort = document.getElementById('client-sort').value;
-            if(sort === 'nome') allC.sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
-            if(sort === 'id') allC.sort((a,b) => (a.id_cliente||"").localeCompare(b.id_cliente||""));
+            if(sort === 'nome') allC.sort((a,b) => String(a.nome||"").localeCompare(String(b.nome||"")));
+            if(sort === 'id') allC.sort((a,b) => String(a.id_cliente||"").localeCompare(String(b.id_cliente||"")));
             if(sort === 'credito' && !isForn) allC.sort((a,b) => parseFloat(b.limite_credito||0) - parseFloat(a.limite_credito||0));
-            if(sort === 'data') allC.sort((a,b) => {
-                const da = window.isoDate(a.data_cadastro);
-                const db = window.isoDate(b.data_cadastro);
-                return db.localeCompare(da); 
-            });
+            if(sort === 'data') allC.sort((a,b) => { const da = window.isoDate(a.data_cadastro); const db = window.isoDate(b.data_cadastro); return db.localeCompare(da); });
 
-            window.allPessoasData = allC;
-            window.resultadosBuscaFirebase = allC; 
-            window.currentPage = 1;
-            window.renderClientPage();
-        } catch(e) { listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar dados.</span>"; }
+            window.allPessoasData = allC; window.resultadosBuscaFirebase = allC; window.currentPage = 1; window.renderClientPage();
+        } catch(e) { console.error(e); listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar dados.</span>"; }
     }
 
     window.buscarPessoaFirebase = async function() {
         const isForn = (window.currentMode === 'fornecedores' || window.currentMode === 'compras' || window.currentMode === 'contas_pagar');
         const dbName = isForn ? "fornecedores" : "clientes";
-        
-        const nomeInput = document.getElementById('in-name').value.trim().toUpperCase();
-        const idInput = document.getElementById('in-id').value.trim().toUpperCase();
+        const nomeInput = document.getElementById('in-name').value.trim().toUpperCase(); const idInput = document.getElementById('in-id').value.trim().toUpperCase();
         const resultsBox = document.getElementById('search-results-box');
-        
-        if (!nomeInput && !idInput) return alert("Preencha o NOME ou ID para buscar!");
+        if (!nomeInput && !idInput) return alert("Preencha NOME ou ID para buscar!");
 
-        resultsBox.innerHTML = "<div style='padding: 10px; color: #aaa; text-align: center;'>Buscando no banco...</div>";
-        resultsBox.style.display = "block";
-        window.resultadosBuscaFirebase = []; 
-        window.pessoaSelecionada = null; 
+        resultsBox.innerHTML = "<div style='padding: 10px; color: #aaa; text-align: center;'>Buscando no banco...</div>"; resultsBox.style.display = "block";
+        window.resultadosBuscaFirebase = []; window.pessoaSelecionada = null; 
 
         try {
-            const querySnapshot = await getDocs(collection(db, dbName));
-            let htmlList = "";
-            
+            const querySnapshot = await getDocs(collection(db, dbName)); let htmlList = "";
             querySnapshot.forEach((documento) => {
-                const dados = documento.data();
-                dados.firebase_doc_id = documento.id; 
-                
-                const dbNome = (dados.nome || "").toUpperCase();
-                const dbId = (dados.id_cliente || "").toUpperCase();
-                
+                const dados = documento.data(); dados.firebase_doc_id = documento.id; 
+                const dbNome = String(dados.nome || "").toUpperCase(); const dbId = String(dados.id_cliente || "").toUpperCase();
                 let matchNome = true; let matchId = true;
                 if (nomeInput && !dbNome.includes(nomeInput)) matchNome = false;
                 if (idInput && !dbId.includes(idInput)) matchId = false;
 
                 if (matchNome && matchId) {
-                    window.resultadosBuscaFirebase.push(dados);
-                    const index = window.resultadosBuscaFirebase.length - 1;
-                    
-                    const tColor = isForn ? "var(--fornecedores)" : "var(--clientes)";
-                    const subLabel = isForn ? (dados.categoria || 'OUTROS') : (dados.nivel || 'FERRO');
+                    window.resultadosBuscaFirebase.push(dados); const index = window.resultadosBuscaFirebase.length - 1;
+                    const tColor = isForn ? "var(--fornecedores)" : "var(--clientes)"; const subLabel = isForn ? (dados.categoria || 'OUTROS') : (dados.nivel || 'FERRO');
 
                     htmlList += `<div onclick="window.selecionarPessoaNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
-                        <strong style="color: var(--primary)">${dados.nome}</strong><br>
-                        <small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small>
-                    </div>`;
+                        <strong style="color: var(--primary)">${dados.nome}</strong><br><small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small></div>`;
                 }
             });
-            
             if (window.resultadosBuscaFirebase.length > 0) {
                 htmlList += `<div onclick="document.getElementById('search-results-box').style.display='none'" style="padding: 8px; text-align: center; color: #ef4444; cursor: pointer; font-size: 0.8rem; background: #121212;">FECHAR ✕</div>`;
                 resultsBox.innerHTML = htmlList;
             } else {
-                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado encontrado.</div>";
-                setTimeout(() => resultsBox.style.display = "none", 3000);
+                resultsBox.innerHTML = "<div style='padding: 10px; color: #ef4444; text-align: center;'>Nenhum resultado.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000);
             }
-        } catch (error) { resultsBox.innerHTML = "<div style='padding:10px; color:red;'>Erro ao buscar.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000); }
+        } catch (error) { console.error(error); resultsBox.innerHTML = "<div style='padding:10px; color:red;'>Erro ao buscar.</div>"; setTimeout(() => resultsBox.style.display = "none", 3000); }
     };
 
     window.selecionarPessoaNaLista = async function(index) {
-        const dados = window.resultadosBuscaFirebase[index];
-        if(!dados) return;
+        const dados = window.resultadosBuscaFirebase[index]; if(!dados) return;
         window.pessoaSelecionada = dados; 
-        
         const isForn = (window.currentMode === 'fornecedores' || window.currentMode === 'compras' || window.currentMode === 'contas_pagar');
         
-        document.getElementById('in-name').value = dados.nome;
-        document.getElementById('in-id').value = dados.id_cliente || '';
-        document.getElementById('in-tele').value = dados.telegrama;
-        document.getElementById('in-disc').value = dados.discord;
-        document.getElementById('in-conta').value = dados.conta || '';
-        
-        document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I");
-        document.getElementById('stat-desde').innerText = dados.data_cadastro || "N/I";
-        document.getElementById('stat-ultima').innerText = dados.ultima_compra || "Nunca";
-        document.getElementById('stat-totalcompras').innerText = parseFloat(dados.total_compras || 0).toFixed(2);
+        document.getElementById('in-name').value = dados.nome; document.getElementById('in-id').value = dados.id_cliente || ''; document.getElementById('in-tele').value = dados.telegrama; document.getElementById('in-disc').value = dados.discord; document.getElementById('in-conta').value = dados.conta || '';
+        document.getElementById('stat-numcli').innerText = "#" + (dados.id_cliente || "N/I"); document.getElementById('stat-desde').innerText = dados.data_cadastro || "N/I"; document.getElementById('stat-ultima').innerText = dados.ultima_compra || "Nunca"; document.getElementById('stat-totalcompras').innerText = parseFloat(dados.total_compras || 0).toFixed(2);
 
-        if (isForn) {
-            if(window.currentMode === 'fornecedores') {
-                document.getElementById('in-categoria').value = dados.categoria || 'Fazendas';
-            }
+        if (isForn) { if(window.currentMode === 'fornecedores') { document.getElementById('in-categoria').value = dados.categoria || 'Fazendas'; }
         } else {
-            if(window.currentMode === 'clientes') {
-                document.getElementById('in-nivel').value = dados.nivel || 'FERRO';
-                document.getElementById('in-bonus').value = dados.bonus || 0;
-            }
-            document.getElementById('stat-nivel').innerText = dados.nivel || "FERRO";
-            document.getElementById('stat-bonus').innerText = parseFloat(dados.bonus || 0).toFixed(2);
-            
-            const limTotal = parseFloat(dados.limite_credito || tierCredits['FERRO']);
-            const credDisp = parseFloat(dados.credito_disponivel !== undefined ? dados.credito_disponivel : limTotal);
-            document.getElementById('stat-limite').innerText = limTotal.toFixed(2);
-            const elDisp = document.getElementById('stat-credito');
-            elDisp.innerText = `$${credDisp.toFixed(2)}`;
+            if(window.currentMode === 'clientes') { document.getElementById('in-nivel').value = dados.nivel || 'FERRO'; document.getElementById('in-bonus').value = dados.bonus || 0; }
+            document.getElementById('stat-nivel').innerText = dados.nivel || "FERRO"; document.getElementById('stat-bonus').innerText = parseFloat(dados.bonus || 0).toFixed(2);
+            const limTotal = parseFloat(dados.limite_credito || tierCredits['FERRO']); const credDisp = parseFloat(dados.credito_disponivel !== undefined ? dados.credito_disponivel : limTotal);
+            document.getElementById('stat-limite').innerText = limTotal.toFixed(2); const elDisp = document.getElementById('stat-credito'); elDisp.innerText = `$${credDisp.toFixed(2)}`;
             if(credDisp < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
         }
         
-        document.getElementById('client-stats').style.display = "block";
-        document.getElementById('search-results-box').style.display = "none";
+        document.getElementById('client-stats').style.display = "block"; document.getElementById('search-results-box').style.display = "none";
         
-        // Puxa as vendas do Firebase para o Gráfico
+        // GRÁFICO DA PESSOA
         const dbNameOp = isForn ? "compras" : "vendas";
         const q = query(collection(db, dbNameOp), where("cliente_doc_id", "==", dados.firebase_doc_id));
         try {
-            const snap = await getDocs(q);
-            window.vendasAtuaisDoCliente = [];
-            let anosEncontrados = new Set();
-            anosEncontrados.add("ALL");
-
+            const snap = await getDocs(q); window.vendasAtuaisDoCliente = []; let anosEncontrados = new Set(); anosEncontrados.add("ALL");
             snap.forEach(doc => { 
-                const d = doc.data();
-                window.vendasAtuaisDoCliente.push(d); 
-                if(d.data) {
-                    const parts = d.data.split('/');
-                    if (parts.length === 3) anosEncontrados.add(parts[2]);
-                }
+                const d = doc.data(); window.vendasAtuaisDoCliente.push(d); 
+                if(d.data) { const parts = d.data.split('/'); if (parts.length === 3) anosEncontrados.add(parts[2]); }
             });
-
-            // Atualiza select de anos
-            const selAnos = document.getElementById('chart-year');
-            selAnos.innerHTML = "";
-            [...anosEncontrados].sort((a,b)=>b-a).forEach(ano => {
-                const text = ano === "ALL" ? "Todos os Anos" : ano;
-                selAnos.innerHTML += `<option value="${ano}">${text}</option>`;
-            });
-
-            document.getElementById('chart-container').style.display = 'block';
-            window.renderClientChart();
-
+            const selAnos = document.getElementById('chart-year'); selAnos.innerHTML = "";
+            [...anosEncontrados].sort((a,b)=>b-a).forEach(ano => { const text = ano === "ALL" ? "Todos os Anos" : ano; selAnos.innerHTML += `<option value="${ano}">${text}</option>`; });
+            document.getElementById('chart-container').style.display = 'block'; window.renderClientChart();
         } catch (e) { console.error("Erro ao puxar dados pro gráfico", e); }
 
-
-        if (window.currentMode === 'crediario' || window.currentMode === 'contas_pagar') {
-            document.getElementById('crediario-filter-select').value = "CLIENT_ONLY";
-            document.getElementById('crediario-filter-select').dispatchEvent(new Event('change'));
-        } else {
-            window.switchSystem(window.currentMode); 
-        }
-    }
+        if (window.currentMode === 'crediario' || window.currentMode === 'contas_pagar') { document.getElementById('crediario-filter-select').value = "CLIENT_ONLY"; document.getElementById('crediario-filter-select').dispatchEvent(new Event('change'));
+        } else { window.switchSystem(window.currentMode); }
+    };
 
     // =====================================
-    // 2. ABA CLIENTES (CRUD)
+    // 2. ABA CLIENTES / FORNECEDORES (CRUD)
     // =====================================
     window.salvarPessoaFirebase = async function() {
         if(!window.hasPerm('cli_add')) return alert("Sem permissão para Cadastrar.");
-        const isForn = (window.currentMode === 'fornecedores');
-        const dbName = isForn ? "fornecedores" : "clientes";
-
-        const nome = document.getElementById('in-name').value.trim();
-        const id_cliente = document.getElementById('in-id').value.trim(); 
-        const telegrama = document.getElementById('in-tele').value.trim();
-        const discord = document.getElementById('in-disc').value.trim();
-        const conta = document.getElementById('in-conta').value.trim();
+        const isForn = (window.currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
+        const nome = String(document.getElementById('in-name').value).trim(); const id_cliente = String(document.getElementById('in-id').value).trim(); 
+        const telegrama = String(document.getElementById('in-tele').value).trim(); const discord = String(document.getElementById('in-disc').value).trim(); const conta = String(document.getElementById('in-conta').value).trim();
         
         if(!nome || !id_cliente) return alert("Preencha Nome e ID para cadastrar!");
 
@@ -1806,81 +1620,42 @@
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) return alert(`ERRO: ID "${id_cliente.toUpperCase()}" já em uso!`);
             
-            let objSalvar = {
-                nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(),
-                telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(),
-                conta: conta.toUpperCase(),
-                total_compras: 0, ultima_compra: "Nunca",
-                data_cadastro: window.formatDate(new Date())
-            };
+            let objSalvar = { nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(), telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(), conta: conta.toUpperCase(), total_compras: 0, ultima_compra: "Nunca", data_cadastro: window.formatDate(new Date()) };
+            if (isForn) { objSalvar.categoria = document.getElementById('in-categoria').value;
+            } else { const n = 'FERRO'; const b = 0; const lim = tierCredits[n] + b; objSalvar.nivel = n; objSalvar.bonus = b; objSalvar.limite_credito = lim; objSalvar.credito_disponivel = lim; }
 
-            if (isForn) {
-                objSalvar.categoria = document.getElementById('in-categoria').value;
-            } else {
-                const n = 'FERRO'; const b = 0; const lim = tierCredits[n] + b;
-                objSalvar.nivel = n; objSalvar.bonus = b; objSalvar.limite_credito = lim; objSalvar.credito_disponivel = lim;
-            }
-
-            await addDoc(collection(db, dbName), objSalvar);
-            alert(`Sucesso! Cadastro realizado com ID #${id_cliente.toUpperCase()}`);
-            window.clearCart();
-        } catch (error) { alert("Erro ao salvar!"); }
+            await addDoc(collection(db, dbName), objSalvar); alert(`Sucesso! Cadastro realizado com ID #${id_cliente.toUpperCase()}`); window.clearCart();
+        } catch (error) { console.error(error); alert("Erro ao salvar!"); }
     };
 
     window.atualizarPessoaFirebase = async function() {
         if(!window.hasPerm('cli_edit')) return alert("Sem permissão para Editar.");
         if (!window.pessoaSelecionada) return alert("Nenhum cadastro selecionado.");
-        
-        const isForn = (window.currentMode === 'fornecedores');
-        const dbName = isForn ? "fornecedores" : "clientes";
-
-        const nome = document.getElementById('in-name').value.trim();
-        const id_cliente = document.getElementById('in-id').value.trim(); 
-        const conta = document.getElementById('in-conta').value.trim();
-        
+        const isForn = (window.currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
+        const nome = String(document.getElementById('in-name').value).trim(); const id_cliente = String(document.getElementById('in-id').value).trim(); const conta = String(document.getElementById('in-conta').value).trim();
         if(!nome || !id_cliente) return alert("Nome e ID não podem ficar em branco!");
 
         try {
-            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase()));
-            const querySnapshot = await getDocs(q);
-            let conflito = false;
-            querySnapshot.forEach((doc) => { if (doc.id !== window.pessoaSelecionada.firebase_doc_id) conflito = true; });
+            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase())); const querySnapshot = await getDocs(q);
+            let conflito = false; querySnapshot.forEach((doc) => { if (doc.id !== window.pessoaSelecionada.firebase_doc_id) conflito = true; });
             if (conflito) return alert(`ERRO: O ID "${id_cliente.toUpperCase()}" já pertence a outro.`);
 
-            let objAtualizar = {
-                nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(),
-                telegrama: document.getElementById('in-tele').value.trim().toUpperCase(),
-                discord: document.getElementById('in-disc').value.trim().toUpperCase(),
-                conta: conta.toUpperCase()
-            };
-
-            if (isForn) {
-                objAtualizar.categoria = document.getElementById('in-categoria').value;
+            let objAtualizar = { nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(), telegrama: String(document.getElementById('in-tele').value).trim().toUpperCase(), discord: String(document.getElementById('in-disc').value).trim().toUpperCase(), conta: conta.toUpperCase() };
+            if (isForn) { objAtualizar.categoria = document.getElementById('in-categoria').value;
             } else {
-                const nivel = document.getElementById('in-nivel').value;
-                const bonus = parseFloat(document.getElementById('in-bonus').value) || 0;
-                const limiteAntigo = parseFloat(window.pessoaSelecionada.limite_credito || tierCredits['FERRO']);
-                const novoLimiteTotal = tierCredits[nivel] + bonus;
-                const diffLimite = novoLimiteTotal - limiteAntigo;
-                const novoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0) + diffLimite;
-
-                objAtualizar.nivel = nivel; objAtualizar.bonus = bonus;
-                objAtualizar.limite_credito = novoLimiteTotal; objAtualizar.credito_disponivel = novoDisponivel;
+                const nivel = document.getElementById('in-nivel').value; const bonus = parseFloat(document.getElementById('in-bonus').value) || 0; const limiteAntigo = parseFloat(window.pessoaSelecionada.limite_credito || tierCredits['FERRO']); const novoLimiteTotal = tierCredits[nivel] + bonus; const diffLimite = novoLimiteTotal - limiteAntigo; const novoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0) + diffLimite;
+                objAtualizar.nivel = nivel; objAtualizar.bonus = bonus; objAtualizar.limite_credito = novoLimiteTotal; objAtualizar.credito_disponivel = novoDisponivel;
             }
-
-            await updateDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id), objAtualizar);
-            alert("Ficha ATUALIZADA com sucesso!"); window.clearCart();
-        } catch (error) { alert("Ocorreu um erro ao atualizar."); }
+            await updateDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id), objAtualizar); alert("Ficha ATUALIZADA com sucesso!"); window.clearCart();
+        } catch (error) { console.error(error); alert("Ocorreu um erro ao atualizar."); }
     };
 
     window.deletarPessoaFirebase = async function() {
         if(!window.hasPerm('cli_del')) return alert("Sem permissão para Excluir.");
         if (!window.pessoaSelecionada) return;
         const dbName = (window.currentMode === 'fornecedores') ? "fornecedores" : "clientes";
-
         if (confirm(`⚠️ ATENÇÃO!\n\nDeseja APAGAR PERMANENTEMENTE o cadastro de "${window.pessoaSelecionada.nome}"?`)) {
-            try { await deleteDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id)); alert("Cadastro excluído!"); window.clearCart(); } 
-            catch (error) { alert("Ocorreu um erro ao tentar excluir."); }
+            try { await deleteDoc(doc(db, dbName, window.pessoaSelecionada.firebase_doc_id)); alert("Cadastro excluído!"); window.clearCart(); } catch (error) { console.error(error); alert("Ocorreu um erro ao tentar excluir."); }
         }
     };
 
@@ -1899,10 +1674,7 @@
         
         let cartItemsForCurrentMode = window.carts[window.currentMode];
 
-        if (totalVenda <= 0 || !cartItemsForCurrentMode || Object.keys(cartItemsForCurrentMode).length === 0) {
-            return alert("O carrinho está vazio!");
-        }
-
+        if (totalVenda <= 0 || !cartItemsForCurrentMode || Object.keys(cartItemsForCurrentMode).length === 0) { return alert("O carrinho está vazio!"); }
         if (!window.pessoaSelecionada) return alert(`Para registrar, BUSQUE e SELECIONE o ${strPessoa} na Lupa 🔍 primeiro!`);
 
         const paySelect = document.getElementById('pay-method');
@@ -1910,10 +1682,7 @@
         const formaPagamento = paySelect.options[paySelect.selectedIndex].text;
         
         let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
-        if (entryVal > totalVenda) {
-            alert("O valor da entrada não pode ser maior do que o total da operação!");
-            return;
-        }
+        if (entryVal > totalVenda) { alert("O valor da entrada não pode ser maior do que o total da operação!"); return; }
         
         const valorFinanciado = totalVenda - entryVal;
         let creditoDisponivel = 0;
@@ -1927,11 +1696,7 @@
         }
 
         const itensComprados = Object.values(cartItemsForCurrentMode).map(item => ({
-            nome_produto: item.name, 
-            quantidade: item.quantity, 
-            valor_unitario: item.price, 
-            subtotal: (item.quantity * item.price).toFixed(2),
-            category: item.category || "Estoque" 
+            nome_produto: item.name, quantidade: item.quantity, valor_unitario: item.price, subtotal: (item.quantity * item.price).toFixed(2), category: item.category || "Estoque" 
         }));
 
         try {
@@ -1944,9 +1709,7 @@
 
             let parcelasArray = [];
             
-            if (entryVal > 0) {
-                parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' });
-            }
+            if (entryVal > 0) { parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' }); }
 
             if (numParcelas > 1 && valorFinanciado > 0) {
                 const valorDaParcela = valorFinanciado / numParcelas;
@@ -1963,15 +1726,10 @@
             }
 
             await addDoc(collection(db, dbNameOp), {
-                numero_pedido: numPedido,
-                vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
-                cliente_doc_id: window.pessoaSelecionada.firebase_doc_id,
-                cliente_nome: window.pessoaSelecionada.nome,
-                conta: window.pessoaSelecionada.conta || 'N/I',
+                numero_pedido: numPedido, vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
+                cliente_doc_id: window.pessoaSelecionada.firebase_doc_id, cliente_nome: window.pessoaSelecionada.nome, conta: window.pessoaSelecionada.conta || 'N/I',
                 pedido: { itens: itensComprados, total: totalVenda, pagamento: formaPagamento, entrada: entryVal, financiado: valorFinanciado },
-                parcelas: parcelasArray,
-                data: dataHoje,
-                hora: new Date().toLocaleTimeString('pt-BR')
+                parcelas: parcelasArray, data: dataHoje, hora: new Date().toLocaleTimeString('pt-BR')
             });
             
             const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
@@ -1988,7 +1746,7 @@
             alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nLembre-se de ir na aba Crediário/Contas para confirmar o pagamento.`);
             if(typeof window.generateImage === 'function') await window.generateImage();
             window.clearCart();
-        } catch (error) { console.log(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
+        } catch (error) { console.error(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
     };
 
     // =====================================
@@ -1999,8 +1757,7 @@
         const parts = dataStr.split('/');
         if(parts.length !== 3) return false;
         const vencimento = new Date(parts[2], parts[1] - 1, parts[0]);
-        const hoje = new Date();
-        hoje.setHours(0,0,0,0);
+        const hoje = new Date(); hoje.setHours(0,0,0,0);
         return vencimento < hoje;
     }
 
@@ -2014,30 +1771,23 @@
         const placar = document.getElementById('crediario-placar');
         
         listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Buscando no servidor...</div>";
-        listContainer.style.display = "flex";
-        placar.style.display = "none";
+        listContainer.style.display = "flex"; placar.style.display = "none";
 
         if(filtro === 'CLIENT_ONLY') {
-            document.getElementById('info-contato').style.display = "flex";
-            document.getElementById('sub-filter-crediario').style.display = "block";
+            document.getElementById('info-contato').style.display = "flex"; document.getElementById('sub-filter-crediario').style.display = "block";
             if(!window.pessoaSelecionada) {
                 listContainer.innerHTML = `<div style='color: #aaa; text-align:center;'>Busque um ${isContas?'Fornecedor':'Cliente'} na lupa acima.</div>`;
-                document.getElementById('btn-img-only').style.display = "none";
-                return;
+                document.getElementById('btn-img-only').style.display = "none"; return;
             }
             document.getElementById('btn-img-only').style.display = "block";
         } else {
-            document.getElementById('info-contato').style.display = "none";
-            document.getElementById('sub-filter-crediario').style.display = "none";
-            document.getElementById('btn-img-only').style.display = "none";
+            document.getElementById('info-contato').style.display = "none"; document.getElementById('sub-filter-crediario').style.display = "none"; document.getElementById('btn-img-only').style.display = "none";
         }
 
         try {
             if (filtro === 'NEGATIVE_CREDIT' && !isContas) {
-                const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0));
-                const snap = await getDocs(q);
-                let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>";
-                let count = 0;
+                const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0)); const snap = await getDocs(q);
+                let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>"; let count = 0;
                 snap.forEach(doc => {
                     const c = doc.data();
                     html += `<div class="fatura-card" style="border-color: #ef4444;">
@@ -2046,11 +1796,9 @@
                     </div>`; count++;
                 });
                 if(count === 0) html = "<div style='color: var(--buy); text-align:center;'>Todos os clientes estão com saldo positivo! 🎉</div>";
-                listContainer.innerHTML = html;
-                return;
+                listContainer.innerHTML = html; return;
             } else if (filtro === 'NEGATIVE_CREDIT' && isContas) {
-                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>";
-                return;
+                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>"; return;
             }
 
             let q = collection(db, dbName);
@@ -2061,11 +1809,7 @@
             }
             
             const snap = await getDocs(q);
-            let htmlList = "";
-            let temFatura = false;
-            let totalReceber = 0;
-            let totalAtraso = 0;
-            
+            let htmlList = ""; let temFatura = false; let totalReceber = 0; let totalAtraso = 0;
             let vendasData = [];
             snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
             
@@ -2073,25 +1817,17 @@
 
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS ANTIGAS
+                    // SAFEGUARD
                     if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
                         if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; 
-                        venda.parcelas = [{
-                            numero: "?", 
-                            valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, 
-                            vencimento: venda.data || "N/I", 
-                            status: "pendente" 
-                        }];
+                        venda.parcelas = [{ numero: "?", valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, vencimento: venda.data || "N/I", status: "pendente" }];
                     }
                         
                     if (filtro === 'CLIENT_ONLY') {
                         venda.parcelas.forEach(p => {
                             if (p && p.status !== 'pago') {
                                 const val = parseFloat(p.valor || 0);
-                                if (!isNaN(val)) {
-                                    totalReceber += val;
-                                    if (isAtrasada(p.vencimento)) totalAtraso += val;
-                                }
+                                if (!isNaN(val)) { totalReceber += val; if (isAtrasada(p.vencimento)) totalAtraso += val; }
                             }
                         });
                         let temPendente = false;
@@ -2103,8 +1839,7 @@
                     venda.parcelas.forEach((p, index) => {
                         if(!p) return;
                         const isLate = isAtrasada(p.vencimento);
-                        if (filtro === 'CLIENT_ONLY') {
-                            parcelasFiltradas.push({p, index, isLate});
+                        if (filtro === 'CLIENT_ONLY') { parcelasFiltradas.push({p, index, isLate});
                         } else if (p.status !== 'pago') {
                             if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
                             if (filtro === 'ALL_LATE' && isLate) parcelasFiltradas.push({p, index, isLate});
@@ -2113,16 +1848,12 @@
 
                     if(parcelasFiltradas.length > 0) {
                         temFatura = true;
-                        
                         let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                         let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i style='color:#ef4444'>Itens não registrados (Fatura Antiga)</i>";
                         
                         let faturaBtns = `<div class="fatura-actions" style="margin-top:10px; display:flex; gap:10px;">`;
-                        if (window.hasPerm('fat_del')) {
-                            faturaBtns += `<button class="btn-del-fat" onclick="window.apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`;
-                        }
-                        faturaBtns += `<button class="btn-print-fat" onclick="window.imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button>`;
-                        faturaBtns += `</div>`;
+                        if (window.hasPerm('fat_del')) { faturaBtns += `<button class="btn-del-fat" onclick="window.apagarFaturaGlobal('${venda.docId}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🗑️ APAGAR</button>`; }
+                        faturaBtns += `<button class="btn-print-fat" onclick="window.imprimirFaturaUnica('${venda.docId}')" style="background:var(--secondary); color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem; flex:1;">🖨️ SALVAR FATURA</button></div>`;
 
                         const corHeader = isContas ? "var(--contas)" : "var(--primary)";
 
@@ -2135,30 +1866,23 @@
                                     <b>FATURA:</b> ${venda.numero_pedido || 'N/I'}
                                 </div>
                             </div>
-
                             <div class="fatura-header">
                                 <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido || 'N/I'} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome || 'N/I'}</span>` : ''}</span>
                                 <span class="fatura-date">${venda.data || ''}</span>
                             </div>
-                            
                             <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="window.toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
                             <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
                                 <b>Itens:</b><br>${itensHtml}
-                            </div>
-                            `;
+                            </div>`;
                         
                         parcelasFiltradas.forEach(obj => {
-                            const p = obj.p; const idx = obj.index;
-                            const isPago = p.status === 'pago';
+                            const p = obj.p; const idx = obj.index; const isPago = p.status === 'pago';
                             let corCss = isPago ? 'border-left: 3px solid var(--buy); opacity: 0.6;' : `border-left: 3px solid ${corHeader};`;
                             if (!isPago && obj.isLate) corCss = 'background: rgba(239, 68, 68, 0.2); border-left: 3px solid #ef4444;';
                             
                             let badge = "";
-                            if (isPago) {
-                                badge = `<span style="color:var(--buy); font-weight:bold;">PAGA ${p.data_pagamento ? `em ${p.data_pagamento}` : ''}</span>`;
-                            } else if (window.hasPerm('fat_pay')) {
-                                badge = `<button class="btn-pay" onclick="window.receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`;
-                            }
+                            if (isPago) { badge = `<span style="color:var(--buy); font-weight:bold;">PAGA ${p.data_pagamento ? `em ${p.data_pagamento}` : ''}</span>`;
+                            } else if (window.hasPerm('fat_pay')) { badge = `<button class="btn-pay" onclick="window.receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`; }
                             
                             const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
                             
@@ -2169,9 +1893,7 @@
                         });
                         htmlList += `${faturaBtns}</div>`;
                     }
-                } catch(errFatura) {
-                    console.warn("Fatura ignorada por erro de formato antigo:", errFatura);
-                }
+                } catch(errFatura) { console.warn("Fatura ignorada:", errFatura); }
             });
 
             if(temFatura) {
@@ -2192,39 +1914,31 @@
         
         const hoje = window.formatDate(new Date());
         const dataDigitada = prompt(`Deseja confirmar a baixa desta parcela de $${parseFloat(valorParcela).toFixed(2)}?\n\nInforme a data exata da operação (DD/MM/AAAA):`, hoje);
-        
         if (!dataDigitada) return; 
 
         try {
-            const vendaRef = doc(db, dbName, vendaDocId);
-            const vendaSnap = await getDoc(vendaRef);
+            const vendaRef = doc(db, dbName, vendaDocId); const vendaSnap = await getDoc(vendaRef);
             if(!vendaSnap.exists()) return alert("Erro: Fatura não encontrada!");
             
             let dadosVenda = vendaSnap.data();
             dadosVenda.parcelas[parcelaIndex].status = 'pago'; 
             dadosVenda.parcelas[parcelaIndex].data_pagamento = dataDigitada; 
-            
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
             if(!isContas) {
-                const clienteRef = doc(db, "clientes", clienteDocId);
-                const clienteSnap = await getDoc(clienteRef);
+                const clienteRef = doc(db, "clientes", clienteDocId); const clienteSnap = await getDoc(clienteRef);
                 if(clienteSnap.exists()) {
-                    const dadosCli = clienteSnap.data();
-                    const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
+                    const dadosCli = clienteSnap.data(); const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
                     await updateDoc(clienteRef, { credito_disponivel: credAtual + parseFloat(valorParcela) });
-                    
                     if(window.pessoaSelecionada && window.pessoaSelecionada.firebase_doc_id === clienteDocId) {
                         window.pessoaSelecionada.credito_disponivel = credAtual + parseFloat(valorParcela);
-                        const elDisp = document.getElementById('stat-credito');
-                        elDisp.innerText = `$${window.pessoaSelecionada.credito_disponivel.toFixed(2)}`;
+                        const elDisp = document.getElementById('stat-credito'); elDisp.innerText = `$${window.pessoaSelecionada.credito_disponivel.toFixed(2)}`;
                         if(window.pessoaSelecionada.credito_disponivel < 0) elDisp.classList.add('negative'); else elDisp.classList.remove('negative');
                     }
                 }
             }
-            alert("Baixa Efetuada com Data: " + dataDigitada);
-            window.aplicarFiltroCrediario(); 
-        } catch (error) { alert("Falha ao registrar pagamento."); }
+            alert("Baixa Efetuada com Data: " + dataDigitada); window.aplicarFiltroCrediario(); 
+        } catch (error) { console.error(error); alert("Falha ao registrar pagamento."); }
     };
 
     window.apagarFaturaGlobal = async function(vendaDocId) {
@@ -2232,94 +1946,56 @@
         const isContas = (window.currentMode === 'contas_pagar');
         const dbName = isContas ? "compras" : "vendas";
         if(!confirm("⚠️ EXTREMO CUIDADO!\n\nDeseja APAGAR ESTA FATURA permanentemente?")) return;
-        try {
-            await deleteDoc(doc(db, dbName, vendaDocId));
-            alert("Fatura Apagada com sucesso!");
-            window.aplicarFiltroCrediario();
-        } catch (error) { alert("Falha ao apagar fatura."); }
+        try { await deleteDoc(doc(db, dbName, vendaDocId)); alert("Fatura Apagada com sucesso!"); window.aplicarFiltroCrediario(); } catch (error) { console.error(error); alert("Falha ao apagar fatura."); }
     };
 
     window.imprimirFaturaUnica = async function(docId) {
-        const card = document.getElementById(`fatura-card-${docId}`);
-        if (!card) return;
-
-        const oldBg = card.style.background;
-        const oldBorder = card.style.border;
+        const card = document.getElementById(`fatura-card-${docId}`); if (!card) return;
+        const oldBg = card.style.background; const oldBorder = card.style.border;
+        card.style.background = "#1e1e1e"; card.style.border = "none";
+        document.getElementById(`print-header-${docId}`).style.display = 'flex'; document.getElementById(`itens-${docId}`).style.display = 'block'; 
         
-        card.style.background = "#1e1e1e";
-        card.style.border = "none";
-        document.getElementById(`print-header-${docId}`).style.display = 'flex';
-        document.getElementById(`itens-${docId}`).style.display = 'block'; 
-        
-        const actions = card.querySelector('.fatura-actions');
-        if(actions) actions.style.display = 'none';
-        const toggleBtn = card.querySelector('.toggle-itens-btn');
-        if(toggleBtn) toggleBtn.style.display = 'none';
+        const actions = card.querySelector('.fatura-actions'); if(actions) actions.style.display = 'none';
+        const toggleBtn = card.querySelector('.toggle-itens-btn'); if(toggleBtn) toggleBtn.style.display = 'none';
         card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
 
         try {
             const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
-            const link = document.createElement('a');
-            link.download = `FATURA_${docId}_${Date.now()}.png`;
-            link.href = canvas.toDataURL(); 
-            link.click();
+            const link = document.createElement('a'); link.download = `FATURA_${docId}_${Date.now()}.png`; link.href = canvas.toDataURL(); link.click();
         } catch(e) { console.error(e); alert("Erro ao gerar a imagem da fatura."); }
 
-        card.style.background = oldBg;
-        card.style.border = oldBorder;
-        document.getElementById(`print-header-${docId}`).style.display = 'none';
-        document.getElementById(`itens-${docId}`).style.display = 'none';
-        if(actions) actions.style.display = 'flex';
-        if(toggleBtn) toggleBtn.style.display = 'block';
+        card.style.background = oldBg; card.style.border = oldBorder;
+        document.getElementById(`print-header-${docId}`).style.display = 'none'; document.getElementById(`itens-${docId}`).style.display = 'none';
+        if(actions) actions.style.display = 'flex'; if(toggleBtn) toggleBtn.style.display = 'block';
         card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
     };
 
     // =====================================
-    // ABA BALANÇO FINANCEIRO (DRE)
+    // ABA BALANÇO FINANCEIRO (DRE) E CAIXA
     // =====================================
     window.salvarSaldoBanco = async function() {
         const val = parseFloat(document.getElementById('in-saldo-banco').value) || 0;
-        try {
-            await setDoc(doc(db, "config", "financas"), { saldo_banco: val });
-            alert("Saldo Físico no Banco atualizado!");
-            window.carregarBalanco();
-        } catch(e) { alert("Erro ao salvar saldo no banco."); }
+        try { await setDoc(doc(db, "config", "financas"), { saldo_banco: val }); alert("Saldo Físico no Banco atualizado!"); window.carregarBalanco(); } catch(e) { console.error(e); alert("Erro ao salvar saldo no banco."); }
     }
 
     window.carregarBalanco = async function() {
-        const tbody = document.getElementById('balanco-table-body');
-        const tExtrato = document.getElementById('extrato-table-body');
-        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Calculando...</td></tr>";
-        tExtrato.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Buscando lançamentos...</td></tr>";
+        const tbody = document.getElementById('balanco-table-body'); const tExtrato = document.getElementById('extrato-table-body');
+        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Calculando...</td></tr>"; tExtrato.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Buscando lançamentos...</td></tr>";
 
         try {
             let saldoBancoFisico = 0;
             const docConfig = await getDoc(doc(db, "config", "financas"));
-            if(docConfig.exists()) {
-                saldoBancoFisico = docConfig.data().saldo_banco || 0;
-                document.getElementById('in-saldo-banco').value = saldoBancoFisico;
-            }
+            if(docConfig.exists()) { saldoBancoFisico = docConfig.data().saldo_banco || 0; document.getElementById('in-saldo-banco').value = saldoBancoFisico; }
 
-            const snapVendas = await getDocs(collection(db, "vendas"));
-            const snapCompras = await getDocs(collection(db, "compras"));
-            
-            let aggregated = {};
-            let totalEntradasGlobal = 0;
-            let totalSaidasGlobal = 0;
-            let extratoGeral = []; 
-            
-            window.todasVendasGerais = []; 
-            let despesasPorCategoria = {}; 
+            const snapVendas = await getDocs(collection(db, "vendas")); const snapCompras = await getDocs(collection(db, "compras"));
+            let aggregated = {}; let totalEntradasGlobal = 0; let totalSaidasGlobal = 0; let extratoGeral = []; 
+            window.todasVendasGerais = []; let despesasPorCategoria = {}; 
 
             const processDocs = (snap, tipo) => {
                 snap.forEach(doc => {
-                    const v = doc.data();
-                    if (!v.data) return;
-                    
+                    const v = doc.data(); if (!v.data) return;
                     if(tipo === 'entrada') window.todasVendasGerais.push(v);
-
-                    let hasEntradaParcela = false;
-                    let hasAVistaParcela = false;
+                    let hasEntradaParcela = false; let hasAVistaParcela = false;
                     
                     if(Array.isArray(v.parcelas) && v.parcelas.length > 0) {
                         v.parcelas.forEach(p => {
@@ -2328,58 +2004,36 @@
                                 if (String(p.numero).includes('Vista') || p.numero === 1) hasAVistaParcela = true;
 
                                 if (p.status === 'pago') {
-                                    const dataUso = p.data_pagamento || p.vencimento;
-                                    const pParts = dataUso.split('/');
+                                    const dataUso = p.data_pagamento || p.vencimento; const pParts = dataUso.split('/');
                                     if(pParts.length === 3) {
                                         const parPeriod = `${pParts[1]}/${pParts[2]}`;
                                         if(!aggregated[parPeriod]) aggregated[parPeriod] = { entradas: 0, saidas: 0 };
                                         const valorPago = parseFloat(p.valor || 0);
-                                        
-                                        if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; }
-                                        else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
-
-                                        extratoGeral.push({
-                                            dataStr: dataUso, isoDate: window.isoDate(dataUso),
-                                            tipo: tipo, nome: v.cliente_nome || 'N/I',
-                                            conta: v.conta || 'Caixa Geral', valor: valorPago, ref: v.numero_pedido
-                                        });
+                                        if(tipo === 'entrada') { aggregated[parPeriod].entradas += valorPago; totalEntradasGlobal += valorPago; } else { aggregated[parPeriod].saidas += valorPago; totalSaidasGlobal += valorPago; }
+                                        extratoGeral.push({ dataStr: dataUso, isoDate: window.isoDate(dataUso), tipo: tipo, nome: v.cliente_nome || 'N/I', conta: v.conta || 'Caixa Geral', valor: valorPago, ref: v.numero_pedido });
                                     }
                                 }
                             }
                         });
                     }
 
-                    // Retro-compatibilidade Faturas Antigas
                     const dataParts = v.data.split('/'); 
                     if(dataParts.length === 3) {
                         const period = `${dataParts[1]}/${dataParts[2]}`;
                         if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
-                        
                         let valorAntigoPerdido = 0;
-                        if(v.pedido && v.pedido.pagamento === 'À VISTA' && !hasAVistaParcela && (!v.parcelas || v.parcelas.length === 0)) {
-                            valorAntigoPerdido = parseFloat(v.pedido.total || 0);
-                        } else if (v.pedido && parseFloat(v.pedido.entrada || 0) > 0 && !hasEntradaParcela) {
-                            valorAntigoPerdido = parseFloat(v.pedido.entrada);
-                        }
+                        if(v.pedido && v.pedido.pagamento === 'À VISTA' && !hasAVistaParcela && (!v.parcelas || v.parcelas.length === 0)) { valorAntigoPerdido = parseFloat(v.pedido.total || 0);
+                        } else if (v.pedido && parseFloat(v.pedido.entrada || 0) > 0 && !hasEntradaParcela) { valorAntigoPerdido = parseFloat(v.pedido.entrada); }
 
                         if (valorAntigoPerdido > 0) {
-                            if(tipo === 'entrada') { aggregated[period].entradas += valorAntigoPerdido; totalEntradasGlobal += valorAntigoPerdido; }
-                            else { aggregated[period].saidas += valorAntigoPerdido; totalSaidasGlobal += valorAntigoPerdido; }
-                            
-                            extratoGeral.push({
-                                dataStr: v.data, isoDate: window.isoDate(v.data),
-                                tipo: tipo, nome: v.cliente_nome || 'N/I',
-                                conta: v.conta || 'Caixa Geral', valor: valorAntigoPerdido, ref: v.numero_pedido + " (Old)"
-                            });
+                            if(tipo === 'entrada') { aggregated[period].entradas += valorAntigoPerdido; totalEntradasGlobal += valorAntigoPerdido; } else { aggregated[period].saidas += valorAntigoPerdido; totalSaidasGlobal += valorAntigoPerdido; }
+                            extratoGeral.push({ dataStr: v.data, isoDate: window.isoDate(v.data), tipo: tipo, nome: v.cliente_nome || 'N/I', conta: v.conta || 'Caixa Geral', valor: valorAntigoPerdido, ref: v.numero_pedido + " (Old)" });
                         }
                     }
 
-                    // Categorias para Pizza (Despesas)
                     if (tipo === 'saida' && v.pedido && v.pedido.itens) {
                         v.pedido.itens.forEach(it => {
-                            let cat = it.category || "Estoque Geral";
-                            if(v.is_comissao) cat = "Salários/Comissões";
-                            
+                            let cat = it.category || "Estoque Geral"; if(v.is_comissao) cat = "Salários/Comissões";
                             if(!despesasPorCategoria[cat]) despesasPorCategoria[cat] = 0;
                             despesasPorCategoria[cat] += parseFloat(it.subtotal || 0);
                         });
@@ -2387,101 +2041,47 @@
                 });
             };
 
-            processDocs(snapVendas, 'entrada');
-            processDocs(snapCompras, 'saida');
+            processDocs(snapVendas, 'entrada'); processDocs(snapCompras, 'saida');
 
-            // Renderiza DRE
             const sortedPeriods = Object.keys(aggregated).sort((a, b) => {
                 const [mA, yA] = a.split('/'); const [mB, yB] = b.split('/');
-                if (yA !== yB) return parseInt(yB) - parseInt(yA);
-                return parseInt(mB) - parseInt(mA);
+                if (yA !== yB) return parseInt(yB) - parseInt(yA); return parseInt(mB) - parseInt(mA);
             });
 
-            let html = "";
-            let lineLabels = [];
-            let lineEntradas = [];
-            let lineSaidas = [];
-
+            let html = ""; let lineLabels = []; let lineEntradas = []; let lineSaidas = [];
             const chronologicalPeriods = [...sortedPeriods].reverse();
-            chronologicalPeriods.forEach(period => {
-                lineLabels.push(period);
-                lineEntradas.push(aggregated[period].entradas);
-                lineSaidas.push(aggregated[period].saidas);
-            });
+            chronologicalPeriods.forEach(period => { lineLabels.push(period); lineEntradas.push(aggregated[period].entradas); lineSaidas.push(aggregated[period].saidas); });
 
             sortedPeriods.forEach(period => {
-                const data = aggregated[period];
-                const lucro = data.entradas - data.saidas;
-                const corLucro = lucro < 0 ? '#ef4444' : 'var(--balanco)';
-                
-                html += `<tr>
-                    <td style="color:white; font-weight:bold;">${period}</td>
-                    <td style="color:var(--primary);">$${data.entradas.toFixed(2)}</td>
-                    <td style="color:var(--contas);">$${data.saidas.toFixed(2)}</td>
-                    <td style="color:${corLucro}; font-weight:bold;">$${lucro.toFixed(2)}</td>
-                </tr>`;
+                const data = aggregated[period]; const lucro = data.entradas - data.saidas; const corLucro = lucro < 0 ? '#ef4444' : 'var(--balanco)';
+                html += `<tr><td style="color:white; font-weight:bold;">${period}</td><td style="color:var(--primary);">$${data.entradas.toFixed(2)}</td><td style="color:var(--contas);">$${data.saidas.toFixed(2)}</td><td style="color:${corLucro}; font-weight:bold;">$${lucro.toFixed(2)}</td></tr>`;
             });
             tbody.innerHTML = html || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhuma movimentação registrada.</td></tr>";
 
-            // Renderiza Extrato
             extratoGeral.sort((a, b) => b.isoDate.localeCompare(a.isoDate)); 
             let extratoHtml = "";
             extratoGeral.forEach(ex => {
-                const cor = ex.tipo === 'entrada' ? 'var(--primary)' : 'var(--contas)';
-                const sinal = ex.tipo === 'entrada' ? '+' : '-';
-                extratoHtml += `<tr>
-                    <td style="color:#aaa;">${ex.dataStr}</td>
-                    <td style="color:white;">${ex.nome} <br><small style="color:#666">${ex.ref}</small></td>
-                    <td style="color:var(--clientes);">${ex.conta}</td>
-                    <td style="color:${cor}; font-weight:bold; text-align:right;">${sinal} $${ex.valor.toFixed(2)}</td>
-                </tr>`;
+                const cor = ex.tipo === 'entrada' ? 'var(--primary)' : 'var(--contas)'; const sinal = ex.tipo === 'entrada' ? '+' : '-';
+                extratoHtml += `<tr><td style="color:#aaa;">${ex.dataStr}</td><td style="color:white;">${ex.nome} <br><small style="color:#666">${ex.ref}</small></td><td style="color:var(--clientes);">${ex.conta}</td><td style="color:${cor}; font-weight:bold; text-align:right;">${sinal} $${ex.valor.toFixed(2)}</td></tr>`;
             });
             tExtrato.innerHTML = extratoHtml || "<tr><td colspan='4' style='text-align:center; color:#aaa;'>Nenhum extrato.</td></tr>";
 
-            // Dashboard
-            const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal;
-            const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)';
-            const poderDeCompra = saldoBancoFisico + saldoAtualLiquido;
+            const saldoAtualLiquido = totalEntradasGlobal - totalSaidasGlobal; const corSaldo = saldoAtualLiquido < 0 ? '#ef4444' : 'var(--balanco)'; const poderDeCompra = saldoBancoFisico + saldoAtualLiquido;
             
-            document.getElementById('bal-entradas').innerText = `$${totalEntradasGlobal.toFixed(2)}`;
-            document.getElementById('bal-saidas').innerText = `$${totalSaidasGlobal.toFixed(2)}`;
-            document.getElementById('bal-liquido').innerText = `$${saldoAtualLiquido.toFixed(2)}`;
-            document.getElementById('bal-liquido').style.color = corSaldo;
-            
+            document.getElementById('bal-entradas').innerText = `$${totalEntradasGlobal.toFixed(2)}`; document.getElementById('bal-saidas').innerText = `$${totalSaidasGlobal.toFixed(2)}`;
+            document.getElementById('bal-liquido').innerText = `$${saldoAtualLiquido.toFixed(2)}`; document.getElementById('bal-liquido').style.color = corSaldo;
             document.getElementById('poder-compra').innerText = `$${poderDeCompra.toFixed(2)}`;
 
-            // Gráficos
             window.renderSalesChart(); 
 
             const ctxLine = document.getElementById('balancoLineChart').getContext('2d');
             if (window.balancoLineChart) window.balancoLineChart.destroy();
-            window.balancoLineChart = new Chart(ctxLine, {
-                type: 'line',
-                data: {
-                    labels: lineLabels,
-                    datasets: [
-                        { label: 'Entradas', data: lineEntradas, borderColor: 'rgba(245, 158, 11, 1)', backgroundColor: 'transparent', tension: 0.3 },
-                        { label: 'Saídas', data: lineSaidas, borderColor: 'rgba(244, 63, 94, 1)', backgroundColor: 'transparent', tension: 0.3 }
-                    ]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true, ticks: {color: '#aaa'} }, x: { ticks: {color: '#aaa'} } }, plugins: { legend: { labels: {color: 'white'} } } }
-            });
+            window.balancoLineChart = new Chart(ctxLine, { type: 'line', data: { labels: lineLabels, datasets: [{ label: 'Entradas', data: lineEntradas, borderColor: 'rgba(245, 158, 11, 1)', backgroundColor: 'transparent', tension: 0.3 }, { label: 'Saídas', data: lineSaidas, borderColor: 'rgba(244, 63, 94, 1)', backgroundColor: 'transparent', tension: 0.3 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: {color: '#aaa'} }, x: { ticks: {color: '#aaa'} } }, plugins: { legend: { labels: {color: 'white'} } } } });
 
             const ctxPie = document.getElementById('balancoPieChart').getContext('2d');
             if (window.balancoPieChart) window.balancoPieChart.destroy();
-            
-            const catLabels = Object.keys(despesasPorCategoria);
-            const catData = Object.values(despesasPorCategoria);
-            const bgColors = ['#f43f5e', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6', '#eab308'];
-            
-            window.balancoPieChart = new Chart(ctxPie, {
-                type: 'doughnut',
-                data: {
-                    labels: catLabels,
-                    datasets: [{ data: catData, backgroundColor: bgColors, borderWidth: 1, borderColor: '#1e1e1e' }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'right', labels: {color: 'white', font: {size: 10}} } } }
-            });
+            const catLabels = Object.keys(despesasPorCategoria); const catData = Object.values(despesasPorCategoria); const bgColors = ['#f43f5e', '#8b5cf6', '#10b981', '#f59e0b', '#3b82f6', '#ec4899', '#14b8a6', '#eab308'];
+            window.balancoPieChart = new Chart(ctxPie, { type: 'doughnut', data: { labels: catLabels, datasets: [{ data: catData, backgroundColor: bgColors, borderWidth: 1, borderColor: '#1e1e1e' }] }, options: { responsive: true, plugins: { legend: { position: 'right', labels: {color: 'white', font: {size: 10}} } } } });
 
         } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='4' style='color:#ef4444;'>Erro ao processar balanço.</td></tr>"; }
     };
