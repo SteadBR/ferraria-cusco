@@ -15,9 +15,9 @@
             --secondary: #3b82f6; /* Produção */
             --buy: #10b981; /* Compras */
             --clientes: #8b5cf6; /* Clientes */
-            --fornecedores: #ec4899; /* Fornecedores (Rosa) */
+            --fornecedores: #ec4899; /* Fornecedores */
             --crediario: #14b8a6; /* Crediario */
-            --contas: #f43f5e; /* Contas a Pagar (Vermelho/Rosa) */
+            --contas: #f43f5e; /* Contas a Pagar */
             --balanco: #eab308; /* Balanço */
             --admin: #ef4444; /* Admin */
             --bg: #121212;
@@ -201,49 +201,6 @@
         .extrato-table th { color: var(--balanco); font-size: 0.8rem; }
         .extrato-table td { font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 5px 0;}
     </style>
-    
-    <script>
-        // Trava de Segurança
-        document.addEventListener('contextmenu', event => event.preventDefault());
-        document.onkeydown = function(e) {
-            if(e.keyCode === 123 || (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || (e.ctrlKey && (e.keyCode === 85 || e.keyCode === 83))) { return false; } 
-        };
-
-        // VARIÁVEIS GLOBAIS ABSOLUTAS
-        window.currentMode = 'vendas';
-        window.carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
-        window.pessoaSelecionada = null; 
-        
-        window.allPessoasData = [];
-        window.currentPage = 1;
-        window.itemsPerPage = 10;
-        
-        window.clientChartInstance = null;
-        window.balancoLineChart = null;
-        window.balancoPieChart = null;
-        window.salesBarChart = null;
-
-        window.vendasAtuaisDoCliente = [];
-        window.todasVendasGerais = []; 
-
-        window.hasPerm = window.hasPerm || function() { return false; };
-        
-        // Conversão de Data para garantir formato DD/MM/YYYY
-        window.formatDate = function(date) {
-            const d = date.getDate().toString().padStart(2, '0');
-            const m = (date.getMonth() + 1).toString().padStart(2, '0');
-            const y = date.getFullYear();
-            return `${d}/${m}/${y}`;
-        };
-
-        // Ordenação ISO para o Livro Razão
-        window.isoDate = function(dateStr) {
-            if(typeof dateStr !== 'string' || !dateStr) return "00000000";
-            const p = dateStr.split('/');
-            if(p.length !== 3) return "00000000";
-            return `${p[2]}${p[1]}${p[0]}`;
-        };
-    </script>
 </head>
 <body>
 
@@ -709,15 +666,90 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+          apiKey: "AIzaSyBoX_SoV36u9DHTxRxrdnNceZe9J-EbCWM",
+          authDomain: "ferrariacusco.firebaseapp.com",
+          projectId: "ferrariacusco",
+          storageBucket: "ferrariacusco.firebasestorage.app",
+          messagingSenderId: "510224310237",
+          appId: "1:510224310237:web:88a3a7dba3ec79784ae034"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
     // =====================================
-    // UI JS E LÓGICA DE INTERFACE
+    // VARIÁVEIS GLOBAIS E UTILITÁRIOS
     // =====================================
+    window.currentMode = 'vendas';
+    window.carts = { 'vendas': {}, 'producao': {}, 'compras': {} };
+    window.pessoaSelecionada = null; 
+    window.allPessoasData = []; window.currentPage = 1; window.itemsPerPage = 10;
+    window.clientChartInstance = null; window.balancoLineChart = null; window.balancoPieChart = null; window.salesBarChart = null;
+    window.vendasAtuaisDoCliente = []; window.todasVendasGerais = []; 
+    window.usuarioLogado = null; window.todosCargos = [];
+
+    window.inventory = [
+        { id: 1, name: "Cápsula de Munição", price: 0.86, img: "https://i.imgur.com/pYci4DW.png", recipe: { yield: 20, materials: [{n: "Lingote de Cobre", q: 3}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 2}] } },
+        { id: 2, name: "Cutelo", price: 3.12, img: "https://i.imgur.com/v4fRfq2.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
+        { id: 3, name: "Faca Comum", price: 7.80, img: "https://i.imgur.com/c7VZQFm.png", recipe: { yield: 7, materials: [{n: "Madeira Cilíndrica", q: 4}, {n: "Lingote de Aço", q: 3}] } },
+        { id: 4, name: "Faca de Arremesso", price: 11.70, img: "https://i.imgur.com/tAnQ019.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Lingote de Aço", q: 1}, {n: "Verniz", q: 1}] } },
+        { id: 5, name: "Lingote de Aço", price: 3.67, img: "https://i.imgur.com/k84v8UK.png", recipe: { yield: 3, materials: [{n: "Pepita de Prata", q: 4}, {n: "Pepita de Cobre", q: 5}, {n: "Carvão Vegetal", q: 5}] } },
+        { id: 6, name: "Lingote de Cobre", price: 3.35, img: "https://i.imgur.com/3e9Rtrv.png", recipe: { yield: 2, materials: [{n: "Pepita de Cobre", q: 4}, {n: "Carvão Vegetal", q: 6}] } },
+        { id: 7, name: "Lingote de Ferro", price: 2.57, img: "https://i.imgur.com/FLBxUU9.png", recipe: { yield: 7, materials: [{n: "Pepita de Ferro", q: 9}, {n: "Carvão Mineral Bruto", q: 10}] } },
+        { id: 8, name: "Lingote de Ouro", price: 3.98, img: "https://i.imgur.com/W09uKgt.png", recipe: { yield: 3, materials: [{n: "Pepita de Ouro", q: 7}, {n: "Carvão Vegetal", q: 5}] } },
+        { id: 9, name: "Lingote de Prata", price: 3.04, img: "https://i.imgur.com/OP2T9Xk.png", recipe: { yield: 2, materials: [{n: "Pepita de Prata", q: 5}, {n: "Carvão Vegetal", q: 1}] } },
+        { id: 10, name: "Machado Avançado", price: 11.70, img: "https://i.imgur.com/4O83Srs.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}] } },
+        { id: 11, name: "Moedor", price: 0.59, img: "https://i.imgur.com/hJnt1RN.png", recipe: { yield: 10, materials: [{n: "Madeira Cilíndrica", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
+        { id: 12, name: "Picareta Avançada", price: 11.70, img: "https://i.imgur.com/MhMdBQL.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 1}, {n: "Pepita de Prata", q: 1}, {n: "Verniz", q: 1}, {n: "Carvão Vegetal", q: 1}] } },
+        { id: 13, name: "Prego", price: 0.55, img: "https://i.imgur.com/KzcO0kY.png", recipe: { yield: 7, materials: [{n: "Pepita de Chumbo", q: 4}, {n: "Carvão Vegetal", q: 1}] } },
+        { id: 14, name: "Rastelo", price: 2.34, img: "https://i.imgur.com/ptqDSbJ.png", recipe: { yield: 1, materials: [{n: "Tábua de Madeira", q: 3}, {n: "Lingote de Aço", q: 1}] } },
+        { id: 15, name: "Seringa de Vidro", price: 1.17, img: "https://i.imgur.com/YdoqXpy.png", recipe: { yield: 12, materials: [{n: "Garrafa de Álcool", q: 7}, {n: "Pepita de Quartzo", q: 10}] } }
+    ];
+
+    window.supplyInventory = [
+        { id: 101, category: "Fazendas", name: "Garrafa de Álcool", img: "https://i.imgur.com/VlBbvqI.png", defaultPrice: 0.40 },
+        { id: 201, category: "Mineradoras", name: "Carvão Mineral Bruto", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.15 },
+        { id: 202, category: "Mineradoras", name: "Pepita de Chumbo", img: "https://i.imgur.com/xb2QWoD.png", defaultPrice: 0.12 },
+        { id: 203, category: "Mineradoras", name: "Pepita de Cobre", img: "https://i.imgur.com/G2gWC2r.png", defaultPrice: 0.54 },
+        { id: 204, category: "Mineradoras", name: "Pepita de Ferro", img: "https://i.imgur.com/GDB3nyr.png", defaultPrice: 0.60 },
+        { id: 205, category: "Mineradoras", name: "Pepita de Ouro", img: "https://i.imgur.com/lOiB6RO.png", defaultPrice: 0.69 },
+        { id: 206, category: "Mineradoras", name: "Pepita de Prata", img: "https://i.imgur.com/au2hezv.png", defaultPrice: 0.66 },
+        { id: 207, category: "Mineradoras", name: "Pepita de Quartzo", img: "https://i.imgur.com/D7w2HiZ.png", defaultPrice: 0.30 },
+        { id: 301, category: "Artesanatos", name: "Verniz", img: "https://i.imgur.com/61jHucx.png", defaultPrice: 0.76 },
+        { id: 401, category: "Madeireiras", name: "Carvão Vegetal", img: "https://i.imgur.com/PNhL30T.png", defaultPrice: 0.31 },
+        { id: 402, category: "Madeireiras", name: "Madeira Cilíndrica", img: "https://i.imgur.com/H0Xwc7K.png", defaultPrice: 0.47 },
+        { id: 403, category: "Madeireiras", name: "Tábua de Madeira", img: "https://i.imgur.com/dxg6GMd.png", defaultPrice: 0.43 }
+    ];
+
+    window.hasPerm = function(permKey) {
+        if (!window.usuarioLogado) return false;
+        if (window.usuarioLogado.role === 'admin') return true;
+        if (window.usuarioLogado.permissoes && window.usuarioLogado.permissoes[permKey]) return true;
+        return false;
+    };
+
+    // =====================================
+    // NAVEGAÇÃO E UI GERAL
+    // =====================================
+    window.toggleAuthMode = function() {
+        const login = document.getElementById('login-box'); const reg = document.getElementById('register-box');
+        if (login.style.display === 'none') { login.style.display = 'block'; reg.style.display = 'none'; } else { login.style.display = 'none'; reg.style.display = 'block'; }
+    };
+
+    window.toggleEntryField = function() {
+        const checkbox = document.getElementById('has-entry'); document.getElementById('entry-val').style.display = checkbox.checked ? "block" : "none";
+        if(!checkbox.checked) document.getElementById('entry-val').value = ""; window.updateUI();
+    };
+
     window.switchSystem = function(mode) {
         window.currentMode = mode;
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        const tabBtn = document.querySelector(`.btn-${mode}`);
-        if(tabBtn) tabBtn.classList.add('active');
+        const tabBtn = document.querySelector(`.btn-${mode}`); if(tabBtn) tabBtn.classList.add('active');
         
         const isVend = window.currentMode === 'vendas'; const isProd = window.currentMode === 'producao'; const isBuy = window.currentMode === 'compras';
         const isCli = window.currentMode === 'clientes'; const isForn = window.currentMode === 'fornecedores'; 
@@ -726,15 +758,13 @@
         
         const header = document.getElementById('main-header'); const internalTitle = document.getElementById('internal-title'); header.className = '';
         
-        // Reset Displays
         ['catalog','filter-bar','custom-item-bar','crediario-filters','payment-box','cart-items','crediario-list','crediario-placar','total-border','group-nivel','group-bonus','group-categoria','estatisticas-cliente-only','info-contato','admin-panel','balanco-panel','all-clients-panel','btn-refresh','btn-transfer','btn-save-venda','btn-save-compra','btn-img-only','btn-db-create','btn-db-update','btn-db-delete'].forEach(id => {
             const el = document.getElementById(id); if(el) el.style.display = "none";
         });
         document.getElementById('cart-capture').style.display = "block";
 
         const cont = document.getElementById('shop-container');
-        if (isCli || isCred || isForn || isCont) cont.classList.add('centered-mode');
-        else cont.classList.remove('centered-mode');
+        if (isCli || isCred || isForn || isCont) cont.classList.add('centered-mode'); else cont.classList.remove('centered-mode');
 
         const isSupplierMode = (isBuy || isForn || isCont);
         document.getElementById('lbl-pesquisa-nome').innerText = isSupplierMode ? "Pesquisar Fornecedor (Nome/ID)" : "Pesquisar Cliente (Nome/ID)";
@@ -743,44 +773,27 @@
         document.getElementById('sort-opt-credito').style.display = isSupplierMode ? "none" : "block";
 
         if (isVend || isProd || isBuy) {
-            document.getElementById('catalog').style.display = "grid";
-            document.getElementById('cart-items').style.display = "block";
-            document.getElementById('in-id').disabled = false; 
-            
+            document.getElementById('catalog').style.display = "grid"; document.getElementById('cart-items').style.display = "block"; document.getElementById('in-id').disabled = false; 
             if (isVend || isBuy) {
                 document.getElementById('custom-item-bar').style.display = "flex";
                 document.getElementById('custom-lbl').style.color = isBuy ? "var(--buy)" : "var(--primary)";
                 document.getElementById('btn-add-custom').style.background = isBuy ? "var(--buy)" : "var(--primary)";
             }
-
             if (isVend) {
-                document.getElementById('payment-box').style.display = "block"; document.getElementById('info-contato').style.display = "flex";
-                document.getElementById('total-border').style.display = "flex"; document.getElementById('btn-refresh').style.display = "block";
-                document.getElementById('btn-save-venda').style.display = "block"; document.getElementById('btn-img-only').style.display = "block";
-                document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+                document.getElementById('payment-box').style.display = "block"; document.getElementById('info-contato').style.display = "flex"; document.getElementById('total-border').style.display = "flex"; document.getElementById('btn-refresh').style.display = "block"; document.getElementById('btn-save-venda').style.display = "block"; document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
             }
             if (isProd) {
-                document.getElementById('btn-refresh').style.display = "block"; document.getElementById('btn-transfer').style.display = "block";
-                document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+                document.getElementById('btn-refresh').style.display = "block"; document.getElementById('btn-transfer').style.display = "block"; document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
             }
             if (isBuy) {
-                document.getElementById('filter-bar').style.display = "flex"; document.getElementById('payment-box').style.display = "block"; 
-                document.getElementById('info-contato').style.display = "flex"; document.getElementById('total-border').style.display = "flex";
-                document.getElementById('btn-refresh').style.display = "block"; document.getElementById('btn-save-compra').style.display = "block";
-                document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
+                document.getElementById('filter-bar').style.display = "flex"; document.getElementById('payment-box').style.display = "block"; document.getElementById('info-contato').style.display = "flex"; document.getElementById('total-border').style.display = "flex"; document.getElementById('btn-refresh').style.display = "block"; document.getElementById('btn-save-compra').style.display = "block"; document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR IMAGEM";
             }
         }
         else if (isCli || isForn) {
-            document.getElementById('info-contato').style.display = "flex";
-            document.getElementById('all-clients-panel').style.display = "flex";
-            document.getElementById('in-id').disabled = false;
+            document.getElementById('info-contato').style.display = "flex"; document.getElementById('all-clients-panel').style.display = "flex"; document.getElementById('in-id').disabled = false;
             
-            if (isCli) {
-                document.getElementById('group-nivel').style.display = "block"; document.getElementById('group-bonus').style.display = "block";
-                document.getElementById('estatisticas-cliente-only').style.display = "block"; document.getElementById('btn-db-create').innerText = "CADASTRAR CLIENTE";
-            } else {
-                document.getElementById('group-categoria').style.display = "block"; document.getElementById('btn-db-create').innerText = "CADASTRAR FORNECEDOR";
-            }
+            if (isCli) { document.getElementById('group-nivel').style.display = "block"; document.getElementById('group-bonus').style.display = "block"; document.getElementById('estatisticas-cliente-only').style.display = "block"; document.getElementById('btn-db-create').innerText = "CADASTRAR CLIENTE";
+            } else { document.getElementById('group-categoria').style.display = "block"; document.getElementById('btn-db-create').innerText = "CADASTRAR FORNECEDOR"; }
 
             if (window.pessoaSelecionada) { 
                 if(window.hasPerm('cli_edit')) document.getElementById('btn-db-update').style.display = "block";
@@ -788,50 +801,29 @@
                 document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR FICHA";
                 if(document.getElementById('chart-container')) document.getElementById('chart-container').style.display = "block";
             } else { 
-                if(isCli) { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; }
-                else { document.getElementById('in-categoria').value = "Fazendas"; }
+                if(isCli) { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; } else { document.getElementById('in-categoria').value = "Fazendas"; }
                 if(window.hasPerm('cli_add')) document.getElementById('btn-db-create').style.display = "block";
             }
             if(typeof window.loadAllPessoas === 'function') window.loadAllPessoas();
         }
         else if (isCred || isCont) {
-            document.getElementById('crediario-filters').style.display = "block";
-            document.getElementById('crediario-list').style.display = "flex";
+            document.getElementById('crediario-filters').style.display = "block"; document.getElementById('crediario-list').style.display = "flex";
             
-            if (isCont) {
-                document.getElementById('lbl-placar-total').innerText = "Total a Pagar:";
-                document.getElementById('crediario-filter-select').options[2].text = "🚨 ALERTAS: Faturas de Compras Antigas"; 
-            } else {
-                document.getElementById('lbl-placar-total').innerText = "Total a Receber:";
-                document.getElementById('crediario-filter-select').options[2].text = "🚨 ALERTAS: Clientes com Limite Negativo";
-            }
+            if (isCont) { document.getElementById('lbl-placar-total').innerText = "Total a Pagar:"; document.getElementById('crediario-filter-select').options[2].text = "🚨 ALERTAS: Faturas de Compras Antigas"; 
+            } else { document.getElementById('lbl-placar-total').innerText = "Total a Receber:"; document.getElementById('crediario-filter-select').options[2].text = "🚨 ALERTAS: Clientes com Limite Negativo"; }
 
             if(document.getElementById('crediario-filter-select').value === 'CLIENT_ONLY') {
-                document.getElementById('info-contato').style.display = "flex";
-                document.getElementById('in-id').disabled = false;
-                if (window.pessoaSelecionada) {
-                    document.getElementById('btn-img-only').style.display = "block";
-                    document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO";
-                }
+                document.getElementById('info-contato').style.display = "flex"; document.getElementById('in-id').disabled = false;
+                if (window.pessoaSelecionada) { document.getElementById('btn-img-only').style.display = "block"; document.getElementById('btn-img-only').innerText = "SALVAR EXTRATO"; }
             }
         }
-        else if (isBal) {
-            document.getElementById('balanco-panel').style.display = "block";
-            document.getElementById('cart-capture').style.display = "none";
-            if(typeof window.carregarBalanco === 'function') window.carregarBalanco();
-        }
+        else if (isBal) { document.getElementById('balanco-panel').style.display = "block"; document.getElementById('cart-capture').style.display = "none"; if(typeof window.carregarBalanco === 'function') window.carregarBalanco(); }
         else if (isAdm) {
-            document.getElementById('admin-panel').style.display = "block";
-            document.getElementById('cart-capture').style.display = "none";
-            
+            document.getElementById('admin-panel').style.display = "block"; document.getElementById('cart-capture').style.display = "none";
             const selMes = document.getElementById('comissao-mes');
             if(selMes) {
                 selMes.innerHTML = ""; const date = new Date();
-                for(let i=0; i<6; i++) {
-                    const m = String(date.getMonth() + 1).padStart(2, '0'); const y = date.getFullYear();
-                    selMes.innerHTML += `<option value="${m}/${y}">${m}/${y}</option>`;
-                    date.setMonth(date.getMonth() - 1);
-                }
+                for(let i=0; i<6; i++) { const m = String(date.getMonth() + 1).padStart(2, '0'); const y = date.getFullYear(); selMes.innerHTML += `<option value="${m}/${y}">${m}/${y}</option>`; date.setMonth(date.getMonth() - 1); }
             }
             if(typeof window.carregarUsuariosAdmin === 'function') window.carregarUsuariosAdmin();
             if(typeof window.carregarComissoes === 'function') window.carregarComissoes();
@@ -850,19 +842,94 @@
         let borderColor = "var(--primary)";
         if(isBuy) borderColor = "var(--buy)"; if(isProd) borderColor = "var(--secondary)"; if(isCli) borderColor = "var(--clientes)";
         if(isForn) borderColor = "var(--fornecedores)"; if(isCred) borderColor = "var(--crediario)"; if(isCont) borderColor = "var(--contas)";
-        
-        document.getElementById('total-border').style.borderTopColor = borderColor;
-        document.getElementById('total-border').style.color = borderColor;
+        document.getElementById('total-border').style.borderTopColor = borderColor; document.getElementById('total-border').style.color = borderColor;
 
         if(!isCli && !isForn && !isCred && !isCont && !isAdm && !isBal) window.renderCatalog();
         if(isVend || isBuy || isProd) window.updateUI(); 
         if((isCred || isCont) && typeof window.aplicarFiltroCrediario === 'function') window.aplicarFiltroCrediario();
     };
 
+    window.updateUI = function() {
+        if(window.currentMode === 'clientes' || window.currentMode === 'fornecedores' || window.currentMode === 'crediario' || window.currentMode === 'contas_pagar' || window.currentMode === 'gerenciamento' || window.currentMode === 'balanco') return;
+
+        const cartList = document.getElementById('cart-items'); cartList.innerHTML = ""; 
+        let totalRaw = 0, lastCategory = "", htmlContent = ""; const cart = window.carts[window.currentMode] || {}; const items = Object.values(cart);
+        
+        if (window.currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
+        
+        items.forEach(item => {
+            if (window.currentMode === 'compras' && item.category !== lastCategory && !String(item.id).startsWith('custom_')) { 
+                lastCategory = item.category; htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; 
+            }
+            if (String(item.id).startsWith('custom_')) { htmlContent += `<div class="cart-category-divider" style="background:rgba(236, 72, 153, 0.1); color:var(--fornecedores); border-left-color:var(--fornecedores)">AVULSO: ${item.category}</div>`; }
+            
+            let infoHTML = "", priceColHTML = "", qtyFinalLabel = "";
+
+            if(window.currentMode === 'producao' && item.recipe) {
+                const needs = item.quantity - item.stock;
+                if(needs <= 0) { infoHTML = `<div class="insumos-list" style="border-left-color:#10b981; color:#10b981"><b>ESTOQUE OK:</b> NADA A PRODUZIR</div>`; qtyFinalLabel = `<small style="color:#10b981">(Estoque suficiente)</small>`;
+                } else {
+                    const numLotes = Math.ceil(needs / item.recipe.yield);
+                    infoHTML = `<div class="insumos-list"><b>A PRODUZIR:</b> ${needs} un. | <b>LOTES:</b> ${numLotes}<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<div class="insumo-line"><span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span><input type="checkbox" class="prod-checkbox"></div>`).join('')}</div></div>`;
+                    qtyFinalLabel = `<small style="color:#aaa">Faltam: ${needs} un.</small>`;
+                }
+                priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
+            } else if(window.currentMode === 'compras') {
+                const needsToBuy = item.quantity - item.stock;
+                const stockInputHTML = String(item.id).startsWith('custom_') ? '' : `<div class="client-info-static" style="margin-top:5px"><label style="font-size:0.6rem; color:#999">ESTOQUE:</label><input type="number" class="resumo-stock-input" value="${item.stock}" onchange="window.updateStockFromResumo('${item.id}', this.value)"></div>`;
+                if(needsToBuy <= 0 && !String(item.id).startsWith('custom_')) {
+                    priceColHTML = `<div style="text-align:right"><span>ESTOQUE OK</span>${stockInputHTML}</div>`; qtyFinalLabel = `<small style="color:#10b981">Disponível</small>`;
+                } else {
+                    const buyQty = String(item.id).startsWith('custom_') ? item.quantity : needsToBuy; const subTotal = item.price * buyQty; totalRaw += subTotal;
+                    priceColHTML = `<div style="text-align:right"><span>$${subTotal.toFixed(2)}</span>${stockInputHTML}</div>`; qtyFinalLabel = `<small style="color:#aaa">${String(item.id).startsWith('custom_')?'Qtd':'Comprar'}: ${buyQty} un.</small>`;
+                }
+            } else { 
+                const subTotal = item.price * item.quantity; totalRaw += subTotal; priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`; qtyFinalLabel = `<small style="color:#aaa">Qtd: ${item.quantity} un. | Unit: $${item.price.toFixed(2)}</small>`;
+            }
+
+            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()}<br>${qtyFinalLabel}</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="window.removeItem('${item.id}')" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
+        });
+        cartList.innerHTML = htmlContent;
+
+        const numParcelas = parseInt(document.getElementById('pay-method').value); let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
+        if (entryVal > totalRaw) { entryVal = totalRaw; document.getElementById('entry-val').value = entryVal.toFixed(2); }
+
+        const parcelBox = document.getElementById('parcel-details'); const firstDateInput = document.getElementById('first-payment-date').value; const dateGroup = document.getElementById('date-group');
+        dateGroup.style.display = (numParcelas > 1 && (window.currentMode === 'vendas' || window.currentMode === 'compras')) ? "block" : "none";
+
+        if (totalRaw > 0 && (window.currentMode === 'vendas' || window.currentMode === 'compras')) {
+            parcelBox.style.display = "block"; let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (CAIXA):</b><br>`; const valorFinanciado = totalRaw - entryVal;
+            if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
+            
+            if (numParcelas > 1 && valorFinanciado > 0) {
+                const valorParcela = valorFinanciado / numParcelas; let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
+                for(let i=0; i < numParcelas; i++) { let nextDate = new Date(baseDate); nextDate.setDate(baseDate.getDate() + (i * 2)); pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${window.formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`; }
+            } else if (valorFinanciado > 0) { pHTML += `<div class="parcel-line"><span>À VISTA (Hoje):</span><span style="color:var(--primary)">$${valorFinanciado.toFixed(2)} (Pendente)</span></div>`; }
+            parcelBox.innerHTML = pHTML;
+        } else { parcelBox.style.display = "none"; }
+        document.getElementById('total-val').innerText = totalRaw.toFixed(2);
+    };
+
+    window.clearCart = function() { 
+        if(window.carts[window.currentMode]) window.carts[window.currentMode] = {}; 
+        document.getElementById('pay-method').value = "1"; document.getElementById('first-payment-date').value = ""; document.getElementById('in-name').value = ""; document.getElementById('in-id').value = ""; document.getElementById('in-tele').value = ""; document.getElementById('in-disc').value = ""; document.getElementById('in-conta').value = "";
+        if (window.currentMode === 'clientes') { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; }
+        if (window.currentMode === 'fornecedores') { document.getElementById('in-categoria').value = "Fazendas"; }
+        document.getElementById('has-entry').checked = false; document.getElementById('entry-val').value = ""; document.getElementById('entry-val').style.display = "none"; 
+        if(document.getElementById('custom-name')) document.getElementById('custom-name').value = ""; if(document.getElementById('custom-price')) document.getElementById('custom-price').value = ""; if(document.getElementById('custom-qty')) document.getElementById('custom-qty').value = "1";
+        document.getElementById('search-results-box').style.display = "none"; document.getElementById('client-stats').style.display = "none"; document.getElementById('crediario-list').innerHTML = ""; document.getElementById('crediario-placar').style.display = "none";
+        if(document.getElementById('chart-container')) document.getElementById('chart-container').style.display = "none";
+        window.pessoaSelecionada = null; if(window.clientChartInstance) { window.clientChartInstance.destroy(); window.clientChartInstance = null; }
+        window.switchSystem(window.currentMode);
+    };
+
+    // =====================================
+    // CATÁLOGO E CARRINHO
+    // =====================================
     window.renderCatalog = function() {
         const grid = document.getElementById('catalog');
         const accent = window.currentMode === 'compras' ? 'var(--buy)' : (window.currentMode === 'producao' ? 'var(--secondary)' : 'var(--primary)');
-        let displayList = window.currentMode === 'compras' ? supplyInventory : inventory;
+        let displayList = window.currentMode === 'compras' ? window.supplyInventory : window.inventory;
         
         if (window.currentMode === 'compras') {
             const selectedCat = document.getElementById('category-select').value;
@@ -876,79 +943,54 @@
             } else if(window.currentMode === 'producao') {
                 inputs = `<div class="buy-inputs"><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div><div class="input-row"><label>ESTOQUE:</label><input type="number" id="stock-${item.id}" class="qty-input" value="0" min="0"></div></div>`;
             } else {
-                inputs = `<div class="buy-inputs">
-                    <div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.price.toFixed(2)}" min="${item.price.toFixed(2)}" step="0.01"></div>
-                    <div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div>
-                </div>`;
+                inputs = `<div class="buy-inputs"><div class="input-row"><label>UNIT:</label><input type="number" id="price-${item.id}" class="qty-input" value="${item.price.toFixed(2)}" min="${item.price.toFixed(2)}" step="0.01"></div><div class="input-row"><label>QTD:</label><input type="number" id="qty-${item.id}" class="qty-input" value="1" min="1"></div></div>`;
             }
             return `<div class="item-card" style="border-color: ${window.currentMode === 'vendas' ? '#333' : accent}"><img src="${item.img}" class="product-img"><h4 style="font-size: 0.8rem; margin: 5px 0;">${item.name.toUpperCase()}</h4>${inputs}<button class="add-btn" style="background-color: ${accent}" onclick="window.addToCart(${item.id})">ADD</button></div>`;
         }).join('');
     };
 
     window.addToCart = function(id) {
-        const inv = window.currentMode === 'compras' ? supplyInventory : inventory;
-        const prod = inv.find(i => i.id === id);
-        const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
+        const inv = window.currentMode === 'compras' ? window.supplyInventory : window.inventory;
+        const prod = inv.find(i => i.id === id); const qtyVal = parseInt(document.getElementById(`qty-${id}`).value);
         if (qtyVal <= 0 || isNaN(qtyVal)) return;
 
         let finalPrice = prod.price || 0;
-        
-        if(window.currentMode === 'compras') {
-            finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
+        if(window.currentMode === 'compras') { finalPrice = parseFloat(document.getElementById(`price-${id}`).value) || 0;
         } else if (window.currentMode === 'vendas') {
             finalPrice = parseFloat(document.getElementById(`price-${id}`).value);
-            if (isNaN(finalPrice) || finalPrice < prod.price) {
-                alert(`AVISO: O valor mínimo permitido para ${prod.name.toUpperCase()} é $${prod.price.toFixed(2)}.`);
-                document.getElementById(`price-${id}`).value = prod.price.toFixed(2); 
-                return; 
-            }
+            if (isNaN(finalPrice) || finalPrice < prod.price) { alert(`AVISO: O valor mínimo é $${prod.price.toFixed(2)}.`); document.getElementById(`price-${id}`).value = prod.price.toFixed(2); return; }
         }
         
-        let stockVal = 0;
-        if(window.currentMode === 'producao' || window.currentMode === 'compras') stockVal = parseInt(document.getElementById(`stock-${id}`).value) || 0;
+        let stockVal = 0; if(window.currentMode === 'producao' || window.currentMode === 'compras') stockVal = parseInt(document.getElementById(`stock-${id}`).value) || 0;
 
         if (window.carts[window.currentMode][id]) { 
-            window.carts[window.currentMode][id].quantity += qtyVal; 
-            window.carts[window.currentMode][id].stock = stockVal;
+            window.carts[window.currentMode][id].quantity += qtyVal; window.carts[window.currentMode][id].stock = stockVal;
             if(window.currentMode === 'compras' || window.currentMode === 'vendas') window.carts[window.currentMode][id].price = finalPrice;
-        } else { 
-            window.carts[window.currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice, stock: stockVal }; 
-        }
+        } else { window.carts[window.currentMode][id] = { ...prod, quantity: qtyVal, price: finalPrice, stock: stockVal }; }
         window.updateUI();
     };
 
     window.addCustomToCart = function() {
-        const name = document.getElementById('custom-name').value.trim();
-        const price = parseFloat(document.getElementById('custom-price').value);
-        const qty = parseInt(document.getElementById('custom-qty').value);
-        const category = document.getElementById('custom-category').value;
-
-        if (!name || isNaN(price) || price <= 0 || isNaN(qty) || qty <= 0) {
-            return alert("Preencha corretamente a descrição, valor unitário e quantidade do Lançamento Extraordinário!");
-        }
-
+        const name = document.getElementById('custom-name').value.trim(); const price = parseFloat(document.getElementById('custom-price').value); const qty = parseInt(document.getElementById('custom-qty').value); const category = document.getElementById('custom-category').value;
+        if (!name || isNaN(price) || price <= 0 || isNaN(qty) || qty <= 0) { return alert("Preencha corretamente a descrição, valor unitário e quantidade do Lançamento Extraordinário!"); }
         const id = 'custom_' + Date.now();
-        const customItem = {
-            id: id, name: name, price: price, defaultPrice: price,
-            img: "https://i.imgur.com/bQAy1gG.png", category: category, quantity: qty, stock: 0
-        };
-
+        const customItem = { id: id, name: name, price: price, defaultPrice: price, img: "https://i.imgur.com/bQAy1gG.png", category: category, quantity: qty, stock: 0 };
         window.carts[window.currentMode][id] = customItem;
         document.getElementById('custom-name').value = ""; document.getElementById('custom-price').value = ""; document.getElementById('custom-qty').value = "1";
         window.updateUI();
     };
 
+    window.removeItem = function(id) { delete window.carts[window.currentMode][id]; window.updateUI(); };
+    window.updateStockFromResumo = function(id, value) { if(window.carts[window.currentMode][id]) window.carts[window.currentMode][id].stock = parseInt(value) || 0; };
     window.transferToCompras = function() {
-        const prodCart = window.carts['producao'];
-        if (Object.keys(prodCart).length === 0) return alert("A lista de produção está vazia!");
-        
+        const prodCart = window.carts['producao']; if (Object.keys(prodCart).length === 0) return alert("A lista de produção está vazia!");
         Object.values(prodCart).forEach(item => {
             if(item.recipe) {
                 const needs = item.quantity - item.stock;
                 if(needs > 0) {
                     const numLotes = Math.ceil(needs / item.recipe.yield);
                     item.recipe.materials.forEach(mat => {
-                        const supply = supplyInventory.find(s => s.name.toUpperCase() === mat.n.toUpperCase());
+                        const supply = window.supplyInventory.find(s => s.name.toUpperCase() === mat.n.toUpperCase());
                         if(supply) {
                             const totalQty = mat.q * numLotes;
                             if(window.carts['compras'][supply.id]) window.carts['compras'][supply.id].quantity += totalQty;
@@ -961,356 +1003,37 @@
         alert("Insumos transferidos para aba Compras!");
     };
 
-    window.removeItem = function(id) { delete window.carts[window.currentMode][id]; window.updateUI(); };
-    
-    window.clearCart = function() { 
-        if(window.carts[window.currentMode]) window.carts[window.currentMode] = {}; 
-        
-        document.getElementById('pay-method').value = "1"; document.getElementById('first-payment-date').value = "";
-        document.getElementById('in-name').value = ""; document.getElementById('in-id').value = ""; document.getElementById('in-tele').value = ""; document.getElementById('in-disc').value = ""; document.getElementById('in-conta').value = "";
-        
-        if (window.currentMode === 'clientes') { document.getElementById('in-nivel').value = "FERRO"; document.getElementById('in-bonus').value = "0"; }
-        if (window.currentMode === 'fornecedores') { document.getElementById('in-categoria').value = "Fazendas"; }
-        
-        document.getElementById('has-entry').checked = false; document.getElementById('entry-val').value = ""; document.getElementById('entry-val').style.display = "none"; 
-        
-        if(document.getElementById('custom-name')) document.getElementById('custom-name').value = "";
-        if(document.getElementById('custom-price')) document.getElementById('custom-price').value = "";
-        if(document.getElementById('custom-qty')) document.getElementById('custom-qty').value = "1";
-
-        document.getElementById('search-results-box').style.display = "none"; document.getElementById('client-stats').style.display = "none";
-        document.getElementById('crediario-list').innerHTML = ""; document.getElementById('crediario-placar').style.display = "none";
-        if(document.getElementById('chart-container')) document.getElementById('chart-container').style.display = "none";
-        
-        window.pessoaSelecionada = null;
-        if(window.clientChartInstance) { window.clientChartInstance.destroy(); window.clientChartInstance = null; }
-        
-        window.switchSystem(window.currentMode);
-    };
-
-    window.updateStockFromResumo = function(id, value) {
-        if(window.carts[window.currentMode][id]) window.carts[window.currentMode][id].stock = parseInt(value) || 0;
-    };
-
-    window.updateUI = function() {
-        if(window.currentMode === 'clientes' || window.currentMode === 'fornecedores' || window.currentMode === 'crediario' || window.currentMode === 'contas_pagar' || window.currentMode === 'gerenciamento' || window.currentMode === 'balanco') return;
-
-        const cartList = document.getElementById('cart-items');
-        cartList.innerHTML = ""; 
-        
-        let totalRaw = 0, lastCategory = "", htmlContent = "";
-        const cart = window.carts[window.currentMode] || {};
-        const items = Object.values(cart);
-        
-        if (window.currentMode === 'compras') items.sort((a, b) => a.category.localeCompare(b.category));
-        
-        items.forEach(item => {
-            if (window.currentMode === 'compras' && item.category !== lastCategory && !String(item.id).startsWith('custom_')) { 
-                lastCategory = item.category; 
-                htmlContent += `<div class="cart-category-divider">${lastCategory}</div>`; 
-            }
-            if (String(item.id).startsWith('custom_')) {
-                htmlContent += `<div class="cart-category-divider" style="background:rgba(236, 72, 153, 0.1); color:var(--fornecedores); border-left-color:var(--fornecedores)">AVULSO: ${item.category}</div>`; 
-            }
-            
-            let infoHTML = "", priceColHTML = "", qtyFinalLabel = "";
-
-            if(window.currentMode === 'producao' && item.recipe) {
-                const needs = item.quantity - item.stock;
-                if(needs <= 0) {
-                    infoHTML = `<div class="insumos-list" style="border-left-color:#10b981; color:#10b981"><b>ESTOQUE OK:</b> NADA A PRODUZIR</div>`;
-                    qtyFinalLabel = `<small style="color:#10b981">(Estoque suficiente)</small>`;
-                } else {
-                    const numLotes = Math.ceil(needs / item.recipe.yield);
-                    infoHTML = `<div class="insumos-list"><b>A PRODUZIR:</b> ${needs} un. | <b>LOTES:</b> ${numLotes}<br><div style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:5px;">${item.recipe.materials.map(m => `<div class="insumo-line"><span>• ${m.q * numLotes}x ${m.n.toUpperCase()}</span><input type="checkbox" class="prod-checkbox"></div>`).join('')}</div></div>`;
-                    qtyFinalLabel = `<small style="color:#aaa">Faltam: ${needs} un.</small>`;
-                }
-                priceColHTML = `<input type="checkbox" class="prod-checkbox">`;
-            } else if(window.currentMode === 'compras') {
-                const needsToBuy = item.quantity - item.stock;
-                const stockInputHTML = String(item.id).startsWith('custom_') ? '' : `<div class="client-info-static" style="margin-top:5px"><label style="font-size:0.6rem; color:#999">ESTOQUE:</label><input type="number" class="resumo-stock-input" value="${item.stock}" onchange="window.updateStockFromResumo('${item.id}', this.value)"></div>`;
-                if(needsToBuy <= 0 && !String(item.id).startsWith('custom_')) {
-                    priceColHTML = `<div style="text-align:right"><span>ESTOQUE OK</span>${stockInputHTML}</div>`;
-                    qtyFinalLabel = `<small style="color:#10b981">Disponível</small>`;
-                } else {
-                    const buyQty = String(item.id).startsWith('custom_') ? item.quantity : needsToBuy;
-                    const subTotal = item.price * buyQty; totalRaw += subTotal;
-                    priceColHTML = `<div style="text-align:right"><span>$${subTotal.toFixed(2)}</span>${stockInputHTML}</div>`;
-                    qtyFinalLabel = `<small style="color:#aaa">${String(item.id).startsWith('custom_')?'Qtd':'Comprar'}: ${buyQty} un.</small>`;
-                }
-            } else { 
-                const subTotal = item.price * item.quantity; totalRaw += subTotal; 
-                priceColHTML = `<span>$${subTotal.toFixed(2)}</span>`;
-                qtyFinalLabel = `<small style="color:#aaa">Qtd: ${item.quantity} un. | Unit: $${item.price.toFixed(2)}</small>`;
-            }
-
-            htmlContent += `<div class="cart-item"><div class="cart-item-header"><img src="${item.img}" class="cart-item-img"><div class="cart-item-info"><span>${item.name.toUpperCase()}<br>${qtyFinalLabel}</span><div style="display:flex; align-items:center; gap:10px">${priceColHTML}<button onclick="window.removeItem('${item.id}')" style="color:#ef4444; border:none; background:none; cursor:pointer; font-weight:bold;">✕</button></div></div></div>${infoHTML}</div>`;
-        });
-        cartList.innerHTML = htmlContent;
-
-        const numParcelas = parseInt(document.getElementById('pay-method').value);
-        let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
-        
-        if (entryVal > totalRaw) { entryVal = totalRaw; document.getElementById('entry-val').value = entryVal.toFixed(2); }
-
-        const parcelBox = document.getElementById('parcel-details');
-        const firstDateInput = document.getElementById('first-payment-date').value;
-        const dateGroup = document.getElementById('date-group');
-        
-        dateGroup.style.display = (numParcelas > 1 && (window.currentMode === 'vendas' || window.currentMode === 'compras')) ? "block" : "none";
-
-        if (totalRaw > 0 && (window.currentMode === 'vendas' || window.currentMode === 'compras')) {
-            parcelBox.style.display = "block";
-            let pHTML = `<b style="color:var(--primary)">PAGAMENTOS PENDENTES (CAIXA):</b><br>`;
-            const valorFinanciado = totalRaw - entryVal;
-
-            if(entryVal > 0) pHTML += `<div class="parcel-line"><span>ENTRADA (Hoje):</span><span style="color:var(--primary)">$${entryVal.toFixed(2)} (Pendente)</span></div>`;
-            
-            if (numParcelas > 1 && valorFinanciado > 0) {
-                const valorParcela = valorFinanciado / numParcelas;
-                let baseDate = firstDateInput ? new Date(firstDateInput + "T00:00:00") : new Date();
-                for(let i=0; i < numParcelas; i++) {
-                    let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
-                    pHTML += `<div class="parcel-line"><span>PARC ${i+1} (${window.formatDate(nextDate)}):</span><span>$${valorParcela.toFixed(2)}</span></div>`;
-                }
-            } else if (valorFinanciado > 0) {
-                pHTML += `<div class="parcel-line"><span>À VISTA (Hoje):</span><span style="color:var(--primary)">$${valorFinanciado.toFixed(2)} (Pendente)</span></div>`;
-            }
-            parcelBox.innerHTML = pHTML;
-        } else { parcelBox.style.display = "none"; }
-        
-        document.getElementById('total-val').innerText = totalRaw.toFixed(2);
-    };
-
-    window.generateImage = async function() {
-        if((window.currentMode === 'vendas' || window.currentMode === 'compras' || window.currentMode === 'producao') && Object.keys(window.carts[window.currentMode]).length === 0) {
-            return alert("A lista de itens está vazia!");
-        }
-        
-        if(window.currentMode !== 'producao') {
-            const name = document.getElementById('in-name').value;
-            const idCli = document.getElementById('in-id').value;
-            if(!name) return alert("Preencha o Nome!");
-            
-            document.getElementById('out-name').innerText = name.toUpperCase();
-            document.getElementById('out-id').innerText = idCli.toUpperCase();
-            
-            let vTele = document.getElementById('in-tele').value.toUpperCase();
-            document.getElementById('out-tele').innerText = vTele !== "" ? vTele : "NÃO INFORMADO";
-            
-            document.getElementById('out-disc').innerText = document.getElementById('in-disc').value.toUpperCase();
-            document.getElementById('out-conta').innerText = document.getElementById('in-conta').value.toUpperCase() || "N/I";
-            
-            if (window.currentMode === 'clientes') {
-                const selectNivel = document.getElementById('in-nivel');
-                document.getElementById('out-nivel').innerText = selectNivel.options[selectNivel.selectedIndex].text;
-                document.getElementById('out-bonus').innerText = "$" + parseFloat(document.getElementById('in-bonus').value || 0).toFixed(2);
-            }
-            if (window.currentMode === 'fornecedores') {
-                const selectCat = document.getElementById('in-categoria');
-                document.getElementById('out-categoria').innerText = selectCat.options[selectCat.selectedIndex].text;
-            }
-
-            document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'none');
-            document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'none');
-            document.querySelectorAll('.display-data').forEach(s => s.style.display = 'block');
-            if(document.getElementById('chart-container')) document.getElementById('chart-container').style.display = 'none'; 
-        }
-
-        const paySelect = document.getElementById('pay-method');
-        const payDisplay = document.getElementById('out-pay');
-        payDisplay.innerText = paySelect.options[paySelect.selectedIndex].text;
-        paySelect.style.display = 'none';
-        payDisplay.style.display = 'block';
-        
-        // Esconder UI
-        document.getElementById('ui-buttons').style.display = 'none';
-        document.getElementById('date-group').style.display = 'none';
-        document.getElementById('entry-checkbox-group').style.display = 'none';
-        document.getElementById('entry-val').style.display = 'none';
-        if(document.getElementById('custom-item-bar')) document.getElementById('custom-item-bar').style.display = 'none';
-        document.getElementById('search-client-btn').style.display = 'none';
-        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'none';
-        document.getElementById('search-results-box').style.display = 'none';
-        document.getElementById('all-clients-panel').style.display = 'none';
-        
-        // Esconder Botões no Print
-        if (window.currentMode === 'crediario' || window.currentMode === 'contas_pagar') {
-            document.getElementById('crediario-filters').style.display = 'none';
-            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'none'); 
-            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'none'); 
-            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'none'); 
-            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'block'); 
-            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'none'); 
-        }
-        
-        document.querySelectorAll('.cart-item button').forEach(b => b.style.display = 'none');
-        document.querySelectorAll('.prod-checkbox').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.resumo-stock-input').forEach(input => input.style.display = 'none');
-        document.querySelectorAll('.client-info-static label').forEach(label => label.style.display = 'none');
-
-        // Capturar
-        const canvas = await html2canvas(document.getElementById('cart-capture'), { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
-        const link = document.createElement('a');
-        link.download = `CUSCO_${window.currentMode.toUpperCase()}_${Date.now()}.png`;
-        link.href = canvas.toDataURL(); link.click();
-        
-        // Restaurar UI
-        paySelect.style.display = 'block';
-        payDisplay.style.display = 'none';
-        document.getElementById('ui-buttons').style.display = 'flex';
-        document.getElementById('entry-checkbox-group').style.display = 'flex';
-        document.getElementById('search-client-btn').style.display = 'block';
-        if(document.getElementById('search-id-btn')) document.getElementById('search-id-btn').style.display = 'block';
-        if(document.getElementById('has-entry').checked) document.getElementById('entry-val').style.display = 'block';
-        
-        if (window.currentMode === 'crediario' || window.currentMode === 'contas_pagar') {
-            document.getElementById('crediario-filters').style.display = 'block';
-            document.querySelectorAll('.btn-pay').forEach(btn => btn.style.display = 'inline-block');
-            document.querySelectorAll('.btn-del-fat').forEach(btn => btn.style.display = 'inline-block');
-            document.querySelectorAll('.btn-print-fat').forEach(btn => btn.style.display = 'inline-block');
-            document.querySelectorAll('.fatura-itens').forEach(div => div.style.display = 'none'); 
-            document.querySelectorAll('.toggle-itens-btn').forEach(btn => btn.style.display = 'block'); 
-        }
-
-        document.querySelectorAll('#info-contato input').forEach(i => i.style.display = 'block');
-        document.querySelectorAll('#info-contato select').forEach(i => i.style.display = 'block');
-        document.querySelectorAll('.display-data').forEach(s => s.style.display = 'none');
-        if(document.getElementById('chart-container') && window.clientChartInstance) document.getElementById('chart-container').style.display = 'block';
-        
-        window.switchSystem(window.currentMode); 
-    };
-
-    window.toggleItens = function(id) {
-        const el = document.getElementById(id);
-        if (el.style.display === 'none') el.style.display = 'block';
-        else el.style.display = 'none';
-    };
-
     // =====================================
-    // GRÁFICOS DO CLIENTE (CHART.JS)
+    // AUTH E FIREBASE LOGIN
     // =====================================
-    window.renderClientChart = function() {
-        const ctx = document.getElementById('clientChart').getContext('2d');
-        if (window.clientChartInstance) { window.clientChartInstance.destroy(); }
-        
-        const filterYear = document.getElementById('chart-year').value;
-        let monthTotals = { "Jan":0, "Fev":0, "Mar":0, "Abr":0, "Mai":0, "Jun":0, "Jul":0, "Ago":0, "Set":0, "Out":0, "Nov":0, "Dez":0 };
-        const monthNames = Object.keys(monthTotals);
-
-        window.vendasAtuaisDoCliente.forEach(v => {
-            if(v.data) {
-                const parts = v.data.split('/');
-                if(parts.length === 3) {
-                    const mes = parseInt(parts[1]) - 1;
-                    const ano = parts[2];
-                    if (filterYear === "ALL" || filterYear === ano) {
-                        monthTotals[monthNames[mes]] += parseFloat(v.pedido.total || 0);
-                    }
-                }
-            }
-        });
-
-        const dataValues = Object.values(monthTotals);
-        const corLinha = (window.currentMode === 'fornecedores' || window.currentMode === 'contas_pagar') ? 'rgba(236, 72, 153, 1)' : 'rgba(139, 92, 246, 1)';
-        const corFundo = (window.currentMode === 'fornecedores' || window.currentMode === 'contas_pagar') ? 'rgba(236, 72, 153, 0.2)' : 'rgba(139, 92, 246, 0.2)';
-
-        window.clientChartInstance = new Chart(ctx, {
-            type: 'bar',
-            data: { labels: monthNames, datasets: [{ label: 'Movimentação ($)', data: dataValues, backgroundColor: corFundo, borderColor: corLinha, borderWidth: 1 }] },
-            options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { color: '#aaa', font: {size: 10} } }, x: { ticks: { color: '#aaa', font: {size: 10} } } }, plugins: { legend: { display: false } } }
-        });
-    };
-</script>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-          apiKey: "AIzaSyBoX_SoV36u9DHTxRxrdnNceZe9J-EbCWM",
-          authDomain: "ferrariacusco.firebaseapp.com",
-          projectId: "ferrariacusco",
-          storageBucket: "ferrariacusco.firebasestorage.app",
-          messagingSenderId: "510224310237",
-          appId: "1:510224310237:web:88a3a7dba3ec79784ae034"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    // =====================================
-    // 0. AUTENTICAÇÃO E PERMISSÕES
-    // =====================================
-    window.usuarioLogado = null;
-    window.todosCargos = [];
-
-    window.hasPerm = function(permKey) {
-        if (!window.usuarioLogado) return false;
-        if (window.usuarioLogado.role === 'admin') return true;
-        if (window.usuarioLogado.permissoes && window.usuarioLogado.permissoes[permKey]) return true;
-        return false;
-    };
-
     window.authLogin = async function() {
-        const user = document.getElementById('login-user').value.trim();
-        const pass = document.getElementById('login-pass').value.trim();
+        const user = document.getElementById('login-user').value.trim(); const pass = document.getElementById('login-pass').value.trim();
         if(!user || !pass) return alert("Preencha Usuário e Senha!");
-
         try {
-            const q = query(collection(db, "vendedores"), where("username", "==", user), where("password", "==", pass));
-            const snap = await getDocs(q);
+            const q = query(collection(db, "vendedores"), where("username", "==", user), where("password", "==", pass)); const snap = await getDocs(q);
             if (snap.empty) return alert("Usuário ou senha incorretos!");
-            
-            const userData = snap.docs[0].data();
-            const userId = snap.docs[0].id;
-
+            const userData = snap.docs[0].data(); const userId = snap.docs[0].id;
             if (userData.status === 'pendente') return alert("Seu cadastro está PENDENTE! Aguarde aprovação.");
-
             let permissoes = {};
-            if (userData.role !== 'admin') {
-                const roleSnap = await getDoc(doc(db, "cargos", userData.role));
-                if (roleSnap.exists()) permissoes = roleSnap.data().permissoes || {};
+            if (userData.role !== 'admin') { const roleSnap = await getDoc(doc(db, "cargos", userData.role)); if (roleSnap.exists()) permissoes = roleSnap.data().permissoes || {};
             } else { permissoes = { admin: true }; }
-
             window.usuarioLogado = { ...userData, id: userId, permissoes: permissoes };
-            
-            document.getElementById('logged-username').innerText = userData.username.toUpperCase();
-            document.getElementById('print-username').innerText = userData.username.toUpperCase();
-            document.getElementById('auth-overlay').style.display = "none";
-            document.getElementById('main-app').style.display = "flex";
-
-            if (window.hasPerm('user_approve') || window.hasPerm('user_edit') || window.hasPerm('user_del') || userData.role === 'admin') {
-                document.querySelector('.btn-admin').style.display = "block";
-            }
-            if (window.hasPerm('ver_balanco')) {
-                document.getElementById('tab-balanco').style.display = "block";
-            }
+            document.getElementById('logged-username').innerText = userData.username.toUpperCase(); document.getElementById('print-username').innerText = userData.username.toUpperCase();
+            document.getElementById('auth-overlay').style.display = "none"; document.getElementById('main-app').style.display = "flex";
+            if (window.hasPerm('user_approve') || window.hasPerm('user_edit') || window.hasPerm('user_del') || userData.role === 'admin') { document.querySelector('.btn-admin').style.display = "block"; }
+            if (window.hasPerm('ver_balanco')) { document.getElementById('tab-balanco').style.display = "block"; }
             window.switchSystem('vendas'); 
         } catch (error) { console.log(error); alert("Erro ao conectar."); }
     };
 
     window.authRegister = async function() {
-        const user = document.getElementById('reg-user').value.trim();
-        const pass = document.getElementById('reg-pass').value.trim();
+        const user = document.getElementById('reg-user').value.trim(); const pass = document.getElementById('reg-pass').value.trim();
         if(!user || !pass) return alert("Preencha todos os campos!");
-
         try {
-            const qCheck = query(collection(db, "vendedores"), where("username", "==", user));
-            const snapCheck = await getDocs(qCheck);
+            const qCheck = query(collection(db, "vendedores"), where("username", "==", user)); const snapCheck = await getDocs(qCheck);
             if (!snapCheck.empty) return alert("Nome de usuário já em uso!");
-
-            const snapAll = await getDocs(collection(db, "vendedores"));
-            const isFirstUser = snapAll.empty;
-            
-            await addDoc(collection(db, "vendedores"), {
-                username: user, password: pass, 
-                role: isFirstUser ? 'admin' : 'Pendente',
-                status: isFirstUser ? 'aprovado' : 'pendente',
-                comissao: 0, data_registro: window.formatDate(new Date())
-            });
-
+            const snapAll = await getDocs(collection(db, "vendedores")); const isFirstUser = snapAll.empty;
+            await addDoc(collection(db, "vendedores"), { username: user, password: pass, role: isFirstUser ? 'admin' : 'Pendente', status: isFirstUser ? 'aprovado' : 'pendente', comissao: 0, data_registro: window.formatDate(new Date()) });
             if (isFirstUser) alert("✨ Você é o primeiro! Foi promovido a ADMINISTRADOR automaticamente!\nFaça seu login.");
             else alert("Solicitação enviada! Aguarde a aprovação.");
             window.toggleAuthMode();
@@ -1318,31 +1041,20 @@
     };
 
     window.authLogout = function() {
-        window.usuarioLogado = null;
-        document.getElementById('auth-overlay').style.display = "flex";
-        document.getElementById('main-app').style.display = "none";
-        document.getElementById('tab-balanco').style.display = "none";
-        document.querySelector('.btn-admin').style.display = "none";
+        window.usuarioLogado = null; document.getElementById('auth-overlay').style.display = "flex"; document.getElementById('main-app').style.display = "none"; document.getElementById('tab-balanco').style.display = "none"; document.querySelector('.btn-admin').style.display = "none";
     };
 
     // =====================================
-    // GERENCIAMENTO (Admin + Comissões)
+    // ADMIN E COMISSÕES
     // =====================================
     window.carregarCargosAdmin = async function() {
         try {
-            const snap = await getDocs(collection(db, "cargos"));
-            window.todosCargos = [];
+            const snap = await getDocs(collection(db, "cargos")); window.todosCargos = [];
             snap.forEach(docSnap => window.todosCargos.push({ id: docSnap.id, ...docSnap.data() }));
-            
             const list = document.getElementById('admin-role-list');
             if(list) {
                 let html = "";
-                window.todosCargos.forEach(c => {
-                    html += `<li style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 4px; border: 1px solid #333;">
-                        <span style="color:var(--secondary); font-weight:bold;">${c.nome}</span>
-                        <button onclick="window.deletarCargo('${c.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-weight:bold; font-size:0.7rem;">EXCLUIR</button>
-                    </li>`;
-                });
+                window.todosCargos.forEach(c => { html += `<li style="display:flex; justify-content:space-between; align-items:center; background: rgba(0,0,0,0.4); padding: 8px 12px; border-radius: 4px; border: 1px solid #333;"><span style="color:var(--secondary); font-weight:bold;">${c.nome}</span><button onclick="window.deletarCargo('${c.id}')" style="background:#ef4444; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-weight:bold; font-size:0.7rem;">EXCLUIR</button></li>`; });
                 list.innerHTML = html || "<li style='text-align:center;'>Nenhum cargo extra criado.</li>";
             }
         } catch(e) {}
@@ -1350,25 +1062,17 @@
 
     window.carregarUsuariosAdmin = async function() {
         if (!window.todosCargos || window.todosCargos.length === 0) await window.carregarCargosAdmin();
-        const tbody = document.getElementById('admin-user-list');
-        tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Carregando...</td></tr>";
-
+        const tbody = document.getElementById('admin-user-list'); tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Carregando...</td></tr>";
         try {
-            const snap = await getDocs(collection(db, "vendedores"));
-            let html = "";
-            window.todosVendedoresDb = []; 
+            const snap = await getDocs(collection(db, "vendedores")); let html = ""; window.todosVendedoresDb = []; 
             snap.forEach(docSnap => {
-                const u = docSnap.data(); const uId = docSnap.id;
-                window.todosVendedoresDb.push({ id: uId, ...u });
-                
+                const u = docSnap.data(); const uId = docSnap.id; window.todosVendedoresDb.push({ id: uId, ...u });
                 if (window.usuarioLogado && uId === window.usuarioLogado.id) return;
-
                 const badgeClass = u.status === 'pendente' ? 'badge-pendente' : 'badge-aprovado';
                 let options = `<option value="admin" ${u.role==='admin'?'selected':''}>Admin Supremo</option>`;
                 window.todosCargos.forEach(c => { options += `<option value="${c.id}" ${u.role===c.id?'selected':''}>${c.nome}</option>`; });
                 const selCargo = `<select id="cargo-${uId}" class="pay-select" style="margin:0; padding:4px;">${options}</select>`;
                 const inpComissao = `<div style="display:flex; align-items:center;"><input type="number" id="comissao-${uId}" value="${u.comissao || 0}" class="pay-select" style="margin:0; padding:4px; width:60px; text-align:center;"> <span style="margin-left:5px">%</span></div>`;
-
                 let acoes = "";
                 if (u.status === 'pendente') {
                     if (window.hasPerm('user_approve')) acoes += `<button style="background:var(--buy); color:black; border:none; padding:5px; border-radius:3px; cursor:pointer;" onclick="window.aprovarVendedor('${uId}')">Aprovar</button> `;
@@ -1384,22 +1088,16 @@
     };
 
     window.alterarCargoVendedor = async function(docId) {
-        const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
-        const comissaoVal = parseFloat(document.getElementById(`comissao-${docId}`).value) || 0;
-        try { await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado, comissao: comissaoVal }); alert("Ficha atualizada!"); } 
-        catch(e) { alert("Erro ao atualizar."); }
+        const cargoSelecionado = document.getElementById(`cargo-${docId}`).value; const comissaoVal = parseFloat(document.getElementById(`comissao-${docId}`).value) || 0;
+        try { await updateDoc(doc(db, "vendedores", docId), { role: cargoSelecionado, comissao: comissaoVal }); alert("Ficha atualizada!"); } catch(e) { alert("Erro ao atualizar."); }
     };
 
     window.carregarComissoes = async function() {
-        const tbody = document.getElementById('comissoes-table-body');
-        const mesFiltro = document.getElementById('comissao-mes').value; 
+        const tbody = document.getElementById('comissoes-table-body'); const mesFiltro = document.getElementById('comissao-mes').value; 
         if(!mesFiltro || !window.todosVendedoresDb) return;
-
         tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>Calculando comissões e vales...</td></tr>";
-
         try {
-            const snapVendas = await getDocs(collection(db, "vendas"));
-            let vendasFunc = {};
+            const snapVendas = await getDocs(collection(db, "vendas")); let vendasFunc = {};
             snapVendas.forEach(docV => {
                 const v = docV.data();
                 if(v.data && v.data.endsWith(mesFiltro) && v.vendedor) {
@@ -1407,47 +1105,23 @@
                     vendasFunc[v.vendedor] += parseFloat(v.pedido.total || 0);
                 }
             });
-
-            const snapCompras = await getDocs(query(collection(db, "compras"), where("is_comissao", "==", true)));
-            let valesFunc = {};
+            const snapCompras = await getDocs(query(collection(db, "compras"), where("is_comissao", "==", true))); let valesFunc = {};
             snapCompras.forEach(docC => {
                 const c = docC.data();
                 if(c.data && c.data.endsWith(mesFiltro) && c.vendedor_ref) {
                     if(!valesFunc[c.vendedor_ref]) valesFunc[c.vendedor_ref] = 0;
-                    if(c.parcelas && Array.isArray(c.parcelas)) {
-                        c.parcelas.forEach(p => { if(p && p.status === 'pago') valesFunc[c.vendedor_ref] += parseFloat(p.valor || 0); });
-                    }
+                    if(c.parcelas && Array.isArray(c.parcelas)) { c.parcelas.forEach(p => { if(p && p.status === 'pago') valesFunc[c.vendedor_ref] += parseFloat(p.valor || 0); }); }
                 }
             });
-
             let html = "";
             window.todosVendedoresDb.forEach(u => {
                 if(u.status !== 'aprovado') return; 
-                const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0;
-                const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
-                
-                html += `<tr>
-                    <td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td>
-                    <td style="color:var(--primary);">$${totalVendido.toFixed(2)}</td>
-                    <td style="color:white;">$${comissaoBruta.toFixed(2)}</td>
-                    <td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td>
-                    <td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td>
-                    <td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td>
-                </tr>`;
+                const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0; const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
+                html += `<tr><td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td><td style="color:var(--primary);">$${totalVendido.toFixed(2)}</td><td style="color:white;">$${comissaoBruta.toFixed(2)}</td><td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td><td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td><td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td></tr>`;
             });
-            
             if (window.usuarioLogado && !window.todosVendedoresDb.find(x => x.username === window.usuarioLogado.username)) {
-                const u = window.usuarioLogado; const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0;
-                const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
-                
-                html += `<tr>
-                    <td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td>
-                    <td style="color:var(--primary);">$${totalVendido.toFixed(2)}</td>
-                    <td style="color:white;">$${comissaoBruta.toFixed(2)}</td>
-                    <td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td>
-                    <td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td>
-                    <td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td>
-                </tr>`;
+                const u = window.usuarioLogado; const nome = u.username; const pct = parseFloat(u.comissao || 0); const totalVendido = vendasFunc[nome] || 0; const comissaoBruta = totalVendido * (pct / 100); const valesTirados = valesFunc[nome] || 0; const restante = comissaoBruta - valesTirados;
+                html += `<tr><td style="color:white; font-weight:bold;">${nome} <span style="font-size:0.7rem; color:#aaa;">(${pct}%)</span></td><td style="color:var(--primary);">$${totalVendido.toFixed(2)}</td><td style="color:white;">$${comissaoBruta.toFixed(2)}</td><td style="color:var(--contas);">$${valesTirados.toFixed(2)}</td><td style="color:${restante < 0 ? '#ef4444' : 'var(--buy)'}; font-weight:bold;">$${restante.toFixed(2)}</td><td><button onclick="window.lancarValeFuncionario('${nome}')" style="background:#555; color:white; border:none; padding:4px 8px; border-radius:3px; cursor:pointer; font-size:0.7rem;">LANÇAR VALE / PAGAR</button></td></tr>`;
             }
             tbody.innerHTML = html || "<tr><td colspan='6' style='text-align:center; color:#aaa;'>Sem dados para exibir.</td></tr>";
         } catch(e) { console.error(e); tbody.innerHTML = "<tr><td colspan='6' style='color:red;'>Erro ao calcular comissões.</td></tr>"; }
@@ -1457,16 +1131,12 @@
         if(!window.hasPerm('admin')) return alert("Apenas admins podem lançar vales.");
         const val = prompt(`Lançamento de Vale/Pagamento para ${vendedorUsername}.\nDigite o valor ($):`);
         if(!val || isNaN(parseFloat(val)) || parseFloat(val) <= 0) return;
-        
         const dataHoje = window.formatDate(new Date());
         try {
             await addDoc(collection(db, "compras"), {
-                numero_pedido: `VALE ${Date.now()}`, vendedor: window.usuarioLogado.username,
-                cliente_doc_id: 'interno', cliente_nome: `FUNCIONÁRIO: ${vendedorUsername}`,
-                vendedor_ref: vendedorUsername, is_comissao: true, conta: 'Caixa Geral',
+                numero_pedido: `VALE ${Date.now()}`, vendedor: window.usuarioLogado.username, cliente_doc_id: 'interno', cliente_nome: `FUNCIONÁRIO: ${vendedorUsername}`, vendedor_ref: vendedorUsername, is_comissao: true, conta: 'Caixa Geral',
                 pedido: { itens: [{nome_produto: "Vale/Comissão", quantidade: 1, valor_unitario: parseFloat(val), subtotal: parseFloat(val), category: "Salários/Comissões"}], total: parseFloat(val), pagamento: 'À VISTA', entrada: 0, financiado: 0 },
-                parcelas: [{ numero: "1 (Pago)", valor: parseFloat(val), vencimento: dataHoje, data_pagamento: dataHoje, status: 'pago' }],
-                data: dataHoje
+                parcelas: [{ numero: "1 (Pago)", valor: parseFloat(val), vencimento: dataHoje, data_pagamento: dataHoje, status: 'pago' }], data: dataHoje
             });
             alert("Lançamento efetuado! Constará no Balanço."); window.carregarComissoes();
         } catch(e) { alert("Erro ao lançar vale."); }
@@ -1476,7 +1146,6 @@
         if (!window.hasPerm('admin')) return alert("Apenas admins.");
         const nome = document.getElementById('role-name-input').value.trim();
         if (!nome) return alert("Digite o nome do cargo!");
-        
         const permissoes = {
             cli_add: document.getElementById('perm_cli_add').checked, cli_edit: document.getElementById('perm_cli_edit').checked, cli_del: document.getElementById('perm_cli_del').checked,
             fat_pay: document.getElementById('perm_fat_pay').checked, fat_del: document.getElementById('perm_fat_del').checked, ver_balanco: document.getElementById('perm_ver_balanco').checked,
@@ -1494,8 +1163,7 @@
         try { await deleteDoc(doc(db, "cargos", cargoId)); alert("Cargo apagado!"); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
     window.aprovarVendedor = async function(docId) {
-        const cargoSelecionado = document.getElementById(`cargo-${docId}`).value;
-        if(!confirm("Deseja APROVAR este vendedor?")) return;
+        const cargoSelecionado = document.getElementById(`cargo-${docId}`).value; if(!confirm("Deseja APROVAR este vendedor?")) return;
         try { await updateDoc(doc(db, "vendedores", docId), { status: 'aprovado', role: cargoSelecionado }); window.carregarUsuariosAdmin(); } catch(e) { alert("Erro."); }
     };
     window.excluirVendedor = async function(docId) {
@@ -1504,7 +1172,7 @@
     };
 
     // =====================================
-    // 1. BUSCA E LISTAGEM CLIENTE/FORN
+    // LISTAGEM DE CLIENTE/FORN E CRUD
     // =====================================
     async function getNextSequence(counterName) {
         const counterRef = doc(db, "counters", counterName); const counterSnap = await getDoc(counterRef);
@@ -1531,6 +1199,37 @@
         } catch(e) { console.error(e); listDiv.innerHTML = "<span style='color:#ef4444'>Erro ao carregar dados.</span>"; }
     }
 
+    window.changeItemsPerPage = function() {
+        const val = document.getElementById('client-per-page').value; window.itemsPerPage = val === 'all' ? window.allPessoasData.length : parseInt(val); window.currentPage = 1; window.renderClientPage();
+    };
+
+    window.changePage = function(dir) { window.currentPage += dir; window.renderClientPage(); };
+
+    window.renderClientPage = function() {
+        const isForn = (window.currentMode === 'fornecedores' || window.currentMode === 'compras' || window.currentMode === 'contas_pagar');
+        const listDiv = document.getElementById('full-client-list-render'); const data = window.allPessoasData;
+        if(data.length === 0) { listDiv.innerHTML = "<span style='color:#aaa'>Nenhum registro encontrado.</span>"; document.getElementById('client-pagination').style.display = 'none'; return; }
+
+        const itemsPerPage = window.itemsPerPage || data.length; const totalPages = Math.ceil(data.length / itemsPerPage);
+        if (window.currentPage < 1) window.currentPage = 1; if (window.currentPage > totalPages) window.currentPage = totalPages;
+        const start = (window.currentPage - 1) * itemsPerPage; const end = start + itemsPerPage; const pageData = data.slice(start, end);
+
+        let html = "";
+        pageData.forEach((c, i) => {
+            const globalIdx = start + i; 
+            let extraInfo = isForn ? `<div style="color:var(--fornecedores); font-size:0.8rem;">${c.categoria || 'OUTROS'}</div>` : `<div style="color:var(--clientes); font-size:0.8rem;">${c.nivel || 'FERRO'}</div><div style="color:var(--buy); font-size:0.75rem;">Lim: $${parseFloat(c.limite_credito||0).toFixed(2)}</div>`;
+            html += `<div class="client-list-item" onclick="window.selecionarPessoaNaLista(${globalIdx})"><div><strong style="color:var(--primary)">${c.nome}</strong> <small style="color:#aaa">#${c.id_cliente}</small></div><div style="text-align:right">${extraInfo}</div></div>`;
+        });
+        listDiv.innerHTML = html;
+
+        const pagination = document.getElementById('client-pagination');
+        if (totalPages > 1) {
+            pagination.style.display = 'flex'; document.getElementById('page-indicator').innerText = `Página ${window.currentPage} de ${totalPages}`;
+            document.getElementById('btn-prev-page').disabled = window.currentPage === 1; document.getElementById('btn-next-page').disabled = window.currentPage === totalPages;
+            document.getElementById('btn-prev-page').style.opacity = window.currentPage === 1 ? '0.5' : '1'; document.getElementById('btn-next-page').style.opacity = window.currentPage === totalPages ? '0.5' : '1';
+        } else { pagination.style.display = 'none'; }
+    };
+
     window.buscarPessoaFirebase = async function() {
         const isForn = (window.currentMode === 'fornecedores' || window.currentMode === 'compras' || window.currentMode === 'contas_pagar');
         const dbName = isForn ? "fornecedores" : "clientes";
@@ -1553,9 +1252,7 @@
                 if (matchNome && matchId) {
                     window.resultadosBuscaFirebase.push(dados); const index = window.resultadosBuscaFirebase.length - 1;
                     const tColor = isForn ? "var(--fornecedores)" : "var(--clientes)"; const subLabel = isForn ? (dados.categoria || 'OUTROS') : (dados.nivel || 'FERRO');
-
-                    htmlList += `<div onclick="window.selecionarPessoaNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'">
-                        <strong style="color: var(--primary)">${dados.nome}</strong><br><small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small></div>`;
+                    htmlList += `<div onclick="window.selecionarPessoaNaLista(${index})" style="padding: 10px; border-bottom: 1px solid #333; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#333'" onmouseout="this.style.background='transparent'"><strong style="color: var(--primary)">${dados.nome}</strong><br><small style="color: #aaa">ID: ${dados.id_cliente || 'Sem ID'} | <span style="color:${tColor}">${subLabel}</span></small></div>`;
                 }
             });
             if (window.resultadosBuscaFirebase.length > 0) {
@@ -1604,9 +1301,6 @@
         } else { window.switchSystem(window.currentMode); }
     };
 
-    // =====================================
-    // 2. ABA CLIENTES / FORNECEDORES (CRUD)
-    // =====================================
     window.salvarPessoaFirebase = async function() {
         if(!window.hasPerm('cli_add')) return alert("Sem permissão para Cadastrar.");
         const isForn = (window.currentMode === 'fornecedores'); const dbName = isForn ? "fornecedores" : "clientes";
@@ -1614,10 +1308,8 @@
         const telegrama = String(document.getElementById('in-tele').value).trim(); const discord = String(document.getElementById('in-disc').value).trim(); const conta = String(document.getElementById('in-conta').value).trim();
         
         if(!nome || !id_cliente) return alert("Preencha Nome e ID para cadastrar!");
-
         try {
-            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase()));
-            const querySnapshot = await getDocs(q);
+            const q = query(collection(db, dbName), where("id_cliente", "==", id_cliente.toUpperCase())); const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) return alert(`ERRO: ID "${id_cliente.toUpperCase()}" já em uso!`);
             
             let objSalvar = { nome: nome.toUpperCase(), id_cliente: id_cliente.toUpperCase(), telegrama: telegrama.toUpperCase(), discord: discord.toUpperCase(), conta: conta.toUpperCase(), total_compras: 0, ultima_compra: "Nunca", data_cadastro: window.formatDate(new Date()) };
@@ -1660,32 +1352,24 @@
     };
 
     // =====================================
-    // 3. ABA VENDAS E COMPRAS (FINALIZAR)
+    // 3. VENDAS E COMPRAS (FINALIZAR OP)
     // =====================================
     window.finalizarOperacao = async function() {
         const isCompra = (window.currentMode === 'compras');
-        const dbNamePessoa = isCompra ? "fornecedores" : "clientes";
-        const dbNameOp = isCompra ? "compras" : "vendas";
-        const strPessoa = isCompra ? "fornecedor" : "cliente";
-        const strOp = isCompra ? "Compra" : "Venda";
+        const dbNamePessoa = isCompra ? "fornecedores" : "clientes"; const dbNameOp = isCompra ? "compras" : "vendas";
+        const strPessoa = isCompra ? "fornecedor" : "cliente"; const strOp = isCompra ? "Compra" : "Venda";
 
-        const totalVendaRaw = document.getElementById('total-val').innerText;
-        const totalVenda = parseFloat(totalVendaRaw);
-        
+        const totalVendaRaw = document.getElementById('total-val').innerText; const totalVenda = parseFloat(totalVendaRaw);
         let cartItemsForCurrentMode = window.carts[window.currentMode];
 
         if (totalVenda <= 0 || !cartItemsForCurrentMode || Object.keys(cartItemsForCurrentMode).length === 0) { return alert("O carrinho está vazio!"); }
         if (!window.pessoaSelecionada) return alert(`Para registrar, BUSQUE e SELECIONE o ${strPessoa} na Lupa 🔍 primeiro!`);
 
-        const paySelect = document.getElementById('pay-method');
-        const numParcelas = parseInt(paySelect.value);
-        const formaPagamento = paySelect.options[paySelect.selectedIndex].text;
-        
+        const paySelect = document.getElementById('pay-method'); const numParcelas = parseInt(paySelect.value); const formaPagamento = paySelect.options[paySelect.selectedIndex].text;
         let entryVal = parseFloat(document.getElementById('entry-val').value) || 0;
         if (entryVal > totalVenda) { alert("O valor da entrada não pode ser maior do que o total da operação!"); return; }
         
-        const valorFinanciado = totalVenda - entryVal;
-        let creditoDisponivel = 0;
+        const valorFinanciado = totalVenda - entryVal; let creditoDisponivel = 0;
         
         if (!isCompra) {
             creditoDisponivel = parseFloat(window.pessoaSelecionada.credito_disponivel || 0);
@@ -1700,30 +1384,21 @@
         }));
 
         try {
-            const dataHoje = window.formatDate(new Date());
-            const anoAtual = new Date().getFullYear();
+            const dataHoje = window.formatDate(new Date()); const anoAtual = new Date().getFullYear();
             const counterName = isCompra ? `compras_faturas_${anoAtual}` : `vendas_faturas_${anoAtual}`;
-            const prefix = isCompra ? "COMPRA" : "FATURA";
-            const seqFatura = await getNextSequence(counterName);
+            const prefix = isCompra ? "COMPRA" : "FATURA"; const seqFatura = await getNextSequence(counterName);
             const numPedido = `${prefix} ${String(seqFatura).padStart(5, '0')}/${anoAtual}`;
 
             let parcelasArray = [];
-            
             if (entryVal > 0) { parcelasArray.push({ numero: "Entrada", valor: entryVal, vencimento: dataHoje, status: 'pendente' }); }
 
             if (numParcelas > 1 && valorFinanciado > 0) {
-                const valorDaParcela = valorFinanciado / numParcelas;
-                const dataBaseInput = document.getElementById('first-payment-date').value;
-                let baseDate = dataBaseInput ? new Date(dataBaseInput + "T00:00:00") : new Date();
-                
+                const valorDaParcela = valorFinanciado / numParcelas; const dataBaseInput = document.getElementById('first-payment-date').value; let baseDate = dataBaseInput ? new Date(dataBaseInput + "T00:00:00") : new Date();
                 for(let i=0; i < numParcelas; i++) {
-                    let nextDate = new Date(baseDate);
-                    nextDate.setDate(baseDate.getDate() + (i * 2)); 
+                    let nextDate = new Date(baseDate); nextDate.setDate(baseDate.getDate() + (i * 2)); 
                     parcelasArray.push({ numero: i + 1, valor: valorDaParcela, vencimento: window.formatDate(nextDate), status: 'pendente' });
                 }
-            } else if (valorFinanciado > 0) {
-                parcelasArray.push({ numero: "1 (À Vista)", valor: valorFinanciado, vencimento: dataHoje, status: 'pendente' });
-            }
+            } else if (valorFinanciado > 0) { parcelasArray.push({ numero: "1 (À Vista)", valor: valorFinanciado, vencimento: dataHoje, status: 'pendente' }); }
 
             await addDoc(collection(db, dbNameOp), {
                 numero_pedido: numPedido, vendedor: window.usuarioLogado ? window.usuarioLogado.username : 'Desconhecido',
@@ -1732,53 +1407,32 @@
                 parcelas: parcelasArray, data: dataHoje, hora: new Date().toLocaleTimeString('pt-BR')
             });
             
-            const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0);
-            let updateCli = { total_compras: oldTotalCompras + totalVenda, ultima_compra: dataHoje };
+            const oldTotalCompras = parseFloat(window.pessoaSelecionada.total_compras || 0); let updateCli = { total_compras: oldTotalCompras + totalVenda, ultima_compra: dataHoje };
             
             if (!isCompra && totalVenda > 0) {
-                const novoC = creditoDisponivel - totalVenda;
-                updateCli.credito_disponivel = novoC;
-                window.pessoaSelecionada.credito_disponivel = novoC;
-                document.getElementById('stat-credito').innerText = `$${novoC.toFixed(2)}`;
+                const novoC = creditoDisponivel - totalVenda; updateCli.credito_disponivel = novoC; window.pessoaSelecionada.credito_disponivel = novoC; document.getElementById('stat-credito').innerText = `$${novoC.toFixed(2)}`;
             }
             await updateDoc(doc(db, dbNamePessoa, window.pessoaSelecionada.firebase_doc_id), updateCli);
             
-            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nLembre-se de ir na aba Crediário/Contas para confirmar o pagamento.`);
+            alert(`✅ ${strOp} confirmada!\nNúmero: ${numPedido}\nLembre-se de ir na aba Crediário/Contas para dar baixa no pagamento.`);
             if(typeof window.generateImage === 'function') await window.generateImage();
             window.clearCart();
-        } catch (error) { console.error(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
+        } catch (error) { console.log(error); alert(`Erro ao finalizar a ${strOp.toLowerCase()}!`); }
     };
 
     // =====================================
-    // 4. ABA CREDIÁRIO / CONTAS A PAGAR
+    // 4. CREDIÁRIO / CONTAS A PAGAR / FATURAS
     // =====================================
-    function isAtrasada(dataStr) {
-        if(typeof dataStr !== 'string' || !dataStr) return false;
-        const parts = dataStr.split('/');
-        if(parts.length !== 3) return false;
-        const vencimento = new Date(parts[2], parts[1] - 1, parts[0]);
-        const hoje = new Date(); hoje.setHours(0,0,0,0);
-        return vencimento < hoje;
-    }
-
     window.aplicarFiltroCrediario = async function() {
-        const isContas = (window.currentMode === 'contas_pagar');
-        const dbName = isContas ? "compras" : "vendas";
+        const isContas = (window.currentMode === 'contas_pagar'); const dbName = isContas ? "compras" : "vendas";
+        const filtro = document.getElementById('crediario-filter-select').value; const subFiltro = document.getElementById('crediario-extrato-filter').value;
+        const listContainer = document.getElementById('crediario-list'); const placar = document.getElementById('crediario-placar');
         
-        const filtro = document.getElementById('crediario-filter-select').value;
-        const subFiltro = document.getElementById('crediario-extrato-filter').value;
-        const listContainer = document.getElementById('crediario-list');
-        const placar = document.getElementById('crediario-placar');
-        
-        listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Buscando no servidor...</div>";
-        listContainer.style.display = "flex"; placar.style.display = "none";
+        listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Buscando no servidor...</div>"; listContainer.style.display = "flex"; placar.style.display = "none";
 
         if(filtro === 'CLIENT_ONLY') {
             document.getElementById('info-contato').style.display = "flex"; document.getElementById('sub-filter-crediario').style.display = "block";
-            if(!window.pessoaSelecionada) {
-                listContainer.innerHTML = `<div style='color: #aaa; text-align:center;'>Busque um ${isContas?'Fornecedor':'Cliente'} na lupa acima.</div>`;
-                document.getElementById('btn-img-only').style.display = "none"; return;
-            }
+            if(!window.pessoaSelecionada) { listContainer.innerHTML = `<div style='color: #aaa; text-align:center;'>Busque um ${isContas?'Fornecedor':'Cliente'} na lupa acima.</div>`; document.getElementById('btn-img-only').style.display = "none"; return; }
             document.getElementById('btn-img-only').style.display = "block";
         } else {
             document.getElementById('info-contato').style.display = "none"; document.getElementById('sub-filter-crediario').style.display = "none"; document.getElementById('btn-img-only').style.display = "none";
@@ -1788,18 +1442,10 @@
             if (filtro === 'NEGATIVE_CREDIT' && !isContas) {
                 const q = query(collection(db, "clientes"), where("credito_disponivel", "<", 0)); const snap = await getDocs(q);
                 let html = "<h4 style='color: #ef4444; margin:0 0 10px 0;'>CLIENTES COM LIMITE NEGATIVO</h4>"; let count = 0;
-                snap.forEach(doc => {
-                    const c = doc.data();
-                    html += `<div class="fatura-card" style="border-color: #ef4444;">
-                        <strong style="color: var(--primary)">${c.nome}</strong> (ID: ${c.id_cliente})<br>
-                        <div style="color: #ef4444; font-weight: bold; margin-top:5px;">Crédito: $${parseFloat(c.credito_disponivel).toFixed(2)}</div>
-                    </div>`; count++;
-                });
+                snap.forEach(doc => { const c = doc.data(); html += `<div class="fatura-card" style="border-color: #ef4444;"><strong style="color: var(--primary)">${c.nome}</strong> (ID: ${c.id_cliente})<br><div style="color: #ef4444; font-weight: bold; margin-top:5px;">Crédito: $${parseFloat(c.credito_disponivel).toFixed(2)}</div></div>`; count++; });
                 if(count === 0) html = "<div style='color: var(--buy); text-align:center;'>Todos os clientes estão com saldo positivo! 🎉</div>";
                 listContainer.innerHTML = html; return;
-            } else if (filtro === 'NEGATIVE_CREDIT' && isContas) {
-                listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>"; return;
-            }
+            } else if (filtro === 'NEGATIVE_CREDIT' && isContas) { listContainer.innerHTML = "<div style='color: #aaa; text-align:center;'>Filtro não se aplica a Fornecedores.</div>"; return; }
 
             let q = collection(db, dbName);
             if (filtro === 'CLIENT_ONLY') {
@@ -1810,14 +1456,17 @@
             
             const snap = await getDocs(q);
             let htmlList = ""; let temFatura = false; let totalReceber = 0; let totalAtraso = 0;
-            let vendasData = [];
-            snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
-            
+            let vendasData = []; snap.forEach(doc => { vendasData.push({...doc.data(), docId: doc.id}); });
             vendasData.sort((a,b) => window.isoDate(b.data).localeCompare(window.isoDate(a.data)));
+
+            const checkLate = (dataStr) => {
+                if(!dataStr) return false; const parts = dataStr.split('/'); if(parts.length !== 3) return false;
+                const v = new Date(parts[2], parts[1] - 1, parts[0]); const h = new Date(); h.setHours(0,0,0,0); return v < h;
+            };
 
             vendasData.forEach(venda => {
                 try {
-                    // SAFEGUARD
+                    // SAFEGUARD DE PROTEÇÃO CONTRA FATURAS QUEBRADAS ANTIGAS
                     if (!venda.parcelas || !Array.isArray(venda.parcelas) || venda.parcelas.length === 0) {
                         if (filtro === 'ALL_PENDING' || filtro === 'ALL_LATE') return; 
                         venda.parcelas = [{ numero: "?", valor: venda.pedido ? parseFloat(venda.pedido.total||0) : 0, vencimento: venda.data || "N/I", status: "pendente" }];
@@ -1827,18 +1476,16 @@
                         venda.parcelas.forEach(p => {
                             if (p && p.status !== 'pago') {
                                 const val = parseFloat(p.valor || 0);
-                                if (!isNaN(val)) { totalReceber += val; if (isAtrasada(p.vencimento)) totalAtraso += val; }
+                                if (!isNaN(val)) { totalReceber += val; if (checkLate(p.vencimento)) totalAtraso += val; }
                             }
                         });
-                        let temPendente = false;
-                        venda.parcelas.forEach(p => { if (p && p.status !== 'pago') temPendente = true; });
+                        let temPendente = false; venda.parcelas.forEach(p => { if (p && p.status !== 'pago') temPendente = true; });
                         if (subFiltro === 'OPEN' && !temPendente) return; 
                     }
 
                     let parcelasFiltradas = [];
                     venda.parcelas.forEach((p, index) => {
-                        if(!p) return;
-                        const isLate = isAtrasada(p.vencimento);
+                        if(!p) return; const isLate = checkLate(p.vencimento);
                         if (filtro === 'CLIENT_ONLY') { parcelasFiltradas.push({p, index, isLate});
                         } else if (p.status !== 'pago') {
                             if (filtro === 'ALL_PENDING') parcelasFiltradas.push({p, index, isLate});
@@ -1848,6 +1495,7 @@
 
                     if(parcelasFiltradas.length > 0) {
                         temFatura = true;
+                        
                         let itensArray = (venda.pedido && Array.isArray(venda.pedido.itens)) ? venda.pedido.itens : [];
                         let itensHtml = itensArray.length > 0 ? itensArray.map(i => `${i.quantidade}x ${i.nome_produto} ($${parseFloat(i.subtotal||0).toFixed(2)})`).join('<br>') : "<i style='color:#ef4444'>Itens não registrados (Fatura Antiga)</i>";
                         
@@ -1861,19 +1509,11 @@
                             <div class="print-header" id="print-header-${venda.docId}">
                                 <img src="https://i.imgur.com/bQAy1gG.png" style="width:60px;">
                                 <h4 style="margin:5px 0 0 0; color:${corHeader};">FERRARIA CUSCO</h4>
-                                <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;">
-                                    <b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome || 'N/I'}<br>
-                                    <b>FATURA:</b> ${venda.numero_pedido || 'N/I'}
-                                </div>
+                                <div style="font-size:0.8rem; color:#aaa; margin-top:10px; text-align:center; width:100%;"><b>${isContas?'FORNECEDOR':'CLIENTE'}:</b> ${venda.cliente_nome || 'N/I'}<br><b>FATURA:</b> ${venda.numero_pedido || 'N/I'}</div>
                             </div>
-                            <div class="fatura-header">
-                                <span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido || 'N/I'} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome || 'N/I'}</span>` : ''}</span>
-                                <span class="fatura-date">${venda.data || ''}</span>
-                            </div>
+                            <div class="fatura-header"><span class="fatura-id" style="color:${corHeader};">📄 ${venda.numero_pedido || 'N/I'} ${filtro !== 'CLIENT_ONLY' ? ` - <span style="color:white">${venda.cliente_nome || 'N/I'}</span>` : ''}</span><span class="fatura-date">${venda.data || ''}</span></div>
                             <div class="toggle-itens-btn" style="font-size: 0.75rem; color:var(--secondary); margin-bottom: 10px; cursor:pointer;" onclick="window.toggleItens('itens-${venda.docId}')">📦 Ver Itens da Fatura ▾</div>
-                            <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;">
-                                <b>Itens:</b><br>${itensHtml}
-                            </div>`;
+                            <div class="fatura-itens" id="itens-${venda.docId}" style="display:none; background:rgba(0,0,0,0.3); padding:10px; border-radius:4px; font-size:0.75rem; margin-bottom:10px; color:#ccc;"><b>Itens:</b><br>${itensHtml}</div>`;
                         
                         parcelasFiltradas.forEach(obj => {
                             const p = obj.p; const idx = obj.index; const isPago = p.status === 'pago';
@@ -1885,11 +1525,7 @@
                             } else if (window.hasPerm('fat_pay')) { badge = `<button class="btn-pay" onclick="window.receberParcelaGlobal('${venda.docId}', '${venda.cliente_doc_id}', ${idx}, ${p.valor})">${isContas?'PAGAR':'RECEBER'}</button>`; }
                             
                             const labelLate = (!isPago && obj.isLate) ? '<span style="color:#ef4444; font-size:0.7rem; margin-left:5px;">(ATRASADA)</span>' : '';
-                            
-                            htmlList += `<div class="fatura-parcela" style="${corCss}">
-                                <span>Parc ${p.numero || '?'} - ${p.vencimento || '?'} - <b>$${parseFloat(p.valor||0).toFixed(2)}</b> ${labelLate}</span>
-                                ${badge}
-                            </div>`;
+                            htmlList += `<div class="fatura-parcela" style="${corCss}"><span>Parc ${p.numero || '?'} - ${p.vencimento || '?'} - <b>$${parseFloat(p.valor||0).toFixed(2)}</b> ${labelLate}</span>${badge}</div>`;
                         });
                         htmlList += `${faturaBtns}</div>`;
                     }
@@ -1904,7 +1540,7 @@
                     placar.style.display = "block";
                 }
             } else { listContainer.innerHTML = "<div style='color: var(--buy); text-align:center; font-weight:bold;'>Nenhum histórico/fatura encontrado neste filtro!</div>"; }
-        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato.</div>`; }
+        } catch(e) { console.error("Erro na listagem:", e); listContainer.innerHTML = `<div style='color: #ef4444;'>Erro crítico ao processar extrato. Contate suporte.</div>`; }
     };
 
     window.receberParcelaGlobal = async function(vendaDocId, clienteDocId, parcelaIndex, valorParcela) {
@@ -1925,7 +1561,7 @@
             dadosVenda.parcelas[parcelaIndex].data_pagamento = dataDigitada; 
             await updateDoc(vendaRef, { parcelas: dadosVenda.parcelas });
 
-            if(!isContas) {
+            if(!isContas && clienteDocId !== 'interno') {
                 const clienteRef = doc(db, "clientes", clienteDocId); const clienteSnap = await getDoc(clienteRef);
                 if(clienteSnap.exists()) {
                     const dadosCli = clienteSnap.data(); const credAtual = parseFloat(dadosCli.credito_disponivel || 0);
@@ -1949,34 +1585,48 @@
         try { await deleteDoc(doc(db, dbName, vendaDocId)); alert("Fatura Apagada com sucesso!"); window.aplicarFiltroCrediario(); } catch (error) { console.error(error); alert("Falha ao apagar fatura."); }
     };
 
-    window.imprimirFaturaUnica = async function(docId) {
-        const card = document.getElementById(`fatura-card-${docId}`); if (!card) return;
-        const oldBg = card.style.background; const oldBorder = card.style.border;
-        card.style.background = "#1e1e1e"; card.style.border = "none";
-        document.getElementById(`print-header-${docId}`).style.display = 'flex'; document.getElementById(`itens-${docId}`).style.display = 'block'; 
-        
-        const actions = card.querySelector('.fatura-actions'); if(actions) actions.style.display = 'none';
-        const toggleBtn = card.querySelector('.toggle-itens-btn'); if(toggleBtn) toggleBtn.style.display = 'none';
-        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'none');
-
-        try {
-            const canvas = await html2canvas(card, { backgroundColor: "#1e1e1e", scale: 2, useCORS: true });
-            const link = document.createElement('a'); link.download = `FATURA_${docId}_${Date.now()}.png`; link.href = canvas.toDataURL(); link.click();
-        } catch(e) { console.error(e); alert("Erro ao gerar a imagem da fatura."); }
-
-        card.style.background = oldBg; card.style.border = oldBorder;
-        document.getElementById(`print-header-${docId}`).style.display = 'none'; document.getElementById(`itens-${docId}`).style.display = 'none';
-        if(actions) actions.style.display = 'flex'; if(toggleBtn) toggleBtn.style.display = 'block';
-        card.querySelectorAll('.btn-pay').forEach(b => b.style.display = 'inline-block');
-    };
-
     // =====================================
-    // ABA BALANÇO FINANCEIRO (DRE) E CAIXA
+    // BALANÇO E DRE
     // =====================================
     window.salvarSaldoBanco = async function() {
         const val = parseFloat(document.getElementById('in-saldo-banco').value) || 0;
-        try { await setDoc(doc(db, "config", "financas"), { saldo_banco: val }); alert("Saldo Físico no Banco atualizado!"); window.carregarBalanco(); } catch(e) { console.error(e); alert("Erro ao salvar saldo no banco."); }
-    }
+        try { await setDoc(doc(db, "config", "financas"), { saldo_banco: val }); alert("Saldo Físico no Banco atualizado!"); window.carregarBalanco(); } catch(e) { console.error(e); alert("Erro ao salvar saldo."); }
+    };
+
+    window.renderSalesChart = function() {
+        if(!window.todasVendasGerais || window.todasVendasGerais.length === 0) return;
+        const filtro = document.getElementById('sales-chart-filter').value;
+        let groups = {};
+        
+        const dataHoje = new Date(); dataHoje.setHours(0,0,0,0);
+        const limite30Dias = new Date(dataHoje); limite30Dias.setDate(dataHoje.getDate() - 30);
+
+        window.todasVendasGerais.forEach(v => {
+            if(!v.data) return;
+            const parts = v.data.split('/'); if(parts.length !== 3) return;
+            const totalVal = parseFloat(v.pedido.total || 0);
+            
+            if (filtro === 'diario') {
+                const dVenda = new Date(parts[2], parts[1]-1, parts[0]);
+                if(dVenda >= limite30Dias) { const key = `${parts[0]}/${parts[1]}`; groups[key] = (groups[key] || 0) + totalVal; }
+            } else if (filtro === 'mensal') {
+                const key = `${parts[1]}/${parts[2]}`; groups[key] = (groups[key] || 0) + totalVal;
+            } else if (filtro === 'anual') {
+                const key = `${parts[2]}`; groups[key] = (groups[key] || 0) + totalVal;
+            }
+        });
+
+        const sortedKeys = Object.keys(groups).sort((a,b) => {
+            if(filtro === 'diario') { const pA = a.split('/'); const pB = b.split('/'); if(pA[1] !== pB[1]) return parseInt(pA[1]) - parseInt(pB[1]); return parseInt(pA[0]) - parseInt(pB[0]);
+            } else if(filtro === 'mensal') { const pA = a.split('/'); const pB = b.split('/'); if(pA[1] !== pB[1]) return parseInt(pA[1]) - parseInt(pB[1]); return parseInt(pA[0]) - parseInt(pB[0]); }
+            return parseInt(a) - parseInt(b); 
+        });
+
+        const labels = sortedKeys; const data = sortedKeys.map(k => groups[k]);
+        const ctx = document.getElementById('salesBarChart').getContext('2d');
+        if (window.salesBarChart) window.salesBarChart.destroy();
+        window.salesBarChart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Volume ($)', data: data, backgroundColor: 'rgba(245, 158, 11, 0.5)', borderColor: 'var(--primary)', borderWidth: 1 }] }, options: { responsive: true, scales: { y: { beginAtZero: true, ticks: {color: '#aaa'} }, x: { ticks: {color: '#aaa'} } }, plugins: { legend: { display: false } } } });
+    };
 
     window.carregarBalanco = async function() {
         const tbody = document.getElementById('balanco-table-body'); const tExtrato = document.getElementById('extrato-table-body');
@@ -2021,6 +1671,7 @@
                     if(dataParts.length === 3) {
                         const period = `${dataParts[1]}/${dataParts[2]}`;
                         if(!aggregated[period]) aggregated[period] = { entradas: 0, saidas: 0 };
+                        
                         let valorAntigoPerdido = 0;
                         if(v.pedido && v.pedido.pagamento === 'À VISTA' && !hasAVistaParcela && (!v.parcelas || v.parcelas.length === 0)) { valorAntigoPerdido = parseFloat(v.pedido.total || 0);
                         } else if (v.pedido && parseFloat(v.pedido.entrada || 0) > 0 && !hasEntradaParcela) { valorAntigoPerdido = parseFloat(v.pedido.entrada); }
